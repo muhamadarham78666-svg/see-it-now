@@ -63,8 +63,11 @@ export function Link({ to, children, ...rest }: LinkProps) {
   );
 }
 
-type NavLinkProps = Omit<LinkProps, "className" | "children"> & {
+type NavLinkProps = {
+  to: string;
   end?: boolean;
+  replace?: boolean;
+  onClick?: (e: React.MouseEvent) => void;
   className?: string | ((state: { isActive: boolean }) => string);
   children?: ReactNode | ((state: { isActive: boolean }) => ReactNode);
 };
