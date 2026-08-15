@@ -57,7 +57,7 @@ type LinkProps = {
 
 export function Link({ to, children, ...rest }: LinkProps) {
   return (
-    <TsLink to={to} {...(rest as never)}>
+    <TsLink to={to} {...(rest as Record<string, unknown>)}>
       {children}
     </TsLink>
   );
@@ -78,7 +78,7 @@ export function NavLink({ to, end, className, children, ...rest }: NavLinkProps)
   const resolvedChildren = typeof children === "function" ? children({ isActive }) : children;
 
   return (
-    <TsLink to={to} className={resolvedClass} {...(rest as never)}>
+    <TsLink to={to} className={resolvedClass} {...(rest as Record<string, unknown>)}>
       {resolvedChildren}
     </TsLink>
   );
