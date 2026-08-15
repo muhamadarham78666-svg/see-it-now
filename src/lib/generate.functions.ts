@@ -32,6 +32,6 @@ const inputSchema = z.object({
 export const generateQuestionsFn = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data }) => {
-    const questions = await requestQuestions(data.text, data.attachments, data.settings);
-    return { questions };
+    const raw = await requestQuestions(data.text, data.attachments, data.settings);
+    return { questions: normalizeQuestions(raw) };
   });
