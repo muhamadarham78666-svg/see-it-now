@@ -141,3 +141,58 @@ export async function requestQuestions(
     lastError ? `AI generation failed: ${lastError.slice(0, 200)}` : "AI generation failed.",
   );
 }
+
+export interface QuestionDraft {
+  question_text: string;
+  question_type: "mcq" | "short" | "long";
+  options: { label: string; text: string }[] | null;
+  correct_answer: string | null;
+  expected_answer: string | null;
+  answer_points: string[] | null;
+  explanation: string | null;
+  difficulty: "easy" | "medium" | "hard";
+  topic: string | null;
+  marks: number;
+}
+
+const LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"];
+
+export function normalizeQuestions(raw: Record<string, unknown>[]): QuestionDraft[] {
+  return raw.map((q) => {
+    const type = ((): QuestionDraft["question_type"] => {
+      const t = String(q["question_type"] ?? "mcq").toLowerCase();
+      return t === "short" || t === "long" ? t : "mcq";
+    })();
+    const rawOptions = Array.isArray(q["options"]) ? (q["options"] as unknown[]) : null;
+    const options =
+      type === "mcq" && rawOptions
+        ? rawOptions.map((o, i) => {
+            const obj = (typeof o === "object" && o !== null ? o : {}) as Record<string, unknown>;
+            return {
+              label: String(obj["label"] ?? LETTERS[i] ?? String(i + 1)),
+              text: String(obj["text"] ?? (typeof o === "string" ? o : "")),
+            };
+          })
+        : null;
+    const difficulty = ((): QuestionDraft["difficulty"] => {
+      const d = String(q["difficulty"] ?? "medium").toLowerCase();
+      return d === "easy" || d === "hard" ? d : "medium";
+    })();
+    const points = Array.isArray(q["answer_points"])
+      ? (q["answer_points"] as unknown[]).map((p) => String(p))
+      : null;
+    const marksRaw = Number(q["marks"]);
+    return {
+      question_text: String(q["question_text"] ?? "").trim(),
+      question_type: type,
+      options,
+      correct_answer: q["correct_answer"] != null ? String(q["correct_answer"]) : null,
+      expected_answer: q["expected_answer"] != null ? String(q["expected_answer"]) : null,
+      answer_points: type === "long" ? points : null,
+      explanation: q["explanation"] != null ? String(q["explanation"]) : null,
+      difficulty,
+      topic: q["topic"] != null ? String(q["topic"]) : null,
+      marks: Number.isFinite(marksRaw) && marksRaw > 0 ? marksRaw : type === "long" ? 5 : type === "short" ? 2 : 1,
+    };
+  }).filter((q) => q.question_text.length > 0);
+}
