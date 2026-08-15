@@ -11,11 +11,18 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(() => {
+  const [theme, setThemeState] = useState<Theme>('light');
+
+  useEffect(() => {
     const stored = localStorage.getItem('nsagpt-theme');
-    if (stored === 'light' || stored === 'dark') return stored;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  });
+    if (stored === 'light' || stored === 'dark') {
+      setThemeState(stored);
+      return;
+    }
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      setThemeState('dark');
+    }
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;
