@@ -8,6 +8,7 @@ import { Features } from '@/components/landing/Features';
 import { WhyNSAGPT } from '@/components/landing/WhyNSAGPT';
 import { AccessControl } from '@/components/landing/AccessControl';
 import { Footer } from '@/components/landing/Footer';
+import { Reveal } from '@/components/landing/Reveal';
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -21,28 +22,38 @@ export function LandingPage() {
   const goToLogin = () => navigate('/login');
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900">
+    <div className="min-h-screen bg-white dark:bg-slate-900 scroll-smooth">
       <LandingNav onGetStarted={goToLogin} />
 
       <Hero onGetStarted={goToLogin} onWatchGuide={scrollToGuide} />
 
       <div id="how-it-works">
-        <HowItWorks />
+        <Reveal>
+          <HowItWorks />
+        </Reveal>
       </div>
 
       <div id="guide">
-        <GuideVideo videoRef={(el) => { if (el) guideRef.current = el; }} />
+        <Reveal delay={80}>
+          <GuideVideo videoRef={(el) => { if (el) guideRef.current = el; }} />
+        </Reveal>
       </div>
 
       <div id="features">
-        <Features />
+        <Reveal>
+          <Features />
+        </Reveal>
       </div>
 
       <div id="why">
-        <WhyNSAGPT />
+        <Reveal delay={80}>
+          <WhyNSAGPT />
+        </Reveal>
       </div>
 
-      <AccessControl onLogin={goToLogin} onContact={goToLogin} />
+      <Reveal>
+        <AccessControl onLogin={goToLogin} onContact={goToLogin} />
+      </Reveal>
 
       <Footer />
     </div>
