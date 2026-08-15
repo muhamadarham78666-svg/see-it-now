@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requestQuestions } from "./generate.server";
+import { normalizeQuestions, requestQuestions } from "./generate.server";
 
 const inputSchema = z.object({
   text: z.string().default(""),
