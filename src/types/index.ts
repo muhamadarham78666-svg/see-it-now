@@ -97,12 +97,19 @@ export interface PaperQuestion {
   question?: Question;
 }
 
+export interface QuestionTypeCounts {
+  mcq: number;
+  short: number;
+  long: number;
+}
+
 export interface GenerationSettings {
   language: Language;
   questionType: QuestionType;
   questionCount: number;
   difficulty: Difficulty;
   mcqOptionsCount: number;
+  typeCounts?: QuestionTypeCounts | null;
   subject?: string;
   chapter?: string;
   title?: string;

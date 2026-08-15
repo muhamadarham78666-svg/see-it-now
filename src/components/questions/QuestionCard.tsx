@@ -84,7 +84,13 @@ export function QuestionCard({
           </div>
 
           {/* Question text */}
-          <p className={cn('text-slate-800 dark:text-slate-100 font-medium mb-3', isUrdu ? 'text-lg leading-loose' : 'text-sm sm:text-base')}>
+          <p
+            dir={isUrdu ? 'rtl' : 'ltr'}
+            className={cn(
+              'text-slate-800 dark:text-slate-100 font-medium mb-3',
+              isUrdu ? 'text-lg leading-loose text-right' : 'text-sm sm:text-base text-left',
+            )}
+          >
             {question.question_text}
           </p>
 
