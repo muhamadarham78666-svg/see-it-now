@@ -78,7 +78,7 @@ export function NavLink({ to, end, className, children, ...rest }: NavLinkProps)
   const resolvedChildren = typeof children === "function" ? children({ isActive }) : children;
 
   return (
-    <TsLink to={to} className={resolvedClass} {...(rest as Record<string, unknown>)}>
+    <TsLink {...(rest as Record<string, unknown>)} to={to} className={resolvedClass}>
       {resolvedChildren}
     </TsLink>
   );
@@ -86,9 +86,8 @@ export function NavLink({ to, end, className, children, ...rest }: NavLinkProps)
 
 export function Navigate({ to, replace }: { to: string; replace?: boolean }) {
   const navigate = useNavigate();
-  useMemo(() => undefined, []);
-  if (typeof window !== "undefined") {
-    setTimeout(() => navigate(to, { replace }), 0);
-  }
+  useEffect(() => {
+    navigate(to, { replace });
+  }, [navigate, to, replace]);
   return null;
 }
