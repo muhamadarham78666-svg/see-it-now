@@ -14,9 +14,9 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Spinner, EmptyState } from '@/components/ui/Feedback';
+import { Card } from '@/components/nsa/Card';
+import { Badge } from '@/components/nsa/Badge';
+import { Spinner, EmptyState } from '@/components/nsa/Feedback';
 import { supabase } from '@/lib/supabase';
 import { formatDateTime } from '@/lib/utils';
 import type { Generation } from '@/types';

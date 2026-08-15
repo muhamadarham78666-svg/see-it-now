@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from '@/lib/rr';
 import { Search, Filter, Archive, Plus, Trash2, Newspaper, X, Download } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/nsa/Card';
+import { Button } from '@/components/nsa/Button';
 
-import { Spinner, EmptyState } from '@/components/ui/Feedback';
+import { Spinner, EmptyState } from '@/components/nsa/Feedback';
 import { QuestionCard } from '@/components/questions/QuestionCard';
 import { QuestionEditModal } from '@/components/questions/QuestionEditModal';
 import { supabase } from '@/lib/supabase';

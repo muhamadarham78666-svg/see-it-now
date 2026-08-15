@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from '@/lib/rr';
 import { History, Clock, Trash2, Copy, Eye, FileDown, ArrowRight } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Spinner, EmptyState } from '@/components/ui/Feedback';
+import { Card } from '@/components/nsa/Card';
+import { Button } from '@/components/nsa/Button';
+import { Badge } from '@/components/nsa/Badge';
+import { Spinner, EmptyState } from '@/components/nsa/Feedback';
 import { supabase } from '@/lib/supabase';
 import { formatDateTime } from '@/lib/utils';
 import type { Generation, Question } from '@/types';

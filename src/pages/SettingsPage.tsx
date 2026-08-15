@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Settings as SettingsIcon, Globe, Gauge, Hash, ListOrdered, Sun, Moon, User, Save, Check } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { SegmentedControl } from '@/components/ui/Toggle';
+import { Card } from '@/components/nsa/Card';
+import { Button } from '@/components/nsa/Button';
+import { Badge } from '@/components/nsa/Badge';
+import { SegmentedControl } from '@/components/nsa/Toggle';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { supabase } from '@/lib/supabase';

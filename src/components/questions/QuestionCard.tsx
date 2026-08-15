@@ -9,7 +9,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/Badge';
+import { Badge } from '@/components/nsa/Badge';
 import { getLetterLabel, cn } from '@/lib/utils';
 import type { Question } from '@/types';
 

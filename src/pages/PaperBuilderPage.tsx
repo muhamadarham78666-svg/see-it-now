@@ -14,11 +14,11 @@ import {
   ChevronDown,
   X,
 } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Spinner, EmptyState } from '@/components/ui/Feedback';
-import { Modal } from '@/components/ui/Modal';
+import { Card } from '@/components/nsa/Card';
+import { Button } from '@/components/nsa/Button';
+import { Badge } from '@/components/nsa/Badge';
+import { Spinner, EmptyState } from '@/components/nsa/Feedback';
+import { Modal } from '@/components/nsa/Modal';
 import { QuestionCard } from '@/components/questions/QuestionCard';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';

@@ -15,10 +15,10 @@ import {
   Zap,
   Newspaper,
 } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { SegmentedControl } from '@/components/ui/Toggle';
+import { Card } from '@/components/nsa/Card';
+import { Button } from '@/components/nsa/Button';
+import { Badge } from '@/components/nsa/Badge';
+import { SegmentedControl } from '@/components/nsa/Toggle';
 import { FileUpload } from '@/components/generator/FileUpload';
 import { QuestionCard } from '@/components/questions/QuestionCard';
 import { QuestionEditModal } from '@/components/questions/QuestionEditModal';

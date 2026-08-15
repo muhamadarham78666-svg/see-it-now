@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Save, Plus, Trash2 } from 'lucide-react';
-import { Modal } from '@/components/ui/Modal';
-import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/nsa/Modal';
+import { Button } from '@/components/nsa/Button';
 import { getLetterLabel } from '@/lib/utils';
 import type { Question, QuestionOption, QuestionDifficulty } from '@/types';
 
