@@ -2,7 +2,7 @@
  * Thin compatibility layer that maps the react-router-dom API surface used by
  * the app onto TanStack Router primitives.
  */
-import { useCallback, useMemo, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, type ReactNode } from "react";
 import {
   Link as TsLink,
   Outlet,
@@ -78,7 +78,7 @@ export function NavLink({ to, end, className, children, ...rest }: NavLinkProps)
   const resolvedChildren = typeof children === "function" ? children({ isActive }) : children;
 
   return (
-    <TsLink {...(rest as Record<string, unknown>)} to={to} className={resolvedClass}>
+    <TsLink {...(rest as Record<string, unknown>)} to={to} className={resolvedClass as string | undefined}>
       {resolvedChildren}
     </TsLink>
   );
