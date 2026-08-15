@@ -1,24 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { LandingPage } from "@/pages/LandingPage";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "NSAGPT — AI Question Paper Generator for Teachers" },
+      { name: "description", content: "Generate exam questions and build question papers from your own notes with AI. Built for schools and teachers." },
+      { property: "og:title", content: "NSAGPT — AI Question Paper Generator" },
+      { property: "og:description", content: "Turn your notes into exam-ready questions and printable papers in minutes." },
+    ],
+  }),
+  component: LandingPage,
 });
-
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
