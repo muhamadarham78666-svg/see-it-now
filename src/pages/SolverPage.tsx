@@ -23,7 +23,7 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { solveProblemsFn } from '@/lib/solve.functions';
 import type { GenAttachment } from '@/services/aiService';
-import type { SolvedProblem } from '@/lib/solve.server';
+import type { SolvedProblem } from '@/types/solve';
 import type { Language } from '@/types';
 
 type SubjectArea = 'physics' | 'math';

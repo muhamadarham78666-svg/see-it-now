@@ -13,18 +13,9 @@ export interface SolveSettings {
   problemCount?: number | null;
 }
 
-export interface SolvedProblem {
-  problem_text: string;
-  given: string[];
-  formula: string | null;
-  steps: string[];
-  final_answer: string;
-  units: string | null;
-  concept: string | null;
-  topic: string | null;
-  difficulty: "easy" | "medium" | "hard";
-  marks: number;
-}
+import type { SolvedProblem } from "@/types/solve";
+
+export type { SolvedProblem };
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-3-flash-preview";
