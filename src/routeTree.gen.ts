@@ -18,6 +18,7 @@ import { Route as DashboardGenerateRouteImport } from './routes/dashboard.genera
 import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history'
 import { Route as DashboardPapersRouteImport } from './routes/dashboard.papers'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
+import { Route as DashboardSolverRouteImport } from './routes/dashboard.solver'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -64,6 +65,11 @@ const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardSolverRoute = DashboardSolverRouteImport.update({
+  id: '/solver',
+  path: '/solver',
+  getParentRoute: () => DashboardRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/papers': typeof DashboardPapersRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/solver': typeof DashboardSolverRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
@@ -84,6 +91,7 @@ export interface FileRoutesByTo {
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/papers': typeof DashboardPapersRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/solver': typeof DashboardSolverRoute
   '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/papers': typeof DashboardPapersRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/solver': typeof DashboardSolverRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
@@ -109,6 +118,7 @@ export interface FileRouteTypes {
     | '/dashboard/history'
     | '/dashboard/papers'
     | '/dashboard/settings'
+    | '/dashboard/solver'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/dashboard/history'
     | '/dashboard/papers'
     | '/dashboard/settings'
+    | '/dashboard/solver'
     | '/dashboard'
   id:
     | '__root__'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/dashboard/history'
     | '/dashboard/papers'
     | '/dashboard/settings'
+    | '/dashboard/solver'
     | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
@@ -204,6 +216,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSettingsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/solver': {
+      id: '/dashboard/solver'
+      path: '/solver'
+      fullPath: '/dashboard/solver'
+      preLoaderRoute: typeof DashboardSolverRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
 
@@ -213,6 +232,7 @@ interface DashboardRouteChildren {
   DashboardHistoryRoute: typeof DashboardHistoryRoute
   DashboardPapersRoute: typeof DashboardPapersRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardSolverRoute: typeof DashboardSolverRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
@@ -222,6 +242,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardHistoryRoute: DashboardHistoryRoute,
   DashboardPapersRoute: DashboardPapersRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardSolverRoute: DashboardSolverRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 
