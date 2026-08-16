@@ -22,6 +22,7 @@ import { Modal } from '@/components/nsa/Modal';
 import { QuestionCard } from '@/components/questions/QuestionCard';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { getLetterLabel } from '@/lib/utils';
 import type { Paper, Question, PaperQuestion } from '@/types';
 
@@ -63,10 +64,22 @@ export function PaperBuilderPage() {
     instructions: 'Attempt all questions. Write neatly and clearly.',
   });
 
+  const userId = profile?.id ?? null;
+
   useEffect(() => {
+    if (!userId) return;
     loadPapers();
     loadAvailableQuestions();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  useRealtimeSync(['questions'], userId, () => {
+    loadAvailableQuestions();
+  });
+
+  useRealtimeSync(['papers'], userId, () => {
+    loadPapers();
+  });
 
   useEffect(() => {
     if (incomingQuestionIds.length > 0 && papers.length > 0 && activePaper) {
@@ -75,7 +88,12 @@ export function PaperBuilderPage() {
   }, [incomingQuestionIds, papers, activePaper]);
 
   const loadPapers = async () => {
-    const { data } = await supabase.from('papers').select('*').order('created_at', { ascending: false });
+    if (!userId) return;
+    const { data } = await supabase
+      .from('papers')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
     setPapers((data as Paper[]) ?? []);
     if (data && data.length > 0) {
       setActivePaper(data[0] as Paper);
@@ -94,9 +112,11 @@ export function PaperBuilderPage() {
   };
 
   const loadAvailableQuestions = async () => {
+    if (!userId) return;
     const { data } = await supabase
       .from('questions')
       .select('*')
+      .eq('user_id', userId)
       .eq('is_saved', true)
       .order('created_at', { ascending: false });
     setAvailableQuestions((data as Question[]) ?? []);

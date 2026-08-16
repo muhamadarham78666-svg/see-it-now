@@ -5,6 +5,7 @@ import {
   Sparkles,
   Archive,
   Newspaper,
+  Calculator,
   History,
   Settings,
   Menu,
@@ -21,6 +22,7 @@ import { Logo } from '@/components/Logo';
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/dashboard/generate', label: 'Generate Questions', icon: Sparkles, end: false },
+  { to: '/dashboard/solver', label: 'Physics / Math Solver', icon: Calculator, end: false },
   { to: '/dashboard/bank', label: 'Question Bank', icon: Archive, end: false },
   { to: '/dashboard/papers', label: 'Question Papers', icon: Newspaper, end: false },
   { to: '/dashboard/history', label: 'History', icon: History, end: false },
