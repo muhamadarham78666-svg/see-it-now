@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from '@/lib/rr';
 import {
   Sparkles,
@@ -8,6 +8,7 @@ import {
   FileUp,
   Archive,
   Newspaper,
+  Calculator,
   TrendingUp,
   Clock,
   Layers,
@@ -18,6 +19,7 @@ import { Card } from '@/components/nsa/Card';
 import { Badge } from '@/components/nsa/Badge';
 import { Spinner, EmptyState } from '@/components/nsa/Feedback';
 import { supabase } from '@/lib/supabase';
+import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { formatDateTime } from '@/lib/utils';
 import type { Generation } from '@/types';
 
@@ -33,34 +35,37 @@ export function DashboardPage() {
   });
   const [recentGens, setRecentGens] = useState<Generation[]>([]);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
+  const userId = profile?.id ?? null;
 
-  const loadDashboardData = async () => {
-    setLoading(true);
+  const loadDashboardData = useCallback(async () => {
+    if (!userId) return;
     const { data: gens } = await supabase
       .from('generations')
       .select('*')
+      .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(5);
 
     const { count: genCount } = await supabase
       .from('generations')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
 
     const { count: allQuestionCount } = await supabase
       .from('questions')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
 
     const { count: savedQuestionCount } = await supabase
       .from('questions')
       .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
       .eq('is_saved', true);
 
     const { count: paperCount } = await supabase
       .from('papers')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
 
     setStats({
       questionsGenerated: allQuestionCount ?? 0,
@@ -70,13 +75,20 @@ export function DashboardPage() {
     });
     setRecentGens((gens as Generation[]) ?? []);
     setLoading(false);
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
+
+  useRealtimeSync(['generations', 'questions', 'papers'], userId, loadDashboardData);
 
   const quickActions = [
     { label: 'Generate MCQs', icon: Sparkles, color: 'from-primary-500 to-primary-600', action: () => navigate('/dashboard/generate?type=mcq') },
     { label: 'Generate Short Questions', icon: AlignLeft, color: 'from-accent-500 to-accent-600', action: () => navigate('/dashboard/generate?type=short') },
     { label: 'Generate Long Questions', icon: FileEdit, color: 'from-success-500 to-success-600', action: () => navigate('/dashboard/generate?type=long') },
     { label: 'Generate Mixed', icon: Shuffle, color: 'from-warning-500 to-warning-600', action: () => navigate('/dashboard/generate?type=mixed') },
+    { label: 'Physics / Math Solver', icon: Calculator, color: 'from-accent-600 to-primary-500', action: () => navigate('/dashboard/solver') },
     { label: 'Upload Material', icon: FileUp, color: 'from-primary-400 to-accent-400', action: () => navigate('/dashboard/generate') },
     { label: 'Question Bank', icon: Archive, color: 'from-slate-500 to-slate-600', action: () => navigate('/dashboard/bank') },
     { label: 'Create Paper', icon: Newspaper, color: 'from-primary-600 to-accent-500', action: () => navigate('/dashboard/papers') },

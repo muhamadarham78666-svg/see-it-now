@@ -6,27 +6,34 @@ import { Button } from '@/components/nsa/Button';
 import { Badge } from '@/components/nsa/Badge';
 import { Spinner, EmptyState } from '@/components/nsa/Feedback';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
+import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { formatDateTime } from '@/lib/utils';
 import type { Generation, Question } from '@/types';
 
 export function HistoryPage() {
   const navigate = useNavigate();
+  const { profile } = useAuth();
+  const userId = profile?.id ?? null;
   const [generations, setGenerations] = useState<Generation[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadGenerations = useCallback(async () => {
-    setLoading(true);
+    if (!userId) return;
     const { data } = await supabase
       .from('generations')
       .select('*')
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
     setGenerations((data as Generation[]) ?? []);
     setLoading(false);
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     loadGenerations();
   }, [loadGenerations]);
+
+  useRealtimeSync(['generations'], userId, loadGenerations);
 
   const handleDelete = async (id: string) => {
     await supabase.from('generations').delete().eq('id', id);
@@ -37,6 +44,7 @@ export function HistoryPage() {
     const { data } = await supabase
       .from('generations')
       .insert({
+        user_id: gen.user_id,
         title: `${gen.title} (Copy)`,
         source_text: gen.source_text,
         language: gen.language,
@@ -60,6 +68,7 @@ export function HistoryPage() {
       if (originalQuestions && originalQuestions.length > 0) {
         const newGenId = (data as Generation).id;
         const copiedQuestions = originalQuestions.map((q) => ({
+          user_id: gen.user_id,
           question_text: q.question_text,
           question_type: q.question_type,
           options: q.options,

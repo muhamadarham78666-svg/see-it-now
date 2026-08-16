@@ -8,10 +8,14 @@ import { Spinner, EmptyState } from '@/components/nsa/Feedback';
 import { QuestionCard } from '@/components/questions/QuestionCard';
 import { QuestionEditModal } from '@/components/questions/QuestionEditModal';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
+import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import type { Question, QuestionType, Difficulty, Language } from '@/types';
 
 export function QuestionBankPage() {
   const navigate = useNavigate();
+  const { profile } = useAuth();
+  const userId = profile?.id ?? null;
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -23,8 +27,13 @@ export function QuestionBankPage() {
   const [editQuestion, setEditQuestion] = useState<Question | null>(null);
 
   const loadQuestions = useCallback(async () => {
-    setLoading(true);
-    let query = supabase.from('questions').select('*').eq('is_saved', true).order('created_at', { ascending: false });
+    if (!userId) return;
+    let query = supabase
+      .from('questions')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_saved', true)
+      .order('created_at', { ascending: false });
 
     if (filterType !== 'all') query = query.eq('question_type', filterType);
     if (filterDifficulty !== 'all') query = query.eq('difficulty', filterDifficulty);
@@ -34,12 +43,14 @@ export function QuestionBankPage() {
     const { data } = await query;
     setQuestions((data as Question[]) ?? []);
     setLoading(false);
-  }, [filterType, filterDifficulty, filterLanguage, search]);
+  }, [userId, filterType, filterDifficulty, filterLanguage, search]);
 
   useEffect(() => {
     const timeout = setTimeout(loadQuestions, 300);
     return () => clearTimeout(timeout);
   }, [loadQuestions]);
+
+  useRealtimeSync(['questions'], userId, loadQuestions);
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
