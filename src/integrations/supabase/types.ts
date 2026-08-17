@@ -14,7 +14,296 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      generations: {
+        Row: {
+          chapter: string | null
+          created_at: string
+          difficulty: string
+          id: string
+          language: string
+          mcq_options_count: number | null
+          question_count: number
+          question_type: string
+          source_file_name: string | null
+          source_file_type: string | null
+          source_text: string | null
+          status: string
+          subject: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chapter?: string | null
+          created_at?: string
+          difficulty?: string
+          id?: string
+          language?: string
+          mcq_options_count?: number | null
+          question_count?: number
+          question_type: string
+          source_file_name?: string | null
+          source_file_type?: string | null
+          source_text?: string | null
+          status?: string
+          subject?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chapter?: string | null
+          created_at?: string
+          difficulty?: string
+          id?: string
+          language?: string
+          mcq_options_count?: number | null
+          question_count?: number
+          question_type?: string
+          source_file_name?: string | null
+          source_file_type?: string | null
+          source_text?: string | null
+          status?: string
+          subject?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notes: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_pinned: boolean
+          subject: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean
+          subject?: string | null
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean
+          subject?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      paper_questions: {
+        Row: {
+          created_at: string
+          id: string
+          marks: number
+          paper_id: string
+          question_id: string
+          sort_order: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          marks?: number
+          paper_id: string
+          question_id: string
+          sort_order?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          marks?: number
+          paper_id?: string
+          question_id?: string
+          sort_order?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paper_questions_paper_id_fkey"
+            columns: ["paper_id"]
+            isOneToOne: false
+            referencedRelation: "papers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "paper_questions_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      papers: {
+        Row: {
+          chapter: string | null
+          class_name: string | null
+          created_at: string
+          exam_date: string | null
+          exam_name: string | null
+          exam_time: string | null
+          id: string
+          institution_name: string | null
+          instructions: string | null
+          logo_url: string | null
+          status: string
+          subject: string | null
+          title: string
+          total_marks: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chapter?: string | null
+          class_name?: string | null
+          created_at?: string
+          exam_date?: string | null
+          exam_name?: string | null
+          exam_time?: string | null
+          id?: string
+          institution_name?: string | null
+          instructions?: string | null
+          logo_url?: string | null
+          status?: string
+          subject?: string | null
+          title: string
+          total_marks?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chapter?: string | null
+          class_name?: string | null
+          created_at?: string
+          exam_date?: string | null
+          exam_name?: string | null
+          exam_time?: string | null
+          id?: string
+          institution_name?: string | null
+          instructions?: string | null
+          logo_url?: string | null
+          status?: string
+          subject?: string | null
+          title?: string
+          total_marks?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          preferences: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          preferences?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          preferences?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      questions: {
+        Row: {
+          answer_points: Json | null
+          correct_answer: string | null
+          created_at: string
+          difficulty: string
+          expected_answer: string | null
+          explanation: string | null
+          generation_id: string | null
+          id: string
+          is_saved: boolean
+          language: string
+          marks: number
+          options: Json | null
+          question_text: string
+          question_type: string
+          sort_order: number
+          topic: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answer_points?: Json | null
+          correct_answer?: string | null
+          created_at?: string
+          difficulty?: string
+          expected_answer?: string | null
+          explanation?: string | null
+          generation_id?: string | null
+          id?: string
+          is_saved?: boolean
+          language?: string
+          marks?: number
+          options?: Json | null
+          question_text: string
+          question_type: string
+          sort_order?: number
+          topic?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answer_points?: Json | null
+          correct_answer?: string | null
+          created_at?: string
+          difficulty?: string
+          expected_answer?: string | null
+          explanation?: string | null
+          generation_id?: string | null
+          id?: string
+          is_saved?: boolean
+          language?: string
+          marks?: number
+          options?: Json | null
+          question_text?: string
+          question_type?: string
+          sort_order?: number
+          topic?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_generation_id_fkey"
+            columns: ["generation_id"]
+            isOneToOne: false
+            referencedRelation: "generations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
