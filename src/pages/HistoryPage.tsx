@@ -13,8 +13,8 @@ import type { Generation, Question } from '@/types';
 
 export function HistoryPage() {
   const navigate = useNavigate();
-  const { profile } = useAuth();
-  const userId = profile?.id ?? null;
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
   const [generations, setGenerations] = useState<Generation[]>([]);
   const [loading, setLoading] = useState(true);
 

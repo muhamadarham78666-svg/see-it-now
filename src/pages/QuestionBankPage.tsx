@@ -15,8 +15,8 @@ import type { Json } from '@/integrations/supabase/types';
 
 export function QuestionBankPage() {
   const navigate = useNavigate();
-  const { profile } = useAuth();
-  const userId = profile?.id ?? null;
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

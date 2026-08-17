@@ -25,7 +25,7 @@ import { formatDateTime } from '@/lib/utils';
 import type { Generation } from '@/types';
 
 export function DashboardPage() {
-  const { profile } = useAuth();
+  const { profile, session } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -37,10 +37,14 @@ export function DashboardPage() {
   });
   const [recentGens, setRecentGens] = useState<Generation[]>([]);
 
-  const userId = profile?.id ?? null;
+  const userId = session?.user.id ?? null;
 
   const loadDashboardData = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      setRecentGens([]);
+      setLoading(false);
+      return;
+    }
     const { data: gens } = await supabase
       .from('generations')
       .select('*')

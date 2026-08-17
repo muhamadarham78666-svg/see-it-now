@@ -36,7 +36,7 @@ interface PaperSection {
 }
 
 export function PaperBuilderPage() {
-  const { profile } = useAuth();
+  const { session } = useAuth();
   const [searchParams] = useSearchParams();
   const incomingQuestionIds = searchParams.get('questionIds')?.split(',').filter(Boolean) ?? [];
 
@@ -64,7 +64,7 @@ export function PaperBuilderPage() {
     instructions: 'Attempt all questions. Write neatly and clearly.',
   });
 
-  const userId = profile?.id ?? null;
+  const userId = session?.user.id ?? null;
 
   useEffect(() => {
     if (!userId) return;
@@ -123,11 +123,11 @@ export function PaperBuilderPage() {
   };
 
   const handleCreatePaper = async () => {
-    if (!profile || !form.title) return;
+    if (!userId || !form.title) return;
     const { data, error } = await supabase
       .from('papers')
       .insert({
-        user_id: profile.id,
+        user_id: userId,
         ...form,
         exam_date: form.exam_date || null,
         status: 'draft',
@@ -152,13 +152,13 @@ export function PaperBuilderPage() {
   const addQuestionsToPaper = async (paperId: string, questionIds: string[]) => {
     const existing = paperQuestions.map((pq) => pq.question_id);
     const toAdd = questionIds.filter((id) => !existing.includes(id));
-    if (toAdd.length === 0 || !profile) return;
+    if (toAdd.length === 0 || !userId) return;
 
     const startOrder = paperQuestions.length;
     const rows = toAdd.map((qid, i) => ({
       paper_id: paperId,
       question_id: qid,
-      user_id: profile.id,
+      user_id: userId,
       sort_order: startOrder + i,
       marks: 5,
     }));
@@ -191,7 +191,7 @@ export function PaperBuilderPage() {
       supabase.from('paper_questions').update({ sort_order: b.sort_order }).eq('id', a.id),
       supabase.from('paper_questions').update({ sort_order: a.sort_order }).eq('id', b.id),
     ]);
-    loadPaperQuestions(activePaper!.id);
+    if (activePaper) loadPaperQuestions(activePaper.id);
   };
 
   const handleUpdateMarks = async (pqId: string, marks: number) => {

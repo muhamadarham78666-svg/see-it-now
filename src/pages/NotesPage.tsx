@@ -18,8 +18,8 @@ interface Note {
 }
 
 export function NotesPage() {
-  const { profile } = useAuth();
-  const userId = profile?.id ?? null;
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
   const [notes, setNotes] = useState<Note[]>([]);
   const [active, setActive] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
