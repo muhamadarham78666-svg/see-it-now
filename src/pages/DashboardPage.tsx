@@ -13,6 +13,7 @@ import {
   Clock,
   Layers,
   CheckCircle,
+  NotebookPen,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Card } from '@/components/nsa/Card';
@@ -24,7 +25,7 @@ import { formatDateTime } from '@/lib/utils';
 import type { Generation } from '@/types';
 
 export function DashboardPage() {
-  const { profile } = useAuth();
+  const { profile, session } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -32,13 +33,18 @@ export function DashboardPage() {
     papersCreated: 0,
     recentGenerations: 0,
     savedQuestions: 0,
+    notes: 0,
   });
   const [recentGens, setRecentGens] = useState<Generation[]>([]);
 
-  const userId = profile?.id ?? null;
+  const userId = session?.user.id ?? null;
 
   const loadDashboardData = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      setRecentGens([]);
+      setLoading(false);
+      return;
+    }
     const { data: gens } = await supabase
       .from('generations')
       .select('*')
@@ -67,11 +73,17 @@ export function DashboardPage() {
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId);
 
+    const { count: noteCount } = await supabase
+      .from('notes')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+
     setStats({
       questionsGenerated: allQuestionCount ?? 0,
       papersCreated: paperCount ?? 0,
       recentGenerations: genCount ?? 0,
       savedQuestions: savedQuestionCount ?? 0,
+      notes: noteCount ?? 0,
     });
     setRecentGens((gens as Generation[]) ?? []);
     setLoading(false);
@@ -81,7 +93,7 @@ export function DashboardPage() {
     loadDashboardData();
   }, [loadDashboardData]);
 
-  useRealtimeSync(['generations', 'questions', 'papers'], userId, loadDashboardData);
+  useRealtimeSync(['generations', 'questions', 'papers', 'notes'], userId, loadDashboardData);
 
   const quickActions = [
     { label: 'Generate MCQs', icon: Sparkles, color: 'from-primary-500 to-primary-600', action: () => navigate('/dashboard/generate?type=mcq') },
@@ -92,6 +104,7 @@ export function DashboardPage() {
     { label: 'Upload Material', icon: FileUp, color: 'from-primary-400 to-accent-400', action: () => navigate('/dashboard/generate') },
     { label: 'Question Bank', icon: Archive, color: 'from-slate-500 to-slate-600', action: () => navigate('/dashboard/bank') },
     { label: 'Create Paper', icon: Newspaper, color: 'from-primary-600 to-accent-500', action: () => navigate('/dashboard/papers') },
+    { label: 'My Notes', icon: NotebookPen, color: 'from-success-500 to-primary-500', action: () => navigate('/dashboard/notes') },
   ];
 
   const statCards = [
@@ -99,6 +112,7 @@ export function DashboardPage() {
     { label: 'Papers Created', value: stats.papersCreated, icon: Newspaper, color: 'text-accent-500', bg: 'bg-accent-50 dark:bg-accent-900/20' },
     { label: 'Recent Generations', value: stats.recentGenerations, icon: Clock, color: 'text-success-500', bg: 'bg-success-50 dark:bg-success-900/20' },
     { label: 'Saved Questions', value: stats.savedQuestions, icon: Layers, color: 'text-warning-500', bg: 'bg-warning-50 dark:bg-warning-900/20' },
+    { label: 'Saved Notes', value: stats.notes, icon: NotebookPen, color: 'text-success-500', bg: 'bg-success-50 dark:bg-success-900/20' },
   ];
 
   if (loading) {
@@ -122,7 +136,7 @@ export function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {statCards.map((stat, i) => {
           const Icon = stat.icon;
           return (

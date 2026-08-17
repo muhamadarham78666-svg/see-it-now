@@ -13,13 +13,17 @@ import type { Generation, Question } from '@/types';
 
 export function HistoryPage() {
   const navigate = useNavigate();
-  const { profile } = useAuth();
-  const userId = profile?.id ?? null;
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
   const [generations, setGenerations] = useState<Generation[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadGenerations = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      setGenerations([]);
+      setLoading(false);
+      return;
+    }
     const { data } = await supabase
       .from('generations')
       .select('*')
@@ -36,15 +40,17 @@ export function HistoryPage() {
   useRealtimeSync(['generations'], userId, loadGenerations);
 
   const handleDelete = async (id: string) => {
-    await supabase.from('generations').delete().eq('id', id);
+    if (!userId) return;
+    await supabase.from('generations').delete().eq('id', id).eq('user_id', userId);
     setGenerations((prev) => prev.filter((g) => g.id !== id));
   };
 
   const handleDuplicate = async (gen: Generation) => {
+    if (!userId) return;
     const { data } = await supabase
       .from('generations')
       .insert({
-        user_id: gen.user_id,
+        user_id: userId,
         title: `${gen.title} (Copy)`,
         source_text: gen.source_text,
         language: gen.language,
@@ -68,7 +74,7 @@ export function HistoryPage() {
       if (originalQuestions && originalQuestions.length > 0) {
         const newGenId = (data as Generation).id;
         const copiedQuestions = originalQuestions.map((q) => ({
-          user_id: gen.user_id,
+          user_id: userId,
           question_text: q.question_text,
           question_type: q.question_type,
           options: q.options,
@@ -91,25 +97,25 @@ export function HistoryPage() {
   };
 
   const handleOpen = async (gen: Generation) => {
+    if (!userId) return;
     const { data: questions } = await supabase
       .from('questions')
       .select('*')
       .eq('generation_id', gen.id)
+      .eq('user_id', userId)
       .order('sort_order', { ascending: true });
 
-    const qParams = new URLSearchParams();
-    qParams.set('gen', gen.id);
-    if (questions && questions.length > 0) {
-      qParams.set('type', gen.question_type);
-    }
-    navigate(`/dashboard/bank`);
+    void questions;
+    navigate(`/dashboard/bank?gen=${encodeURIComponent(gen.id)}`);
   };
 
   const handleExport = async (gen: Generation) => {
+    if (!userId) return;
     const { data: questions } = await supabase
       .from('questions')
       .select('*')
       .eq('generation_id', gen.id)
+      .eq('user_id', userId)
       .order('sort_order', { ascending: true });
 
     const qs = (questions as Question[]) ?? [];

@@ -29,7 +29,7 @@ import type { Language } from '@/types';
 type SubjectArea = 'physics' | 'math';
 
 export function SolverPage() {
-  const { profile } = useAuth();
+  const { session } = useAuth();
   const navigate = useNavigate();
 
   const [subjectArea, setSubjectArea] = useState<SubjectArea>('physics');
@@ -87,12 +87,12 @@ export function SolverPage() {
 
       setSolutions(problems);
 
-      if (profile && problems.length) {
+      if (session && problems.length) {
         try {
           const { data: gen } = await supabase
             .from('generations')
             .insert({
-              user_id: profile.id,
+              user_id: session.user.id,
               title: topic
                 ? `${subjectLabel} solutions — ${topic}`
                 : `${subjectLabel} solved problems`,
@@ -112,7 +112,7 @@ export function SolverPage() {
             .single();
 
           const rows = problems.map((p, i) => ({
-            user_id: profile.id,
+            user_id: session.user.id,
             generation_id: gen?.id ?? null,
             question_text: p.problem_text,
             question_type: 'long' as const,

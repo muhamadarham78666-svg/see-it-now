@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from '@/lib/rr';
+import { useNavigate, useSearchParams } from '@/lib/rr';
 import { Search, Filter, Archive, Plus, Trash2, Newspaper, X, Download } from 'lucide-react';
 import { Card } from '@/components/nsa/Card';
 import { Button } from '@/components/nsa/Button';
@@ -11,11 +11,14 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import type { Question, QuestionType, Difficulty, Language } from '@/types';
+import type { Json } from '@/integrations/supabase/types';
 
 export function QuestionBankPage() {
   const navigate = useNavigate();
-  const { profile } = useAuth();
-  const userId = profile?.id ?? null;
+  const [searchParams] = useSearchParams();
+  const generationId = searchParams.get('gen');
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -27,7 +30,11 @@ export function QuestionBankPage() {
   const [editQuestion, setEditQuestion] = useState<Question | null>(null);
 
   const loadQuestions = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      setQuestions([]);
+      setLoading(false);
+      return;
+    }
     let query = supabase
       .from('questions')
       .select('*')
@@ -38,12 +45,13 @@ export function QuestionBankPage() {
     if (filterType !== 'all') query = query.eq('question_type', filterType);
     if (filterDifficulty !== 'all') query = query.eq('difficulty', filterDifficulty);
     if (filterLanguage !== 'all') query = query.eq('language', filterLanguage);
+    if (generationId) query = query.eq('generation_id', generationId);
     if (search) query = query.or(`question_text.ilike.%${search}%,topic.ilike.%${search}%`);
 
     const { data } = await query;
     setQuestions((data as Question[]) ?? []);
     setLoading(false);
-  }, [userId, filterType, filterDifficulty, filterLanguage, search]);
+  }, [userId, filterType, filterDifficulty, filterLanguage, search, generationId]);
 
   useEffect(() => {
     const timeout = setTimeout(loadQuestions, 300);
@@ -62,13 +70,15 @@ export function QuestionBankPage() {
   };
 
   const handleDelete = async (id: string) => {
-    await supabase.from('questions').delete().eq('id', id);
+    if (!userId) return;
+    await supabase.from('questions').delete().eq('id', id).eq('user_id', userId);
     setQuestions((prev) => prev.filter((q) => q.id !== id));
   };
 
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return;
-    await supabase.from('questions').delete().in('id', Array.from(selectedIds));
+    if (!userId) return;
+    await supabase.from('questions').delete().in('id', Array.from(selectedIds)).eq('user_id', userId);
     setQuestions((prev) => prev.filter((q) => !selectedIds.has(q.id)));
     setSelectedIds(new Set());
   };
@@ -80,17 +90,18 @@ export function QuestionBankPage() {
   };
 
   const handleDuplicate = async (question: Question) => {
+    if (!userId) return;
     const { data } = await supabase
       .from('questions')
       .insert({
-        user_id: question.user_id,
+        user_id: userId,
         generation_id: question.generation_id,
         question_text: question.question_text,
         question_type: question.question_type,
-        options: question.options,
+        options: question.options as Json,
         correct_answer: question.correct_answer,
         expected_answer: question.expected_answer,
-        answer_points: question.answer_points,
+        answer_points: question.answer_points as Json,
         explanation: question.explanation,
         difficulty: question.difficulty,
         topic: question.topic,
@@ -109,10 +120,10 @@ export function QuestionBankPage() {
       .from('questions')
       .update({
         question_text: updated.question_text,
-        options: updated.options,
+        options: updated.options as Json,
         correct_answer: updated.correct_answer,
         expected_answer: updated.expected_answer,
-        answer_points: updated.answer_points,
+        answer_points: updated.answer_points as Json,
         explanation: updated.explanation,
         difficulty: updated.difficulty,
         topic: updated.topic,
@@ -149,7 +160,7 @@ export function QuestionBankPage() {
         <div>
           <h1 className="font-display text-2xl font-bold text-slate-900 dark:text-white mb-1">Question Bank</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Browse, search, and manage all your saved questions.
+            {generationId ? 'Questions from the selected generation.' : 'Browse, search, and manage all your saved questions.'}
           </p>
         </div>
         <Button onClick={() => navigate('/dashboard/generate')}>

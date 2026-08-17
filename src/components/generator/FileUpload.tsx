@@ -37,8 +37,8 @@ export function FileUpload({ onAttachmentsChange }: FileUploadProps) {
 
     for (const file of Array.from(fileList)) {
       const base = { name: file.name, size: file.size, type: file.type || 'unknown' };
-      if (file.size > 20 * 1024 * 1024) {
-        newFiles.push({ ...base, error: 'File is larger than 20MB' });
+      if (file.size > 100 * 1024 * 1024) {
+        newFiles.push({ ...base, error: 'File is larger than 100MB' });
         continue;
       }
       try {
@@ -123,7 +123,7 @@ export function FileUpload({ onAttachmentsChange }: FileUploadProps) {
               {parsing ? 'Reading files...' : 'Drag & drop files here or click to browse'}
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              PDF, DOC, DOCX, TXT and images (scanned pages are read with AI OCR)
+              PDF, DOC, DOCX, TXT and images up to 100MB (scanned pages use AI OCR)
             </p>
           </div>
         </label>

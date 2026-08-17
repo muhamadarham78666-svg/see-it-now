@@ -25,6 +25,7 @@ export function SettingsPage() {
   const [fullName, setFullName] = useState(profile?.full_name ?? '');
 
   const handleSave = async () => {
+    if (!profile) return;
     setSaving(true);
     await supabase
       .from('profiles')
@@ -38,7 +39,7 @@ export function SettingsPage() {
           defaultQuestionCount: prefs.defaultQuestionCount,
         },
       })
-      .eq('id', profile!.id);
+      .eq('id', profile.id);
     await refreshProfile();
     setSaving(false);
     setSaved(true);

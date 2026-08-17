@@ -29,6 +29,7 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { questionGenerator, type GenAttachment } from '@/services/aiService';
 import type { QuestionType, Language, Difficulty, Question } from '@/types';
+import type { Json } from '@/integrations/supabase/types';
 
 const processingSteps = [
   { label: 'Analyzing Content', icon: ScanSearch },
@@ -39,7 +40,7 @@ const processingSteps = [
 ];
 
 export function GeneratePage() {
-  const { profile } = useAuth();
+  const { profile, session } = useAuth();
   const [searchParams] = useSearchParams();
 
   const [content, setContent] = useState('');
@@ -132,12 +133,12 @@ export function GeneratePage() {
       const questionLanguage: Question['language'] = language;
       let finalQuestions = questionGenerator.toLocalQuestions(questions, questionLanguage);
 
-      if (profile) {
+      if (session) {
         try {
           const { data: genData } = await supabase
             .from('generations')
             .insert({
-              user_id: profile.id,
+              user_id: session.user.id,
               title: title || `Generation ${new Date().toLocaleDateString()}`,
               source_text: content || null,
               source_file_name: attachments[0]?.name ?? null,
@@ -155,7 +156,7 @@ export function GeneratePage() {
             .single();
 
           const saved = await questionGenerator.saveQuestions(
-            profile.id,
+            session.user.id,
             genData?.id ?? null,
             questions,
             questionLanguage,
@@ -189,7 +190,7 @@ export function GeneratePage() {
         .from('questions')
         .update({
           question_text: updated.question_text,
-          options: updated.options,
+          options: updated.options as Json,
           correct_answer: updated.correct_answer,
           expected_answer: updated.expected_answer,
           answer_points: updated.answer_points,

@@ -7,6 +7,7 @@ import {
   Newspaper,
   Calculator,
   History,
+  NotebookPen,
   Settings,
   Menu,
   X,
@@ -26,6 +27,7 @@ const navItems = [
   { to: '/dashboard/bank', label: 'Question Bank', icon: Archive, end: false },
   { to: '/dashboard/papers', label: 'Question Papers', icon: Newspaper, end: false },
   { to: '/dashboard/history', label: 'History', icon: History, end: false },
+  { to: '/dashboard/notes', label: 'Notes', icon: NotebookPen, end: false },
   { to: '/dashboard/settings', label: 'Settings', icon: Settings, end: false },
 ];
 
