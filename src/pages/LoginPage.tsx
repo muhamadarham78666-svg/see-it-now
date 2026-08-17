@@ -1,23 +1,44 @@
 import { useState } from 'react';
 import { useNavigate, Link } from '@/lib/rr';
-import { Eye, EyeOff, Lock, Mail, ArrowLeft, AlertCircle, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, ArrowLeft, AlertCircle, Loader2, User } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Logo } from '@/components/Logo';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, signUp } = useAuth();
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     setLoading(true);
+
+    if (mode === 'signup') {
+      const result = await signUp(email, password, fullName);
+      if (result.error) {
+        setError(result.error);
+        setLoading(false);
+        return;
+      }
+      if (result.needsConfirmation) {
+        setSuccess('Account created. Check your email to confirm it, then sign in.');
+        setMode('signin');
+        setLoading(false);
+        return;
+      }
+      navigate('/dashboard');
+      return;
+    }
 
     const { error } = await signIn(email, password, remember);
 
@@ -75,10 +96,10 @@ export function LoginPage() {
             </div>
 
             <h1 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mb-2">
-              Welcome Back
+              {mode === 'signin' ? 'Welcome Back' : 'Create Your Account'}
             </h1>
             <p className="text-slate-600 dark:text-slate-400">
-              Sign in to your NSAGPT account to continue.
+              {mode === 'signin' ? 'Sign in to your NSAGPT account to continue.' : 'Create a private workspace for your questions, papers, and notes.'}
             </p>
           </div>
 
@@ -89,6 +110,22 @@ export function LoginPage() {
                 <div>
                   <p className="text-sm font-medium">Login failed</p>
                   <p className="text-xs mt-0.5">{error}</p>
+                </div>
+              </div>
+            )}
+
+            {success && (
+              <div className="p-4 rounded-xl bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800/50 text-success-700 dark:text-success-400 text-sm">
+                {success}
+              </div>
+            )}
+
+            {mode === 'signup' && (
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Full Name</label>
+                <div className="relative">
+                  <User size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input required value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Your full name" className="input-field pl-11" autoComplete="name" />
                 </div>
               </div>
             )}
@@ -156,22 +193,18 @@ export function LoginPage() {
               {loading ? (
                 <>
                   <Loader2 size={18} className="animate-spin" />
-                  Signing in...
+                  {mode === 'signin' ? 'Signing in...' : 'Creating account...'}
                 </>
               ) : (
-                'Sign In'
+                mode === 'signin' ? 'Sign In' : 'Create Account'
               )}
             </button>
           </form>
 
           <div className="mt-8 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 text-center">
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              Don't have access?{' '}
-              <span className="font-medium text-slate-700 dark:text-slate-300">
-                Contact the Administrator
-              </span>
-              {' '}to receive your username and password.
-            </p>
+            <button type="button" onClick={() => { setMode(mode === 'signin' ? 'signup' : 'signin'); setError(null); setSuccess(null); }} className="text-sm font-medium text-primary-600 dark:text-primary-400 hover:underline">
+              {mode === 'signin' ? 'Need an account? Create one' : 'Already have an account? Sign in'}
+            </button>
           </div>
         </div>
       </div>

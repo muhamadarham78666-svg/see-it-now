@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from '@/lib/rr';
+import { useNavigate, useSearchParams } from '@/lib/rr';
 import { Search, Filter, Archive, Plus, Trash2, Newspaper, X, Download } from 'lucide-react';
 import { Card } from '@/components/nsa/Card';
 import { Button } from '@/components/nsa/Button';
@@ -15,6 +15,8 @@ import type { Json } from '@/integrations/supabase/types';
 
 export function QuestionBankPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const generationId = searchParams.get('gen');
   const { session } = useAuth();
   const userId = session?.user.id ?? null;
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -43,12 +45,13 @@ export function QuestionBankPage() {
     if (filterType !== 'all') query = query.eq('question_type', filterType);
     if (filterDifficulty !== 'all') query = query.eq('difficulty', filterDifficulty);
     if (filterLanguage !== 'all') query = query.eq('language', filterLanguage);
+    if (generationId) query = query.eq('generation_id', generationId);
     if (search) query = query.or(`question_text.ilike.%${search}%,topic.ilike.%${search}%`);
 
     const { data } = await query;
     setQuestions((data as Question[]) ?? []);
     setLoading(false);
-  }, [userId, filterType, filterDifficulty, filterLanguage, search]);
+  }, [userId, filterType, filterDifficulty, filterLanguage, search, generationId]);
 
   useEffect(() => {
     const timeout = setTimeout(loadQuestions, 300);
@@ -157,7 +160,7 @@ export function QuestionBankPage() {
         <div>
           <h1 className="font-display text-2xl font-bold text-slate-900 dark:text-white mb-1">Question Bank</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Browse, search, and manage all your saved questions.
+            {generationId ? 'Questions from the selected generation.' : 'Browse, search, and manage all your saved questions.'}
           </p>
         </div>
         <Button onClick={() => navigate('/dashboard/generate')}>
