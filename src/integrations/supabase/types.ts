@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_requests: {
+        Row: {
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          note: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          note: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          note?: string
+          status?: string
+        }
+        Relationships: []
+      }
       generations: {
         Row: {
           chapter: string | null
