@@ -27,7 +27,11 @@ export function QuestionBankPage() {
   const [editQuestion, setEditQuestion] = useState<Question | null>(null);
 
   const loadQuestions = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      setQuestions([]);
+      setLoading(false);
+      return;
+    }
     let query = supabase
       .from('questions')
       .select('*')
@@ -62,13 +66,15 @@ export function QuestionBankPage() {
   };
 
   const handleDelete = async (id: string) => {
-    await supabase.from('questions').delete().eq('id', id);
+    if (!userId) return;
+    await supabase.from('questions').delete().eq('id', id).eq('user_id', userId);
     setQuestions((prev) => prev.filter((q) => q.id !== id));
   };
 
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return;
-    await supabase.from('questions').delete().in('id', Array.from(selectedIds));
+    if (!userId) return;
+    await supabase.from('questions').delete().in('id', Array.from(selectedIds)).eq('user_id', userId);
     setQuestions((prev) => prev.filter((q) => !selectedIds.has(q.id)));
     setSelectedIds(new Set());
   };
@@ -83,7 +89,7 @@ export function QuestionBankPage() {
     const { data } = await supabase
       .from('questions')
       .insert({
-        user_id: question.user_id,
+        user_id: userId,
         generation_id: question.generation_id,
         question_text: question.question_text,
         question_type: question.question_type,

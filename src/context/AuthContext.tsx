@@ -45,6 +45,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loadProfile = async (userId: string) => {
+    const { data: userData } = await supabase.auth.getUser();
+    const authUser = userData.user;
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -54,7 +56,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) {
       console.error('Error loading profile:', error);
     }
-    setProfile(data as Profile | null);
+    if (data) {
+      setProfile({ ...data, role: 'user' } as Profile);
+    } else if (authUser) {
+      const fallback = {
+        id: authUser.id,
+        email: authUser.email ?? '',
+        full_name: typeof authUser.user_metadata?.['full_name'] === 'string'
+          ? authUser.user_metadata['full_name']
+          : null,
+        preferences: {},
+      };
+      const { data: created } = await supabase
+        .from('profiles')
+        .upsert(fallback, { onConflict: 'id' })
+        .select('*')
+        .maybeSingle();
+      setProfile({ ...(created ?? fallback), role: 'user' } as Profile);
+    } else {
+      setProfile(null);
+    }
     setLoading(false);
   };
 
