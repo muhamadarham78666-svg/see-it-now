@@ -1,6 +1,7 @@
 import type { GenerationSettings, Question, QuestionOption } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { generateQuestionsFn } from '@/lib/generate.functions';
+import type { Json } from '@/integrations/supabase/types';
 
 export interface GenAttachment {
   name: string;
@@ -102,10 +103,10 @@ export class QuestionGeneratorService {
       generation_id: null,
       question_text: q.question_text,
       question_type: q.question_type,
-      options: q.options ?? null,
+      options: (q.options ?? null) as Json,
       correct_answer: q.correct_answer ?? null,
       expected_answer: q.expected_answer ?? null,
-      answer_points: q.answer_points ?? null,
+      answer_points: (q.answer_points ?? null) as Json,
       explanation: q.explanation ?? null,
       difficulty: q.difficulty,
       topic: q.topic ?? null,

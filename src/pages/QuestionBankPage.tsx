@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import type { Question, QuestionType, Difficulty, Language } from '@/types';
+import type { Json } from '@/integrations/supabase/types';
 
 export function QuestionBankPage() {
   const navigate = useNavigate();
@@ -86,6 +87,7 @@ export function QuestionBankPage() {
   };
 
   const handleDuplicate = async (question: Question) => {
+    if (!userId) return;
     const { data } = await supabase
       .from('questions')
       .insert({
@@ -93,10 +95,10 @@ export function QuestionBankPage() {
         generation_id: question.generation_id,
         question_text: question.question_text,
         question_type: question.question_type,
-        options: question.options,
+        options: question.options as Json,
         correct_answer: question.correct_answer,
         expected_answer: question.expected_answer,
-        answer_points: question.answer_points,
+        answer_points: question.answer_points as Json,
         explanation: question.explanation,
         difficulty: question.difficulty,
         topic: question.topic,
@@ -115,10 +117,10 @@ export function QuestionBankPage() {
       .from('questions')
       .update({
         question_text: updated.question_text,
-        options: updated.options,
+        options: updated.options as Json,
         correct_answer: updated.correct_answer,
         expected_answer: updated.expected_answer,
-        answer_points: updated.answer_points,
+        answer_points: updated.answer_points as Json,
         explanation: updated.explanation,
         difficulty: updated.difficulty,
         topic: updated.topic,

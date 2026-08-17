@@ -29,6 +29,7 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { questionGenerator, type GenAttachment } from '@/services/aiService';
 import type { QuestionType, Language, Difficulty, Question } from '@/types';
+import type { Json } from '@/integrations/supabase/types';
 
 const processingSteps = [
   { label: 'Analyzing Content', icon: ScanSearch },
@@ -189,7 +190,7 @@ export function GeneratePage() {
         .from('questions')
         .update({
           question_text: updated.question_text,
-          options: updated.options,
+          options: updated.options as Json,
           correct_answer: updated.correct_answer,
           expected_answer: updated.expected_answer,
           answer_points: updated.answer_points,

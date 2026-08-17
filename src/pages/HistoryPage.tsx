@@ -46,6 +46,7 @@ export function HistoryPage() {
   };
 
   const handleDuplicate = async (gen: Generation) => {
+    if (!userId) return;
     const { data } = await supabase
       .from('generations')
       .insert({
@@ -73,7 +74,7 @@ export function HistoryPage() {
       if (originalQuestions && originalQuestions.length > 0) {
         const newGenId = (data as Generation).id;
         const copiedQuestions = originalQuestions.map((q) => ({
-            user_id: userId,
+          user_id: userId,
           question_text: q.question_text,
           question_type: q.question_type,
           options: q.options,
@@ -96,6 +97,7 @@ export function HistoryPage() {
   };
 
   const handleOpen = async (gen: Generation) => {
+    if (!userId) return;
     const { data: questions } = await supabase
       .from('questions')
       .select('*')
@@ -103,15 +105,12 @@ export function HistoryPage() {
       .eq('user_id', userId)
       .order('sort_order', { ascending: true });
 
-    const qParams = new URLSearchParams();
-    qParams.set('gen', gen.id);
-    if (questions && questions.length > 0) {
-      qParams.set('type', gen.question_type);
-    }
+    void questions;
     navigate(`/dashboard/bank?gen=${encodeURIComponent(gen.id)}`);
   };
 
   const handleExport = async (gen: Generation) => {
+    if (!userId) return;
     const { data: questions } = await supabase
       .from('questions')
       .select('*')
