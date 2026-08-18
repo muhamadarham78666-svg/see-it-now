@@ -123,7 +123,7 @@ export function FileUpload({ onAttachmentsChange }: FileUploadProps) {
               {parsing ? 'Reading files...' : 'Drag & drop files here or click to browse'}
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              PDF, DOC, DOCX, TXT and images up to 100MB (scanned pages use AI OCR)
+              PDF, DOC, DOCX, TXT and images up to 100MB — text is extracted locally, images are optimised
             </p>
           </div>
         </label>

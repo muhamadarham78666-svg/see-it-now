@@ -149,6 +149,11 @@ export class QuestionGeneratorService {
   }
 }
 
+/** Raw bytes we are willing to inline (base64) into an AI request. */
+const MAX_INLINE_BYTES = 4 * 1024 * 1024;
+/** Characters of extracted text we keep per file. */
+const MAX_TEXT_CHARS = 150_000;
+
 export class DocumentParserService {
   /** Returns extracted text plus (when useful) the raw file as a data URL for AI vision. */
   async parseFile(file: File): Promise<{ text: string; dataUrl?: string }> {
@@ -156,18 +161,23 @@ export class DocumentParserService {
     const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
 
     if (mime.startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'].includes(ext)) {
-      return { text: '', dataUrl: await this.toDataUrl(file) };
+      const dataUrl =
+        file.size > MAX_INLINE_BYTES ? await this.compressImage(file) : await this.toDataUrl(file);
+      return { text: '', dataUrl };
     }
 
     if (mime === 'application/pdf' || ext === 'pdf') {
       const text = await this.parsePdf(file);
-      if (text.trim().length > 80) return { text };
-      // Scanned PDF — let the AI read it directly.
+      if (text.trim().length > 80) return { text: this.clip(text) };
+      // Scanned PDF — the AI must read it, so it has to fit in one request.
+      if (file.size > MAX_INLINE_BYTES) {
+        throw new Error('Scanned PDF is too large — please split it or upload under 4MB');
+      }
       return { text: '', dataUrl: await this.toDataUrl(file, 'application/pdf') };
     }
 
     if (ext === 'docx' || ext === 'doc') {
-      return { text: await this.parseDoc(file) };
+      return { text: this.clip(await this.parseDoc(file)) };
     }
 
     const text = await file.text();
@@ -176,10 +186,14 @@ export class DocumentParserService {
     if (/[\u0000-\u0008\u000E-\u001F]/.test(text.slice(0, 2000))) {
       throw new Error('Unsupported file type');
     }
-    return { text };
+    return { text: this.clip(text) };
   }
 
-  private async toDataUrl(file: File, forceMime?: string): Promise<string> {
+  private clip(text: string): string {
+    return text.length > MAX_TEXT_CHARS ? `${text.slice(0, MAX_TEXT_CHARS)}\n...` : text;
+  }
+
+  private async toDataUrl(file: Blob, forceMime?: string): Promise<string> {
     const buffer = await file.arrayBuffer();
     const bytes = new Uint8Array(buffer);
     let binary = '';
@@ -189,6 +203,37 @@ export class DocumentParserService {
     }
     const mime = forceMime || file.type || 'application/octet-stream';
     return `data:${mime};base64,${btoa(binary)}`;
+  }
+
+  /** Downscales huge photos so they fit in an AI request instead of failing. */
+  private async compressImage(file: File): Promise<string> {
+    if (typeof document === 'undefined') {
+      throw new Error('Image is too large to read');
+    }
+    const bitmapUrl = URL.createObjectURL(file);
+    try {
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const element = new Image();
+        element.onload = () => resolve(element);
+        element.onerror = () => reject(new Error('Could not read this image'));
+        element.src = bitmapUrl;
+      });
+      const maxSide = 2200;
+      const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(img.width * scale));
+      canvas.height = Math.max(1, Math.round(img.height * scale));
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Could not read this image');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.82),
+      );
+      if (!blob) throw new Error('Could not read this image');
+      return this.toDataUrl(blob, 'image/jpeg');
+    } finally {
+      URL.revokeObjectURL(bitmapUrl);
+    }
   }
 
   private async parsePdf(file: File): Promise<string> {
