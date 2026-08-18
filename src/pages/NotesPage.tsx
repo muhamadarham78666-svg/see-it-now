@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
-import { FilePlus2, NotebookPen, Pin, Save, Trash2 } from 'lucide-react';
+import { AlertCircle, FilePlus2, Loader2, NotebookPen, Pin, Save, Sparkles, Trash2 } from 'lucide-react';
 import { Button } from '@/components/nsa/Button';
 import { Card } from '@/components/nsa/Card';
 import { EmptyState, Spinner } from '@/components/nsa/Feedback';
+import { Modal } from '@/components/nsa/Modal';
+import { FileUpload } from '@/components/generator/FileUpload';
 import { useAuth } from '@/context/AuthContext';
 import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { supabase } from '@/lib/supabase';
+import { generateNoteFn } from '@/lib/notes.functions';
+import type { GenAttachment } from '@/services/aiService';
 
 interface Note {
   id: string;
