@@ -171,7 +171,7 @@ export function LoginPage() {
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
               There is no public registration. Need an account?{' '}
-              <Link to="/#contact" className="font-medium text-primary-600 dark:text-primary-400 hover:underline">
+              <Link to="/" hash="contact" className="font-medium text-primary-600 dark:text-primary-400 hover:underline">
                 Contact the administrator
               </Link>
             </p>
