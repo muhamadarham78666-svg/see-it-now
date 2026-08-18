@@ -28,6 +28,14 @@ export function NotesPage() {
   const [active, setActive] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiSubject, setAiSubject] = useState('');
+  const [aiLanguage, setAiLanguage] = useState('english');
+  const [aiStyle, setAiStyle] = useState('structured');
+  const [aiAttachments, setAiAttachments] = useState<GenAttachment[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const loadNotes = useCallback(async () => {
     if (!userId) {
