@@ -92,17 +92,128 @@ export function NotesPage() {
     setActive(remaining[0] ?? null);
   };
 
+  const generateAiNote = async () => {
+    if (!userId) return;
+    if (!aiPrompt.trim() && aiAttachments.length === 0) {
+      setAiError('Write an instruction or upload a file first.');
+      return;
+    }
+    setAiError(null);
+    setAiLoading(true);
+    try {
+      const result = await generateNoteFn({
+        data: {
+          prompt: aiPrompt,
+          language: aiLanguage,
+          style: aiStyle,
+          subject: aiSubject.trim() || null,
+          attachments: aiAttachments.map((a) => ({
+            name: a.name,
+            mime: a.mime,
+            dataUrl: a.dataUrl ?? null,
+            text: a.text ?? null,
+          })),
+        },
+      });
+
+      const { data } = await supabase
+        .from('notes')
+        .insert({
+          user_id: userId,
+          title: result.title,
+          content: result.content,
+          subject: aiSubject.trim() || null,
+        })
+        .select('*')
+        .single();
+
+      if (data) {
+        const note = data as Note;
+        setNotes((previous) => [note, ...previous]);
+        setActive(note);
+      }
+      setAiOpen(false);
+      setAiPrompt('');
+      setAiAttachments([]);
+    } catch (error) {
+      setAiError(error instanceof Error ? error.message : 'Could not generate notes. Please try again.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   if (loading) return <div className="flex justify-center py-16"><Spinner size="lg" /></div>;
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl font-bold text-slate-900 dark:text-white">Notes</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Write and save private notes in your account.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Write your own notes or let AI create them for you.</p>
         </div>
-        <Button onClick={createNote}><FilePlus2 size={17} /> New Note</Button>
+        <div className="flex gap-3">
+          <Button onClick={() => setAiOpen(true)}><Sparkles size={17} /> AI Notes Generator</Button>
+          <Button variant="secondary" onClick={createNote}><FilePlus2 size={17} /> New Note</Button>
+        </div>
       </div>
+
+      <Modal open={aiOpen} onClose={() => setAiOpen(false)} title="AI Notes Generator" size="lg">
+        <div className="space-y-4">
+          {aiError && (
+            <div className="flex items-start gap-2 p-3 rounded-xl bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800/50 text-error-700 dark:text-error-400 text-sm">
+              <AlertCircle size={18} className="flex-shrink-0 mt-0.5" />
+              <span>{aiError}</span>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">What notes do you need?</label>
+            <textarea
+              value={aiPrompt}
+              onChange={(event) => setAiPrompt(event.target.value)}
+              className="input-field min-h-[120px] resize-y"
+              placeholder="e.g. Class 10 Physics — make short notes on Newton's laws with formulas and examples"
+            />
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Subject</label>
+              <input value={aiSubject} onChange={(event) => setAiSubject(event.target.value)} className="input-field" placeholder="Optional" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Language</label>
+              <select value={aiLanguage} onChange={(event) => setAiLanguage(event.target.value)} className="input-field">
+                <option value="english">English</option>
+                <option value="urdu">Urdu</option>
+                <option value="mixed">Mixed</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Style</label>
+              <select value={aiStyle} onChange={(event) => setAiStyle(event.target.value)} className="input-field">
+                <option value="structured">Headings + explanation</option>
+                <option value="bullets">Bullet points</option>
+                <option value="summary">Short summary</option>
+                <option value="exam">Exam preparation</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Upload material (optional)</label>
+            <FileUpload onAttachmentsChange={setAiAttachments} />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-1">
+            <Button variant="secondary" onClick={() => setAiOpen(false)} disabled={aiLoading}>Cancel</Button>
+            <Button onClick={generateAiNote} disabled={aiLoading}>
+              {aiLoading ? <><Loader2 size={17} className="animate-spin" /> Generating...</> : <><Sparkles size={17} /> Generate Notes</>}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
 
       {notes.length === 0 ? (
         <Card><EmptyState icon={<NotebookPen size={32} />} title="No notes yet" description="Create your first note and it will stay saved with your account." action={<Button onClick={createNote}>Create Note</Button>} /></Card>
