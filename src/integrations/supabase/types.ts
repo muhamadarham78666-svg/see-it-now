@@ -334,6 +334,42 @@ export type Database = {
           },
         ]
       }
+      reviews: {
+        Row: {
+          content: string
+          country: string | null
+          created_at: string
+          id: string
+          institution: string | null
+          name: string
+          rating: number
+          role: string | null
+          status: string
+        }
+        Insert: {
+          content: string
+          country?: string | null
+          created_at?: string
+          id?: string
+          institution?: string | null
+          name: string
+          rating?: number
+          role?: string | null
+          status?: string
+        }
+        Update: {
+          content?: string
+          country?: string | null
+          created_at?: string
+          id?: string
+          institution?: string | null
+          name?: string
+          rating?: number
+          role?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
