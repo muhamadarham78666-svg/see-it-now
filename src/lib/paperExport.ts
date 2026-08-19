@@ -10,6 +10,10 @@ export interface PaperMeta {
   examDate?: string;
   examTime?: string;
   instructions?: string;
+  /** Optional logo (data URL or https URL) printed in the paper header. */
+  logoUrl?: string;
+  /** Optional footer note, e.g. "Best of luck". */
+  footerNote?: string;
 }
 
 const escapeHtml = (value: string) =>
