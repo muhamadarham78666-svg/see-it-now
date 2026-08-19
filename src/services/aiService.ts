@@ -149,44 +149,87 @@ export class QuestionGeneratorService {
   }
 }
 
-/** Raw bytes we are willing to inline (base64) into an AI request. */
-const MAX_INLINE_BYTES = 4 * 1024 * 1024;
+/** Raw bytes we are willing to inline (base64) into an AI request without shrinking. */
+const MAX_INLINE_BYTES = 1.5 * 1024 * 1024;
 /** Characters of extracted text we keep per file. */
 const MAX_TEXT_CHARS = 150_000;
+/** Pages of a scanned PDF we rasterise for AI vision. */
+const MAX_SCAN_PAGES = 8;
+
+export interface ParsedFile {
+  text: string;
+  dataUrl?: string;
+  /** Rasterised page images for scanned documents (already compressed). */
+  images?: string[];
+  /** Non-fatal information for the user, e.g. only part of the file was read. */
+  warning?: string;
+}
 
 export class DocumentParserService {
-  /** Returns extracted text plus (when useful) the raw file as a data URL for AI vision. */
-  async parseFile(file: File): Promise<{ text: string; dataUrl?: string }> {
+  /** Returns extracted text plus (when useful) compressed images for AI vision. */
+  async parseFile(file: File): Promise<ParsedFile> {
     const mime = file.type || '';
     const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
 
-    if (mime.startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'].includes(ext)) {
-      const dataUrl =
-        file.size > MAX_INLINE_BYTES ? await this.compressImage(file) : await this.toDataUrl(file);
-      return { text: '', dataUrl };
+    if (mime.startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp', 'heic', 'tif', 'tiff'].includes(ext)) {
+      // Always try to shrink: big photos are the main cause of upload failures.
+      try {
+        const dataUrl =
+          file.size > MAX_INLINE_BYTES ? await this.compressImage(file) : await this.toDataUrl(file);
+        return { text: '', dataUrl };
+      } catch {
+        throw new Error('This image could not be read. Please try a PNG or JPG version.');
+      }
     }
 
     if (mime === 'application/pdf' || ext === 'pdf') {
-      const text = await this.parsePdf(file);
-      if (text.trim().length > 80) return { text: this.clip(text) };
-      // Scanned PDF — the AI must read it, so it has to fit in one request.
-      if (file.size > MAX_INLINE_BYTES) {
-        throw new Error('Scanned PDF is too large — please split it or upload under 4MB');
+      const { text, pages, readPages } = await this.parsePdf(file);
+      if (text.trim().length > 80) {
+        return {
+          text: this.clip(text),
+          warning: readPages < pages ? `Read the first ${readPages} of ${pages} pages.` : undefined,
+        };
       }
-      return { text: '', dataUrl: await this.toDataUrl(file, 'application/pdf') };
+      // Scanned/handwritten PDF: rasterise a few pages instead of failing on size.
+      const images = await this.pdfToImages(file);
+      if (images.length) {
+        return {
+          text: '',
+          images,
+          warning: pages > images.length ? `Scanned PDF — read the first ${images.length} of ${pages} pages.` : undefined,
+        };
+      }
+      if (file.size <= 4 * 1024 * 1024) {
+        return { text: '', dataUrl: await this.toDataUrl(file, 'application/pdf') };
+      }
+      throw new Error('This PDF has no readable text. Please upload a clearer scan or split it into smaller parts.');
     }
 
     if (ext === 'docx' || ext === 'doc') {
-      return { text: this.clip(await this.parseDoc(file)) };
+      const text = await this.parseDoc(file);
+      if (!text.trim()) throw new Error('This document appears to be empty or image-only.');
+      return { text: this.clip(text) };
     }
 
-    const text = await file.text();
-    // Reject binary junk we cannot read.
+    if (['txt', 'md', 'csv', 'rtf', 'json', 'html', 'htm', 'tex'].includes(ext) || mime.startsWith('text/')) {
+      const text = await this.readTextSafely(file);
+      if (!text.trim()) throw new Error('This file is empty.');
+      return { text: this.clip(text) };
+    }
+
+    // Unknown extension: still try reading it as text before giving up.
+    const text = await this.readTextSafely(file);
     // eslint-disable-next-line no-control-regex
-    if (/[\u0000-\u0008\u000E-\u001F]/.test(text.slice(0, 2000))) {
-      throw new Error('Unsupported file type');
+    if (!text.trim() || /[\u0000-\u0008\u000E-\u001F]/.test(text.slice(0, 2000))) {
+      throw new Error('This file type is not supported. Try PDF, DOC/DOCX, TXT or an image.');
     }
     return { text: this.clip(text) };
+  }
+
+  /** Reads only the first slice of huge text files so the browser does not run out of memory. */
+  private async readTextSafely(file: File): Promise<string> {
+    const slice = file.size > 20 * 1024 * 1024 ? file.slice(0, 20 * 1024 * 1024) : file;
+    return await slice.text();
   }
 
   private clip(text: string): string {
