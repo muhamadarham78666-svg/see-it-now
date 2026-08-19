@@ -134,9 +134,106 @@ export function buildPaperHtml(
   <div class="totals"><span>Total Questions: ${questions.length}</span><span>Total Marks: ${totalMarks}</span></div>
   ${meta.instructions ? `<div class="instructions"><strong>Instructions:</strong>\n${escapeHtml(meta.instructions)}</div>` : ''}
   ${sections}
+  ${meta.footerNote ? `<footer>${escapeHtml(meta.footerNote)}</footer>` : ''}
 </body>
 </html>`;
 }
+
+export interface NoteDoc {
+  title: string;
+  content: string;
+  subject?: string | null;
+  institutionName?: string;
+  logoUrl?: string;
+}
+
+/** Printable HTML for a note: supports #/##/### headings, -/* bullets and **bold**. */
+export function buildNoteHtml(note: NoteDoc): string {
+  const isUrdu = /[\u0600-\u06FF]/.test(note.content);
+  const inline = (line: string) =>
+    escapeHtml(line).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+  const blocks: string[] = [];
+  let listOpen = false;
+  const closeList = () => {
+    if (listOpen) {
+      blocks.push('</ul>');
+      listOpen = false;
+    }
+  };
+
+  for (const raw of note.content.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line) {
+      closeList();
+      continue;
+    }
+    const heading = /^(#{1,4})\s+(.*)$/.exec(line);
+    if (heading) {
+      closeList();
+      const level = Math.min(4, heading[1]!.length + 1);
+      blocks.push(`<h${level}>${inline(heading[2]!)}</h${level}>`);
+      continue;
+    }
+    const bullet = /^[-*•]\s+(.*)$/.exec(line);
+    if (bullet) {
+      if (!listOpen) {
+        blocks.push('<ul>');
+        listOpen = true;
+      }
+      blocks.push(`<li>${inline(bullet[1]!)}</li>`);
+      continue;
+    }
+    closeList();
+    blocks.push(`<p>${inline(line)}</p>`);
+  }
+  closeList();
+
+  return `<!DOCTYPE html>
+<html lang="${isUrdu ? 'ur' : 'en'}">
+<head>
+<meta charset="utf-8" />
+<title>${escapeHtml(note.title)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: ${isUrdu ? "'Noto Nastaliq Urdu', serif" : "Georgia, 'Times New Roman', serif"}; color: #111; margin: 0; padding: 34px 42px; line-height: ${isUrdu ? '2.2' : '1.7'}; direction: ${isUrdu ? 'rtl' : 'ltr'}; }
+  header { display: flex; align-items: center; gap: 14px; border-bottom: 2px solid #111; padding-bottom: 12px; margin-bottom: 18px; }
+  header img { height: 58px; max-width: 120px; object-fit: contain; }
+  header h1 { font-size: 21px; margin: 0; }
+  header .sub { font-size: 12.5px; color: #444; margin-top: 2px; }
+  h2 { font-size: 17px; margin: 20px 0 8px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+  h3 { font-size: 15px; margin: 16px 0 6px; }
+  h4, h5 { font-size: 14px; margin: 12px 0 6px; }
+  p { margin: 0 0 9px; font-size: 14px; }
+  ul { margin: 0 0 12px; padding-${isUrdu ? 'right' : 'left'}: 22px; }
+  li { font-size: 14px; margin-bottom: 4px; }
+  @media print { body { padding: 18px 24px; } }
+</style>
+</head>
+<body>
+  <header>
+    ${note.logoUrl ? `<img src="${escapeHtml(note.logoUrl)}" alt="Logo" />` : ''}
+    <div>
+      ${note.institutionName ? `<div class="sub">${escapeHtml(note.institutionName)}</div>` : ''}
+      <h1>${escapeHtml(note.title)}</h1>
+      ${note.subject ? `<div class="sub">${escapeHtml(note.subject)}</div>` : ''}
+    </div>
+  </header>
+  ${blocks.join('\n  ')}
+</body>
+</html>`;
+}
+
+export function printHtml(html: string) {
+  const win = window.open('', '_blank');
+  if (!win) return;
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 400);
+}
+
 
 export function buildPaperText(meta: PaperMeta, questions: Question[], withAnswers: boolean) {
   const lines: string[] = [];
