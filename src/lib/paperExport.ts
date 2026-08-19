@@ -97,7 +97,10 @@ export function buildPaperHtml(
   * { box-sizing: border-box; }
   body { font-family: Georgia, 'Times New Roman', serif; color: #111; margin: 0; padding: 36px 44px; line-height: 1.6; }
   header { text-align: center; border-bottom: 2px solid #111; padding-bottom: 14px; margin-bottom: 22px; }
+  header .brand { display: flex; align-items: center; justify-content: center; gap: 14px; }
+  header .brand img { height: 64px; width: auto; max-width: 130px; object-fit: contain; }
   header h1 { margin: 0 0 6px; font-size: 24px; letter-spacing: .3px; }
+  footer { margin-top: 28px; padding-top: 10px; border-top: 1px dashed #999; text-align: center; font-size: 12.5px; font-weight: bold; }
   header .exam { font-size: 16px; font-weight: bold; margin-bottom: 6px; }
   header .meta { font-size: 12px; color: #333; }
   .totals { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; margin-bottom: 16px; }
