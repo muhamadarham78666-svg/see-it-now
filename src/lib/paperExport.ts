@@ -122,8 +122,13 @@ export function buildPaperHtml(
 </head>
 <body>
   <header>
-    ${meta.institutionName ? `<h1>${escapeHtml(meta.institutionName)}</h1>` : ''}
-    <div class="exam">${escapeHtml(meta.examName || meta.title)}</div>
+    <div class="brand">
+      ${meta.logoUrl ? `<img src="${escapeHtml(meta.logoUrl)}" alt="Logo" />` : ''}
+      <div>
+        ${meta.institutionName ? `<h1>${escapeHtml(meta.institutionName)}</h1>` : ''}
+        <div class="exam">${escapeHtml(meta.examName || meta.title)}</div>
+      </div>
+    </div>
     ${metaLine ? `<div class="meta">${metaLine}</div>` : ''}
   </header>
   <div class="totals"><span>Total Questions: ${questions.length}</span><span>Total Marks: ${totalMarks}</span></div>
