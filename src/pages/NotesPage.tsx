@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { AlertCircle, FilePlus2, Loader2, NotebookPen, Pin, Save, Sparkles, Trash2 } from 'lucide-react';
+import { AlertCircle, Eye, FilePlus2, Loader2, NotebookPen, Pin, Save, Sparkles, Trash2 } from 'lucide-react';
 import { Button } from '@/components/nsa/Button';
 import { Card } from '@/components/nsa/Card';
 import { EmptyState, Spinner } from '@/components/nsa/Feedback';
@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { supabase } from '@/lib/supabase';
 import { generateNoteFn } from '@/lib/notes.functions';
+import { NotePreviewModal } from '@/components/notes/NotePreviewModal';
 import type { GenAttachment } from '@/services/aiService';
 
 interface Note {
@@ -36,6 +37,7 @@ export function NotesPage() {
   const [aiAttachments, setAiAttachments] = useState<GenAttachment[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const loadNotes = useCallback(async () => {
     if (!userId) {
@@ -237,10 +239,23 @@ export function NotesPage() {
               </div>
               <input value={active.subject ?? ''} onChange={(event) => setActive({ ...active, subject: event.target.value })} className="input-field" placeholder="Subject or topic (optional)" />
               <textarea value={active.content} onChange={(event) => setActive({ ...active, content: event.target.value })} className="input-field min-h-[380px] resize-y leading-relaxed" placeholder="Start writing your note..." />
-              <div className="flex justify-end"><Button onClick={saveNote} disabled={saving}><Save size={17} /> {saving ? 'Saving...' : 'Save Note'}</Button></div>
+              <div className="flex flex-wrap justify-end gap-3">
+                <Button variant="secondary" onClick={() => setPreviewOpen(true)}><Eye size={17} /> Preview & Print</Button>
+                <Button onClick={saveNote} disabled={saving}><Save size={17} /> {saving ? 'Saving...' : 'Save Note'}</Button>
+              </div>
             </Card>
           )}
         </div>
+      )}
+
+      {active && (
+        <NotePreviewModal
+          open={previewOpen}
+          onClose={() => setPreviewOpen(false)}
+          title={active.title}
+          content={active.content}
+          subject={active.subject}
+        />
       )}
     </div>
   );
