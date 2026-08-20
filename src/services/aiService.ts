@@ -279,13 +279,15 @@ export class DocumentParserService {
     }
   }
 
-  private async parsePdf(file: File): Promise<string> {
+  private async parsePdf(
+    file: File,
+  ): Promise<{ text: string; pages: number; readPages: number }> {
     try {
       const arrayBuffer = await file.arrayBuffer();
       const pdfjs = await import('pdfjs-dist');
       const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
       const textParts: string[] = [];
-      const maxPages = Math.min(pdf.numPages, 50);
+      const maxPages = Math.min(pdf.numPages, 80);
       for (let i = 1; i <= maxPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
@@ -293,9 +295,42 @@ export class DocumentParserService {
           textContent.items.map((item) => ('str' in item ? item.str : '')).join(' '),
         );
       }
-      return textParts.join('\n\n').trim();
+      return { text: textParts.join('\n\n').trim(), pages: pdf.numPages, readPages: maxPages };
     } catch {
-      return '';
+      return { text: '', pages: 0, readPages: 0 };
+    }
+  }
+
+  /** Rasterises the first pages of a scanned PDF into compressed JPEGs for AI vision. */
+  private async pdfToImages(file: File): Promise<string[]> {
+    if (typeof document === 'undefined') return [];
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdfjs = await import('pdfjs-dist');
+      const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+      const count = Math.min(pdf.numPages, MAX_SCAN_PAGES);
+      const images: string[] = [];
+      for (let i = 1; i <= count; i++) {
+        const page = await pdf.getPage(i);
+        const base = page.getViewport({ scale: 1 });
+        const scale = Math.min(2, 1600 / Math.max(base.width, base.height));
+        const viewport = page.getViewport({ scale });
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(viewport.width);
+        canvas.height = Math.round(viewport.height);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) break;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        await page.render({ canvas, canvasContext: ctx, viewport }).promise;
+        const blob = await new Promise<Blob | null>((resolve) =>
+          canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.75),
+        );
+        if (blob) images.push(await this.toDataUrl(blob, 'image/jpeg'));
+      }
+      return images;
+    } catch {
+      return [];
     }
   }
 

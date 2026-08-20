@@ -7,6 +7,8 @@ import { GuideVideo } from '@/components/landing/GuideVideo';
 import { Features } from '@/components/landing/Features';
 import { WhyNSAGPT } from '@/components/landing/WhyNSAGPT';
 import { AccessControl } from '@/components/landing/AccessControl';
+import { OtherProducts } from '@/components/landing/OtherProducts';
+import { ReviewsSection } from '@/components/landing/ReviewsSection';
 import { Footer } from '@/components/landing/Footer';
 import { Reveal } from '@/components/landing/Reveal';
 
@@ -50,6 +52,14 @@ export function LandingPage() {
           <WhyNSAGPT />
         </Reveal>
       </div>
+
+      <Reveal>
+        <OtherProducts />
+      </Reveal>
+
+      <Reveal delay={80}>
+        <ReviewsSection />
+      </Reveal>
 
       <Reveal>
         <AccessControl onLogin={goToLogin} onContact={goToLogin} />

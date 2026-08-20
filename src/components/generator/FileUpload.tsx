@@ -11,13 +11,14 @@ interface UploadedFile {
   name: string;
   size: number;
   type: string;
-  attachment?: GenAttachment;
+  attachments?: GenAttachment[];
   error?: string;
+  warning?: string;
 }
 
 const acceptedTypes = [
-  '.pdf', '.doc', '.docx', '.txt', '.md', '.csv', '.rtf',
-  '.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp',
+  '.pdf', '.doc', '.docx', '.txt', '.md', '.csv', '.rtf', '.json', '.tex',
+  '.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.tif', '.tiff', '.heic',
 ];
 
 export function FileUpload({ onAttachmentsChange }: FileUploadProps) {
@@ -26,9 +27,7 @@ export function FileUpload({ onAttachmentsChange }: FileUploadProps) {
   const [parsing, setParsing] = useState(false);
 
   const publish = (list: UploadedFile[]) => {
-    onAttachmentsChange(
-      list.filter((f) => f.attachment).map((f) => f.attachment as GenAttachment),
-    );
+    onAttachmentsChange(list.flatMap((f) => f.attachments ?? []));
   };
 
   const handleFiles = async (fileList: FileList) => {
@@ -43,21 +42,33 @@ export function FileUpload({ onAttachmentsChange }: FileUploadProps) {
       }
       try {
         const parsed = await documentParser.parseFile(file);
-        if (!parsed.text.trim() && !parsed.dataUrl) {
-          newFiles.push({ ...base, error: 'No readable content found' });
-          continue;
-        }
-        newFiles.push({
-          ...base,
-          attachment: {
+        const attachments: GenAttachment[] = [];
+        if (parsed.text.trim() || parsed.dataUrl) {
+          attachments.push({
             name: file.name,
             mime: file.type || 'application/octet-stream',
             text: parsed.text || null,
             dataUrl: parsed.dataUrl ?? null,
-          },
+          });
+        }
+        (parsed.images ?? []).forEach((dataUrl, index) => {
+          attachments.push({
+            name: `${file.name} — page ${index + 1}`,
+            mime: 'image/jpeg',
+            text: null,
+            dataUrl,
+          });
         });
-      } catch {
-        newFiles.push({ ...base, error: 'Could not read this file' });
+        if (!attachments.length) {
+          newFiles.push({ ...base, error: 'No readable content found' });
+          continue;
+        }
+        newFiles.push({ ...base, attachments, warning: parsed.warning });
+      } catch (error) {
+        newFiles.push({
+          ...base,
+          error: error instanceof Error ? error.message : 'Could not read this file',
+        });
       }
     }
 
@@ -160,9 +171,12 @@ export function FileUpload({ onAttachmentsChange }: FileUploadProps) {
                     ) : (
                       <span className="text-success-600 dark:text-success-400 ml-2 inline-flex items-center gap-1">
                         <CheckCircle2 size={12} />
-                        {file.attachment?.text ? 'Text extracted' : 'Will be read by AI'}
+                        {file.attachments?.some((a) => a.text)
+                          ? 'Text extracted'
+                          : `Will be read by AI${(file.attachments?.length ?? 0) > 1 ? ` (${file.attachments?.length} pages)` : ''}`}
                       </span>
                     )}
+                    {file.warning && <span className="text-amber-500 ml-2">— {file.warning}</span>}
                   </p>
                 </div>
                 <button
