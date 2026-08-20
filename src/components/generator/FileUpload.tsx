@@ -11,13 +11,14 @@ interface UploadedFile {
   name: string;
   size: number;
   type: string;
-  attachment?: GenAttachment;
+  attachments?: GenAttachment[];
   error?: string;
+  warning?: string;
 }
 
 const acceptedTypes = [
-  '.pdf', '.doc', '.docx', '.txt', '.md', '.csv', '.rtf',
-  '.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp',
+  '.pdf', '.doc', '.docx', '.txt', '.md', '.csv', '.rtf', '.json', '.tex',
+  '.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.tif', '.tiff', '.heic',
 ];
 
 export function FileUpload({ onAttachmentsChange }: FileUploadProps) {
