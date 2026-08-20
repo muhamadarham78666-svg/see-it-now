@@ -27,9 +27,7 @@ export function FileUpload({ onAttachmentsChange }: FileUploadProps) {
   const [parsing, setParsing] = useState(false);
 
   const publish = (list: UploadedFile[]) => {
-    onAttachmentsChange(
-      list.filter((f) => f.attachment).map((f) => f.attachment as GenAttachment),
-    );
+    onAttachmentsChange(list.flatMap((f) => f.attachments ?? []));
   };
 
   const handleFiles = async (fileList: FileList) => {
@@ -44,21 +42,33 @@ export function FileUpload({ onAttachmentsChange }: FileUploadProps) {
       }
       try {
         const parsed = await documentParser.parseFile(file);
-        if (!parsed.text.trim() && !parsed.dataUrl) {
-          newFiles.push({ ...base, error: 'No readable content found' });
-          continue;
-        }
-        newFiles.push({
-          ...base,
-          attachment: {
+        const attachments: GenAttachment[] = [];
+        if (parsed.text.trim() || parsed.dataUrl) {
+          attachments.push({
             name: file.name,
             mime: file.type || 'application/octet-stream',
             text: parsed.text || null,
             dataUrl: parsed.dataUrl ?? null,
-          },
+          });
+        }
+        (parsed.images ?? []).forEach((dataUrl, index) => {
+          attachments.push({
+            name: `${file.name} — page ${index + 1}`,
+            mime: 'image/jpeg',
+            text: null,
+            dataUrl,
+          });
         });
-      } catch {
-        newFiles.push({ ...base, error: 'Could not read this file' });
+        if (!attachments.length) {
+          newFiles.push({ ...base, error: 'No readable content found' });
+          continue;
+        }
+        newFiles.push({ ...base, attachments, warning: parsed.warning });
+      } catch (error) {
+        newFiles.push({
+          ...base,
+          error: error instanceof Error ? error.message : 'Could not read this file',
+        });
       }
     }
 
