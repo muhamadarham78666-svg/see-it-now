@@ -171,9 +171,12 @@ export function FileUpload({ onAttachmentsChange }: FileUploadProps) {
                     ) : (
                       <span className="text-success-600 dark:text-success-400 ml-2 inline-flex items-center gap-1">
                         <CheckCircle2 size={12} />
-                        {file.attachment?.text ? 'Text extracted' : 'Will be read by AI'}
+                        {file.attachments?.some((a) => a.text)
+                          ? 'Text extracted'
+                          : `Will be read by AI${(file.attachments?.length ?? 0) > 1 ? ` (${file.attachments?.length} pages)` : ''}`}
                       </span>
                     )}
+                    {file.warning && <span className="text-amber-500 ml-2">— {file.warning}</span>}
                   </p>
                 </div>
                 <button
