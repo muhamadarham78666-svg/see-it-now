@@ -47,10 +47,12 @@ export function buildPaperHtml(
     .filter(Boolean)
     .join(' &nbsp;•&nbsp; ');
 
+  const style = getBoardStyle(meta.boardStyle);
+
   const groups: { key: Question['question_type']; label: string }[] = [
-    { key: 'mcq', label: 'Section A — Multiple Choice Questions' },
-    { key: 'short', label: 'Section B — Short Questions' },
-    { key: 'long', label: 'Section C — Long Questions' },
+    { key: 'mcq', label: style.sections.mcq },
+    { key: 'short', label: style.sections.short },
+    { key: 'long', label: style.sections.long },
   ];
 
   let counter = 0;
@@ -58,6 +60,11 @@ export function buildPaperHtml(
     .map(({ key, label }) => {
       const items = questions.filter((q) => q.question_type === key);
       if (!items.length) return '';
+      const sectionMarks = items.reduce((s, q) => s + (q.marks || 0), 0);
+      const note =
+        style.attemptAnyNote && key !== 'mcq' && items.length > 2
+          ? `<p class="note">Attempt any ${Math.max(1, items.length - 1)} of ${items.length} questions. (${sectionMarks} marks)</p>`
+          : '';
       const rows = items
         .map((q) => {
           counter += 1;
@@ -81,7 +88,7 @@ export function buildPaperHtml(
               )}</div>`
             : '';
           return `<div class="q ${rtl ? 'rtl' : ''}">
-            <div class="qhead"><span class="qno">Q${counter}.</span><span class="marks">(${q.marks})</span></div>
+            <div class="qhead"><span class="qno">Q${counter}.</span>${style.perQuestionMarks ? `<span class="marks">(${q.marks})</span>` : ''}</div>
             <p class="qtext">${escapeHtml(q.question_text)}</p>
             ${opts}
             ${q.question_type !== 'mcq' ? '<div class="space"></div>' : ''}
@@ -89,9 +96,10 @@ export function buildPaperHtml(
           </div>`;
         })
         .join('');
-      return `<section><h2>${label}</h2>${rows}</section>`;
+      return `<section><h2>${escapeHtml(label)}</h2>${note}${rows}</section>`;
     })
     .join('');
+
 
   return `<!DOCTYPE html>
 <html lang="${isUrduPaper ? 'ur' : 'en'}">
