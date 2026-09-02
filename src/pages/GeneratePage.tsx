@@ -25,6 +25,8 @@ import { FileUpload } from '@/components/generator/FileUpload';
 import { QuestionCard } from '@/components/questions/QuestionCard';
 import { QuestionEditModal } from '@/components/questions/QuestionEditModal';
 import { PaperPreviewModal } from '@/components/questions/PaperPreviewModal';
+import { BoardSelector } from '@/components/boards/BoardSelector';
+import { useBoard } from '@/context/BoardContext';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { questionGenerator, type GenAttachment } from '@/services/aiService';
@@ -386,6 +388,9 @@ export function GeneratePage() {
             subject,
             chapter,
             examName: title || 'Question Paper',
+            className: classLevel ?? '',
+            boardName: board?.name ?? '',
+            boardStyle: board?.style ?? 'punjab',
             instructions: 'Attempt all questions. Write answers clearly.',
           }}
         />
