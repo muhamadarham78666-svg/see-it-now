@@ -158,6 +158,25 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta }: Pap
               {field('Class', 'className', '10th')}
             </div>
             {field('Chapter', 'chapter', 'Chapter 1')}
+            {field('Board / Authority', 'boardName', 'Punjab Board (BISE Lahore)')}
+            <div>
+              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+                Paper Style
+              </label>
+              <select
+                value={meta.boardStyle ?? 'punjab'}
+                onChange={(e) => setMeta((m) => ({ ...m, boardStyle: e.target.value as PaperMeta['boardStyle'] }))}
+                className="input-field text-sm !py-2"
+              >
+                {BOARD_STYLE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+
 
             {groupTitle(<CalendarDays size={13} />, 'Schedule')}
             <div className="grid grid-cols-2 gap-3">
