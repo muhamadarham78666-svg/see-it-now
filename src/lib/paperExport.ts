@@ -1,4 +1,5 @@
 import type { Question } from '@/types';
+import { getBoardStyle } from '@/lib/boardStyles';
 
 export interface PaperMeta {
   title: string;
@@ -14,7 +15,12 @@ export interface PaperMeta {
   logoUrl?: string;
   /** Optional footer note, e.g. "Best of luck". */
   footerNote?: string;
+  /** Board name printed in the header, e.g. "BISE Lahore". */
+  boardName?: string;
+  /** Board style key controlling section names, header and layout. */
+  boardStyle?: string;
 }
+
 
 const escapeHtml = (value: string) =>
   value
