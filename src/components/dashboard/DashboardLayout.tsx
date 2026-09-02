@@ -15,10 +15,13 @@ import {
   Sun,
   Moon,
   ChevronRight,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { Logo } from '@/components/Logo';
+import { BoardChip } from '@/components/boards/BoardSelector';
+
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -43,7 +46,11 @@ export function DashboardLayout() {
     navigate('/');
   };
 
-  const currentLabel = navItems.find((n) => location.pathname === n.to)?.label ?? 'Dashboard';
+  const items = profile?.role === 'admin'
+    ? [...navItems, { to: '/admin', label: 'Admin Panel', icon: ShieldCheck, end: false }]
+    : navItems;
+
+  const currentLabel = items.find((n) => location.pathname === n.to)?.label ?? 'Dashboard';
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
@@ -56,7 +63,7 @@ export function DashboardLayout() {
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-thin">
-          {navItems.map((item) => {
+          {items.map((item) => {
             const Icon = item.icon;
             return (
               <NavLink
@@ -124,7 +131,7 @@ export function DashboardLayout() {
             </div>
 
             <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-thin">
-              {navItems.map((item) => {
+              {items.map((item) => {
                 const Icon = item.icon;
                 return (
                   <NavLink
@@ -201,6 +208,7 @@ export function DashboardLayout() {
             <span className="font-medium text-slate-700 dark:text-slate-200">{currentLabel}</span>
           </div>
           <div className="flex items-center gap-3">
+            <BoardChip />
             <button onClick={toggleTheme} className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </button>
@@ -208,8 +216,12 @@ export function DashboardLayout() {
         </header>
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
+          <div className="lg:hidden mb-4 flex justify-end">
+            <BoardChip />
+          </div>
           <Outlet />
         </main>
+
 
         <footer className="py-4 px-6 text-center text-xs text-slate-400 dark:text-slate-600 border-t border-slate-200 dark:border-slate-800">
           NSAGPT &mdash; AI Question & Paper Generator &middot; Developed by ZK SOLUTIONS

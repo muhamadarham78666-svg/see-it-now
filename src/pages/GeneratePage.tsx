@@ -25,6 +25,8 @@ import { FileUpload } from '@/components/generator/FileUpload';
 import { QuestionCard } from '@/components/questions/QuestionCard';
 import { QuestionEditModal } from '@/components/questions/QuestionEditModal';
 import { PaperPreviewModal } from '@/components/questions/PaperPreviewModal';
+import { BoardSelector } from '@/components/boards/BoardSelector';
+import { useBoard } from '@/context/BoardContext';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { questionGenerator, type GenAttachment } from '@/services/aiService';
@@ -41,7 +43,9 @@ const processingSteps = [
 
 export function GeneratePage() {
   const { profile, session } = useAuth();
+  const { board, classLevel } = useBoard();
   const [searchParams] = useSearchParams();
+
 
   const [content, setContent] = useState('');
   const [attachments, setAttachments] = useState<GenAttachment[]>([]);
@@ -386,6 +390,9 @@ export function GeneratePage() {
             subject,
             chapter,
             examName: title || 'Question Paper',
+            className: classLevel ?? '',
+            boardName: board?.name ?? '',
+            boardStyle: board?.style ?? 'punjab',
             instructions: 'Attempt all questions. Write answers clearly.',
           }}
         />
@@ -551,6 +558,13 @@ export function GeneratePage() {
                   </p>
                 </div>
               )}
+
+              {/* Board & class — drives the exam paper style */}
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/40 p-4">
+                <BoardSelector />
+              </div>
+
+
 
               {/* Language */}
               <div>

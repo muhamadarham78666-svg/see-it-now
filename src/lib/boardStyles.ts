@@ -142,3 +142,8 @@ export function getBoardStyle(key: string | null | undefined): BoardPaperStyle {
   if (key && key in BOARD_PAPER_STYLES) return BOARD_PAPER_STYLES[key as BoardStyleKey];
   return BOARD_PAPER_STYLES.custom;
 }
+
+/** Options for the paper-style dropdown in the preview modal. */
+export const BOARD_STYLE_OPTIONS: { value: BoardStyleKey; label: string }[] = (
+  Object.values(BOARD_PAPER_STYLES) as BoardPaperStyle[]
+).map((s) => ({ value: s.key, label: s.label }));

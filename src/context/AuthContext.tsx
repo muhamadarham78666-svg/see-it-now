@@ -48,17 +48,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadProfile = async (userId: string) => {
     const { data: userData } = await supabase.auth.getUser();
     const authUser = userData.user;
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
+    const [{ data, error }, { data: roleRows }] = await Promise.all([
+      supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
+      supabase.from('user_roles').select('role').eq('user_id', userId),
+    ]);
+
+    const role: Profile['role'] = roleRows?.some((r) => r.role === 'admin') ? 'admin' : 'user';
 
     if (error) {
       console.error('Error loading profile:', error);
     }
     if (data) {
-      setProfile({ ...data, role: 'user' } as Profile);
+      setProfile({ ...data, role } as Profile);
     } else if (authUser) {
       const fallback = {
         id: authUser.id,
@@ -73,12 +74,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .upsert(fallback, { onConflict: 'id' })
         .select('*')
         .maybeSingle();
-      setProfile({ ...(created ?? fallback), role: 'user' } as Profile);
+      setProfile({ ...(created ?? fallback), role } as Profile);
     } else {
       setProfile(null);
     }
     setLoading(false);
   };
+
 
   const signIn = async (email: string, password: string, remember = false) => {
     const { error } = await supabase.auth.signInWithPassword({
