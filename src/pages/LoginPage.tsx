@@ -3,6 +3,7 @@ import { useNavigate, Link } from '@/lib/rr';
 import { Eye, EyeOff, Lock, Mail, ArrowLeft, AlertCircle, Loader2, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Logo } from '@/components/Logo';
+import { supabase } from '@/lib/supabase';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
+  const [mode, setMode] = useState<'user' | 'admin'>('user');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -24,9 +26,26 @@ export function LoginPage() {
     if (error) {
       setError(error);
       setLoading(false);
-    } else {
-      navigate('/dashboard');
+      return;
     }
+
+    if (mode === 'admin') {
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData.user?.id;
+      const { data: roles } = userId
+        ? await supabase.from('user_roles').select('role').eq('user_id', userId)
+        : { data: null };
+      if (!roles?.some((r) => r.role === 'admin')) {
+        await supabase.auth.signOut();
+        setError('This account does not have administrator access.');
+        setLoading(false);
+        return;
+      }
+      navigate('/admin');
+      return;
+    }
+
+    navigate('/dashboard');
   };
 
   return (
@@ -77,9 +96,34 @@ export function LoginPage() {
             <h1 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mb-2">
               Welcome Back
             </h1>
-            <p className="text-slate-600 dark:text-slate-400">
-              Sign in to your NSAGPT account to continue.
+            <p className="text-slate-600 dark:text-slate-400 mb-5">
+              {mode === 'admin'
+                ? 'Sign in with your administrator account to manage the platform.'
+                : 'Sign in to your NSAGPT account to continue.'}
             </p>
+
+            <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800">
+              {([
+                { value: 'user' as const, label: 'User Login' },
+                { value: 'admin' as const, label: 'Admin Login' },
+              ]).map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    setMode(opt.value);
+                    setError(null);
+                  }}
+                  className={`py-2 rounded-lg text-sm font-medium transition-all ${
+                    mode === opt.value
+                      ? 'bg-white dark:bg-slate-700 text-primary-600 dark:text-primary-300 shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -158,6 +202,8 @@ export function LoginPage() {
                   <Loader2 size={18} className="animate-spin" />
                   Signing in...
                 </>
+              ) : mode === 'admin' ? (
+                'Sign In as Admin'
               ) : (
                 'Sign In'
               )}
