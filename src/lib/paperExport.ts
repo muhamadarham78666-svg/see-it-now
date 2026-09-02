@@ -109,18 +109,22 @@ export function buildPaperHtml(
 <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; }
-  body { font-family: Georgia, 'Times New Roman', serif; color: #111; margin: 0; padding: 36px 44px; line-height: 1.6; }
-  header { text-align: center; border-bottom: 2px solid #111; padding-bottom: 14px; margin-bottom: 22px; }
+  body { font-family: ${style.font === 'sans' ? "'Helvetica Neue', Arial, sans-serif" : "Georgia, 'Times New Roman', serif"}; color: #111; margin: 0; padding: 36px 44px; line-height: 1.6; }
+  header { text-align: center; border-bottom: 2px solid ${style.accent}; padding-bottom: 14px; margin-bottom: 18px; }
   header .brand { display: flex; align-items: center; justify-content: center; gap: 14px; }
   header .brand img { height: 64px; width: auto; max-width: 130px; object-fit: contain; }
   header h1 { margin: 0 0 6px; font-size: 24px; letter-spacing: .3px; }
+  header .board { font-size: 13px; font-weight: bold; color: ${style.accent}; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 4px; }
   footer { margin-top: 28px; padding-top: 10px; border-top: 1px dashed #999; text-align: center; font-size: 12.5px; font-weight: bold; }
   header .exam { font-size: 16px; font-weight: bold; margin-bottom: 6px; }
   header .meta { font-size: 12px; color: #333; }
+  .idbox { display: flex; gap: 12px; margin-bottom: 14px; font-size: 12px; }
+  .idbox div { flex: 1; border: 1px solid #999; padding: 6px 10px; }
   .totals { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; margin-bottom: 16px; }
   .instructions { border: 1px solid #bbb; background: #fafafa; padding: 10px 14px; font-size: 12.5px; margin-bottom: 22px; white-space: pre-wrap; }
   section { margin-bottom: 26px; }
-  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .6px; border-bottom: 1px solid #999; padding-bottom: 6px; margin: 0 0 14px; }
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .6px; color: ${style.accent}; border-bottom: 1px solid ${style.accent}; padding-bottom: 6px; margin: 0 0 10px; }
+  .note { font-size: 12px; font-style: italic; color: #444; margin: 0 0 12px; }
   .q { margin-bottom: 16px; page-break-inside: avoid; }
   .qhead { display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; }
   .qtext { margin: 2px 0 8px; font-size: 14px; text-align: left; }
@@ -139,13 +143,16 @@ export function buildPaperHtml(
     <div class="brand">
       ${meta.logoUrl ? `<img src="${escapeHtml(meta.logoUrl)}" alt="Logo" />` : ''}
       <div>
+        ${meta.boardName ? `<div class="board">${escapeHtml(meta.boardName)}</div>` : ''}
         ${meta.institutionName ? `<h1>${escapeHtml(meta.institutionName)}</h1>` : ''}
-        <div class="exam">${escapeHtml(meta.examName || meta.title)}</div>
+        <div class="exam">${escapeHtml(meta.examName || style.examHeading)}</div>
       </div>
     </div>
     ${metaLine ? `<div class="meta">${metaLine}</div>` : ''}
   </header>
+  ${style.rollNoBox ? '<div class="idbox"><div>Roll No: ______________</div><div>Name: ______________________</div></div>' : ''}
   <div class="totals"><span>Total Questions: ${questions.length}</span><span>Total Marks: ${totalMarks}</span></div>
+
   ${meta.instructions ? `<div class="instructions"><strong>Instructions:</strong>\n${escapeHtml(meta.instructions)}</div>` : ''}
   ${sections}
   ${meta.footerNote ? `<footer>${escapeHtml(meta.footerNote)}</footer>` : ''}
