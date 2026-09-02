@@ -43,7 +43,9 @@ const processingSteps = [
 
 export function GeneratePage() {
   const { profile, session } = useAuth();
+  const { board, classLevel } = useBoard();
   const [searchParams] = useSearchParams();
+
 
   const [content, setContent] = useState('');
   const [attachments, setAttachments] = useState<GenAttachment[]>([]);
