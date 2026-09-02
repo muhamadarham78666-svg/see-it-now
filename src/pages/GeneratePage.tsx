@@ -552,6 +552,13 @@ export function GeneratePage() {
                 </div>
               )}
 
+              {/* Board & class — drives the exam paper style */}
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/40 p-4">
+                <BoardSelector />
+              </div>
+
+
+
               {/* Language */}
               <div>
                 <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
