@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { X, Printer, Download, FileText, Eye, EyeOff, ImagePlus, Trash2, Building2, CalendarDays, ListChecks } from 'lucide-react';
 import { buildPaperHtml, buildPaperText, downloadFile, printHtml, type PaperMeta } from '@/lib/paperExport';
+import { BOARD_STYLE_OPTIONS } from '@/lib/boardStyles';
 import type { Question } from '@/types';
 
 interface PaperPreviewModalProps {
