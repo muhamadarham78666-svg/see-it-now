@@ -15,6 +15,7 @@ import {
   Sun,
   Moon,
   ChevronRight,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -45,7 +46,11 @@ export function DashboardLayout() {
     navigate('/');
   };
 
-  const currentLabel = navItems.find((n) => location.pathname === n.to)?.label ?? 'Dashboard';
+  const items = profile?.role === 'admin'
+    ? [...navItems, { to: '/admin', label: 'Admin Panel', icon: ShieldCheck, end: false }]
+    : navItems;
+
+  const currentLabel = items.find((n) => location.pathname === n.to)?.label ?? 'Dashboard';
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
@@ -58,7 +63,7 @@ export function DashboardLayout() {
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-thin">
-          {navItems.map((item) => {
+          {items.map((item) => {
             const Icon = item.icon;
             return (
               <NavLink
@@ -126,7 +131,7 @@ export function DashboardLayout() {
             </div>
 
             <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-thin">
-              {navItems.map((item) => {
+              {items.map((item) => {
                 const Icon = item.icon;
                 return (
                   <NavLink
