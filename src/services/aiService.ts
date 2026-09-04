@@ -1,7 +1,17 @@
 import type { GenerationSettings, Question, QuestionOption } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { generateQuestionsFn } from '@/lib/generate.functions';
+import { generateOfflinePaper, type OfflineRequest } from '@/lib/offlineGenerator';
 import type { Json } from '@/integrations/supabase/types';
+
+export type GenerationMode = 'ai' | 'offline';
+
+export interface GenerationResult {
+  questions: GeneratedQuestionData[];
+  mode: GenerationMode;
+  /** Set when the system silently fell back to the offline engine. */
+  fallbackReason?: string;
+}
 
 export interface GenAttachment {
   name: string;
