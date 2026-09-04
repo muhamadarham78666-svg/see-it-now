@@ -68,7 +68,7 @@ export function buildInstruction(settings: GenSettings) {
     languageRule(settings.language),
     settings.subject ? `Subject: ${settings.subject}.` : "",
     settings.chapter ? `Chapter: ${settings.chapter}.` : "",
-    "Short questions get 2 marks, long questions get 5 marks, MCQs get 1 mark unless the material implies otherwise.",
+    "Use the marks defined by the board pattern above when it is provided; otherwise short = 2, long = 5, MCQ = 1 mark.",
     'Return ONLY JSON in this shape: {"questions":[{"question_text":string,"question_type":"mcq"|"short"|"long","options":[{"label":"A","text":string}]|null,"correct_answer":string|null,"expected_answer":string|null,"answer_points":string[]|null,"explanation":string,"difficulty":"easy"|"medium"|"hard","topic":string,"marks":number}]}',
     "If the material is an image or scan, first read (OCR) all visible text, then build the questions from it.",
   ]
