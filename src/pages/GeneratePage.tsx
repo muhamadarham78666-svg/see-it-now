@@ -490,6 +490,138 @@ export function GeneratePage() {
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Input */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Step 1 — Class / Book / Range */}
+          <Card className="p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <GraduationCap size={20} className="text-primary-500" />
+              <h2 className="font-display text-lg font-semibold text-slate-900 dark:text-white">
+                Paper Setup
+              </h2>
+              {pattern && (
+                <Badge variant="primary">{pattern.label} • {pattern.totalMarks} marks</Badge>
+              )}
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Class / Group
+                </label>
+                <select
+                  value={groupKey}
+                  onChange={(e) => {
+                    setGroupKey(e.target.value);
+                    setBookId('');
+                    setPickedChapters([]);
+                    setRange('full');
+                  }}
+                  className="input-field"
+                >
+                  <option value="">Select Class / Group</option>
+                  {CLASS_GROUPS.map((g) => (
+                    <option key={g.key} value={g.key}>
+                      {g.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Book / Subject
+                </label>
+                <select
+                  value={bookId}
+                  onChange={(e) => {
+                    setBookId(e.target.value);
+                    setPickedChapters([]);
+                  }}
+                  disabled={!group}
+                  className="input-field disabled:opacity-50"
+                >
+                  <option value="">{group ? 'Select Book / Subject' : 'Select a class first'}</option>
+                  {group?.books.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                      {b.elective ? ' (Elective)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {bookObj && (
+              <div className="mt-4 space-y-3 animate-fade-in-down">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Paper Range
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {(['full', 'first-half', 'second-half', 'chapters'] as PaperRange[]).map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setRange(r)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                          range === r
+                            ? 'bg-gradient-to-r from-primary-600 to-accent-500 text-white shadow-md shadow-primary-500/25'
+                            : 'bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                        }`}
+                      >
+                        {RANGE_LABELS[r]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {range === 'chapters' && (
+                  <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-3 max-h-48 overflow-auto space-y-1.5">
+                    {bookObj.chapters.map((c) => {
+                      const on = pickedChapters.includes(c);
+                      return (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() =>
+                            setPickedChapters((prev) =>
+                              on ? prev.filter((x) => x !== c) : [...prev, c],
+                            )
+                          }
+                          className={`w-full text-left text-sm px-3 py-1.5 rounded-lg transition-colors ${
+                            on
+                              ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium'
+                              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'
+                          }`}
+                        >
+                          {on ? '✓ ' : ''}
+                          {c}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {rangeChapters.length} chapter(s) included — questions will follow the{' '}
+                  {pattern?.label} pattern automatically.
+                </p>
+              </div>
+            )}
+
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Special Instructions
+              </label>
+              <textarea
+                value={instructions}
+                onChange={(e) => setInstructions(e.target.value)}
+                rows={3}
+                placeholder="Apni requirement yahan likhein… e.g. Chapter 1, 2, 3 se questions zyada rakhein, MCQs conceptual hon, long questions mein numericals shamil karein."
+                className="input-field resize-y"
+              />
+            </div>
+          </Card>
+
           <Card className="p-6">
             <div className="flex items-center gap-2 mb-4">
               <FileText size={20} className="text-primary-500" />
