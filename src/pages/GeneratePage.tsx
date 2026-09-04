@@ -131,8 +131,8 @@ export function GeneratePage() {
   }, [generating]);
 
   const handleGenerate = async () => {
-    if (!hasMaterial) {
-      setError('Please upload a file or paste some content first.');
+    if (!hasMaterial && !bookObj) {
+      setError('Select a Class and Book, or upload / paste your study material.');
       return;
     }
     if (isMixed && mixTotal < 1) {
@@ -146,6 +146,10 @@ export function GeneratePage() {
     setCurrentStep(0);
     setGeneratedQuestions([]);
 
+    const effectiveSubject = subject || bookObj?.name || '';
+    const effectiveChapter =
+      chapter || (range === 'chapters' && pickedChapters.length ? pickedChapters.join(', ') : '');
+
     const settings = {
       language,
       questionType,
@@ -153,13 +157,50 @@ export function GeneratePage() {
       difficulty,
       mcqOptionsCount: mcqOptions,
       typeCounts: isMixed ? mixCounts : null,
-      subject: subject || undefined,
-      chapter: chapter || undefined,
+      subject: effectiveSubject || undefined,
+      chapter: effectiveChapter || undefined,
+      instructions: instructions.trim() || undefined,
+      classGroup: group?.label,
+      bookName: bookObj?.name,
+      rangeLabel: bookObj ? RANGE_LABELS[range] : undefined,
+      chapters: rangeChapters.length ? rangeChapters : undefined,
+      patternBrief: pattern ? patternBrief(pattern) : undefined,
     };
 
     try {
-      const questions = await questionGenerator.generate(content, attachments, settings);
+      const result = await questionGenerator.generate(
+        content,
+        attachments,
+        settings,
+        undefined,
+        group && bookObj && pattern
+          ? {
+              group,
+              book: bookObj,
+              pattern,
+              chapters: rangeChapters,
+              counts: isMixed
+                ? mixCounts
+                : {
+                    mcq: questionType === 'mcq' ? effectiveCount : 0,
+                    short: questionType === 'short' ? effectiveCount : 0,
+                    long: questionType === 'long' ? effectiveCount : 0,
+                  },
+              difficulty,
+              mcqOptionsCount: mcqOptions,
+              urdu: language === 'urdu' || Boolean(bookObj.urdu),
+            }
+          : undefined,
+      );
+      const questions = result.questions;
       setCurrentStep(processingSteps.length - 1);
+      if (result.mode === 'offline') {
+        setNotice(
+          `AI temporarily unavailable. Paper generated using Offline Mode.${
+            result.fallbackReason ? ` (${result.fallbackReason})` : ''
+          }`,
+        );
+      }
 
       const questionLanguage: Question['language'] = language;
       let finalQuestions = questionGenerator.toLocalQuestions(questions, questionLanguage);
