@@ -43,9 +43,27 @@ const processingSteps = [
 
 export function GeneratePage() {
   const { profile, session } = useAuth();
-  const { board, classLevel } = useBoard();
+  const { board } = useBoard();
   const [searchParams] = useSearchParams();
 
+  // --- Curriculum selection (Class/Group -> Book -> Range) ---
+  const [groupKey, setGroupKey] = useState<string>('');
+  const [bookId, setBookId] = useState<string>('');
+  const [range, setRange] = useState<PaperRange>('full');
+  const [pickedChapters, setPickedChapters] = useState<string[]>([]);
+  const [instructions, setInstructions] = useState('');
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+
+  const group = useMemo(() => findGroup(groupKey), [groupKey]);
+  const bookObj = useMemo(() => findBook(groupKey, bookId), [groupKey, bookId]);
+  const pattern = useMemo(
+    () => (group && bookObj ? resolvePattern(group, bookObj) : null),
+    [group, bookObj],
+  );
+  const rangeChapters = useMemo(
+    () => (bookObj ? chaptersForRange(bookObj.chapters, range, pickedChapters) : []),
+    [bookObj, range, pickedChapters],
+  );
 
   const [content, setContent] = useState('');
   const [attachments, setAttachments] = useState<GenAttachment[]>([]);
