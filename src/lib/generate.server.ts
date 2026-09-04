@@ -14,6 +14,18 @@ export interface GenSettings {
   typeCounts?: { mcq: number; short: number; long: number } | null;
   subject?: string | null;
   chapter?: string | null;
+  /** Free-text teacher requirements. */
+  instructions?: string | null;
+  /** Class / group label, e.g. "11th Class — Pre-Medical". */
+  classGroup?: string | null;
+  /** Selected book name. */
+  bookName?: string | null;
+  /** Full Book / Half Book / Selected Chapters. */
+  rangeLabel?: string | null;
+  /** Chapters that the paper must cover. */
+  chapters?: string[] | null;
+  /** Board pattern brief produced by paperPatterns.patternBrief(). */
+  patternBrief?: string | null;
 }
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
