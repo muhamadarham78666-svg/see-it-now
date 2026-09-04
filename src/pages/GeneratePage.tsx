@@ -221,8 +221,8 @@ export function GeneratePage() {
               difficulty,
               mcq_options_count: mcqOptions,
               status: 'completed',
-              subject: subject || null,
-              chapter: chapter || null,
+              subject: effectiveSubject || null,
+              chapter: effectiveChapter || null,
             })
             .select()
             .single();
@@ -454,14 +454,16 @@ export function GeneratePage() {
           onClose={() => setPreviewOpen(false)}
           questions={generatedQuestions}
           defaultMeta={{
-            title: title || 'Question Paper',
-            subject,
-            chapter,
-            examName: title || 'Question Paper',
-            className: classLevel ?? '',
-            boardName: board?.name ?? '',
+            title: title || `${bookObj?.name ?? 'Question'} Paper`,
+            subject: subject || bookObj?.name || '',
+            chapter: chapter || (range === 'chapters' ? pickedChapters.join(', ') : RANGE_LABELS[range]),
+            examName: title || pattern?.label || 'Question Paper',
+            className: group ? `${group.classLevel} — ${group.group}` : '',
+            examTime: pattern?.subjectiveTime ?? '',
+            boardName: board?.name ?? 'Board of Intermediate & Secondary Education',
             boardStyle: board?.style ?? 'punjab',
-            instructions: 'Attempt all questions. Write answers clearly.',
+            instructions:
+              pattern?.notes.join('\n') ?? 'Attempt all questions. Write answers clearly.',
           }}
         />
       </div>
