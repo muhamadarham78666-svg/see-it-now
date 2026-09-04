@@ -5,7 +5,14 @@ import { CLASS_LEVELS, groupByRegion } from '@/lib/boards';
 import { getBoardStyle } from '@/lib/boardStyles';
 
 /** Compact board picker used inside the Generate settings card. */
-export function BoardSelector({ compact = false }: { compact?: boolean }) {
+export function BoardSelector({
+  compact = false,
+  showClass = true,
+}: {
+  compact?: boolean;
+  /** Hide the class chips where class comes from the curriculum selection. */
+  showClass?: boolean;
+}) {
   const { boards, board, boardCode, classLevel, setBoard, setClassLevel } = useBoard();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
