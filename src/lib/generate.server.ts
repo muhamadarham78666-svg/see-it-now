@@ -48,8 +48,20 @@ export function buildInstruction(settings: GenSettings) {
         : `Generate exactly ${settings.questionCount} questions, all of type "${settings.questionType}".`;
 
   return [
-    "You are an expert exam paper setter for schools and colleges.",
-    "Read the provided study material (text, images, scans or documents) carefully and create exam questions strictly from that material.",
+    "You are an expert Punjab Board exam paper setter for Pakistani schools and colleges.",
+    "If study material is provided (text, images, scans or documents), build the questions strictly from it. If no material is provided, use the standard Punjab textbook syllabus for the given class, book and chapters.",
+    settings.classGroup ? `Class / Group: ${settings.classGroup}.` : "",
+    settings.bookName ? `Book / Subject: ${settings.bookName}.` : "",
+    settings.rangeLabel ? `Paper range: ${settings.rangeLabel}.` : "",
+    settings.chapters && settings.chapters.length
+      ? `Cover ONLY these chapters, spread the questions fairly across them: ${settings.chapters.join("; ")}.`
+      : "",
+    settings.patternBrief
+      ? `Follow this board pattern closely (about 70% board style, 30% improved original style — questions must be NEW, never copied):\n${settings.patternBrief}`
+      : "",
+    settings.instructions
+      ? `TEACHER'S SPECIAL INSTRUCTIONS (highest priority, obey them): ${settings.instructions}`
+      : "",
     mix,
     `Difficulty: ${settings.difficulty === "mixed" ? "mix easy, medium and hard" : settings.difficulty}.`,
     `Each MCQ must have exactly ${settings.mcqOptionsCount} options labelled A, B, C... and one correct_answer holding the correct option label.`,
