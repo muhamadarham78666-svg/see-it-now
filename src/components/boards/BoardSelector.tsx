@@ -100,6 +100,7 @@ export function BoardSelector({
         )}
       </div>
 
+      {showClass && (
       <div>
         <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
           <GraduationCap size={16} className="text-slate-400" />
