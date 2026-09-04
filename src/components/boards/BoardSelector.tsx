@@ -5,7 +5,14 @@ import { CLASS_LEVELS, groupByRegion } from '@/lib/boards';
 import { getBoardStyle } from '@/lib/boardStyles';
 
 /** Compact board picker used inside the Generate settings card. */
-export function BoardSelector({ compact = false }: { compact?: boolean }) {
+export function BoardSelector({
+  compact = false,
+  showClass = true,
+}: {
+  compact?: boolean;
+  /** Hide the class chips where class comes from the curriculum selection. */
+  showClass?: boolean;
+}) {
   const { boards, board, boardCode, classLevel, setBoard, setClassLevel } = useBoard();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -93,6 +100,7 @@ export function BoardSelector({ compact = false }: { compact?: boolean }) {
         )}
       </div>
 
+      {showClass && (
       <div>
         <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
           <GraduationCap size={16} className="text-slate-400" />
@@ -115,6 +123,7 @@ export function BoardSelector({ compact = false }: { compact?: boolean }) {
           ))}
         </div>
       </div>
+      )}
 
       {!compact && (
         <p className="text-xs text-slate-500 dark:text-slate-400 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 px-3 py-2">

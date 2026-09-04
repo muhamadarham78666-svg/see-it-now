@@ -16,6 +16,8 @@ import {
   Newspaper,
   Eye,
   Layers,
+  GraduationCap,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { Card } from '@/components/nsa/Card';
 import { Button } from '@/components/nsa/Button';
@@ -30,6 +32,15 @@ import { useBoard } from '@/context/BoardContext';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { questionGenerator, type GenAttachment } from '@/services/aiService';
+import {
+  CLASS_GROUPS,
+  RANGE_LABELS,
+  chaptersForRange,
+  findBook,
+  findGroup,
+  type PaperRange,
+} from '@/lib/curriculum';
+import { patternBrief, patternCounts, resolvePattern } from '@/lib/paperPatterns';
 import type { QuestionType, Language, Difficulty, Question } from '@/types';
 import type { Json } from '@/integrations/supabase/types';
 
@@ -43,9 +54,27 @@ const processingSteps = [
 
 export function GeneratePage() {
   const { profile, session } = useAuth();
-  const { board, classLevel } = useBoard();
+  const { board } = useBoard();
   const [searchParams] = useSearchParams();
 
+  // --- Curriculum selection (Class/Group -> Book -> Range) ---
+  const [groupKey, setGroupKey] = useState<string>('');
+  const [bookId, setBookId] = useState<string>('');
+  const [range, setRange] = useState<PaperRange>('full');
+  const [pickedChapters, setPickedChapters] = useState<string[]>([]);
+  const [instructions, setInstructions] = useState('');
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+
+  const group = useMemo(() => findGroup(groupKey), [groupKey]);
+  const bookObj = useMemo(() => findBook(groupKey, bookId), [groupKey, bookId]);
+  const pattern = useMemo(
+    () => (group && bookObj ? resolvePattern(group, bookObj) : null),
+    [group, bookObj],
+  );
+  const rangeChapters = useMemo(
+    () => (bookObj ? chaptersForRange(bookObj.chapters, range, pickedChapters) : []),
+    [bookObj, range, pickedChapters],
+  );
 
   const [content, setContent] = useState('');
   const [attachments, setAttachments] = useState<GenAttachment[]>([]);
@@ -104,8 +133,8 @@ export function GeneratePage() {
   }, [generating]);
 
   const handleGenerate = async () => {
-    if (!hasMaterial) {
-      setError('Please upload a file or paste some content first.');
+    if (!hasMaterial && !bookObj) {
+      setError('Select a Class and Book, or upload / paste your study material.');
       return;
     }
     if (isMixed && mixTotal < 1) {
@@ -119,6 +148,10 @@ export function GeneratePage() {
     setCurrentStep(0);
     setGeneratedQuestions([]);
 
+    const effectiveSubject = subject || bookObj?.name || '';
+    const effectiveChapter =
+      chapter || (range === 'chapters' && pickedChapters.length ? pickedChapters.join(', ') : '');
+
     const settings = {
       language,
       questionType,
@@ -126,13 +159,50 @@ export function GeneratePage() {
       difficulty,
       mcqOptionsCount: mcqOptions,
       typeCounts: isMixed ? mixCounts : null,
-      subject: subject || undefined,
-      chapter: chapter || undefined,
+      subject: effectiveSubject || undefined,
+      chapter: effectiveChapter || undefined,
+      instructions: instructions.trim() || undefined,
+      classGroup: group?.label,
+      bookName: bookObj?.name,
+      rangeLabel: bookObj ? RANGE_LABELS[range] : undefined,
+      chapters: rangeChapters.length ? rangeChapters : undefined,
+      patternBrief: pattern ? patternBrief(pattern) : undefined,
     };
 
     try {
-      const questions = await questionGenerator.generate(content, attachments, settings);
+      const result = await questionGenerator.generate(
+        content,
+        attachments,
+        settings,
+        undefined,
+        group && bookObj && pattern
+          ? {
+              group,
+              book: bookObj,
+              pattern,
+              chapters: rangeChapters,
+              counts: isMixed
+                ? mixCounts
+                : {
+                    mcq: questionType === 'mcq' ? effectiveCount : 0,
+                    short: questionType === 'short' ? effectiveCount : 0,
+                    long: questionType === 'long' ? effectiveCount : 0,
+                  },
+              difficulty,
+              mcqOptionsCount: mcqOptions,
+              urdu: language === 'urdu' || Boolean(bookObj.urdu),
+            }
+          : undefined,
+      );
+      const questions = result.questions;
       setCurrentStep(processingSteps.length - 1);
+      if (result.mode === 'offline') {
+        setNotice(
+          `AI temporarily unavailable. Paper generated using Offline Mode.${
+            result.fallbackReason ? ` (${result.fallbackReason})` : ''
+          }`,
+        );
+      }
 
       const questionLanguage: Question['language'] = language;
       let finalQuestions = questionGenerator.toLocalQuestions(questions, questionLanguage);
@@ -153,8 +223,8 @@ export function GeneratePage() {
               difficulty,
               mcq_options_count: mcqOptions,
               status: 'completed',
-              subject: subject || null,
-              chapter: chapter || null,
+              subject: effectiveSubject || null,
+              chapter: effectiveChapter || null,
             })
             .select()
             .single();
@@ -386,14 +456,16 @@ export function GeneratePage() {
           onClose={() => setPreviewOpen(false)}
           questions={generatedQuestions}
           defaultMeta={{
-            title: title || 'Question Paper',
-            subject,
-            chapter,
-            examName: title || 'Question Paper',
-            className: classLevel ?? '',
-            boardName: board?.name ?? '',
+            title: title || `${bookObj?.name ?? 'Question'} Paper`,
+            subject: subject || bookObj?.name || '',
+            chapter: chapter || (range === 'chapters' ? pickedChapters.join(', ') : RANGE_LABELS[range]),
+            examName: title || pattern?.label || 'Question Paper',
+            className: group ? `${group.classLevel} — ${group.group}` : '',
+            examTime: pattern?.subjectiveTime ?? '',
+            boardName: board?.name ?? 'Board of Intermediate & Secondary Education',
             boardStyle: board?.style ?? 'punjab',
-            instructions: 'Attempt all questions. Write answers clearly.',
+            instructions:
+              pattern?.notes.join('\n') ?? 'Attempt all questions. Write answers clearly.',
           }}
         />
       </div>
@@ -420,6 +492,138 @@ export function GeneratePage() {
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Input */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Step 1 — Class / Book / Range */}
+          <Card className="p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <GraduationCap size={20} className="text-primary-500" />
+              <h2 className="font-display text-lg font-semibold text-slate-900 dark:text-white">
+                Paper Setup
+              </h2>
+              {pattern && (
+                <Badge variant="primary">{pattern.label} • {pattern.totalMarks} marks</Badge>
+              )}
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Class / Group
+                </label>
+                <select
+                  value={groupKey}
+                  onChange={(e) => {
+                    setGroupKey(e.target.value);
+                    setBookId('');
+                    setPickedChapters([]);
+                    setRange('full');
+                  }}
+                  className="input-field"
+                >
+                  <option value="">Select Class / Group</option>
+                  {CLASS_GROUPS.map((g) => (
+                    <option key={g.key} value={g.key}>
+                      {g.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Book / Subject
+                </label>
+                <select
+                  value={bookId}
+                  onChange={(e) => {
+                    setBookId(e.target.value);
+                    setPickedChapters([]);
+                  }}
+                  disabled={!group}
+                  className="input-field disabled:opacity-50"
+                >
+                  <option value="">{group ? 'Select Book / Subject' : 'Select a class first'}</option>
+                  {group?.books.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                      {b.elective ? ' (Elective)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {bookObj && (
+              <div className="mt-4 space-y-3 animate-fade-in-down">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Paper Range
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {(['full', 'first-half', 'second-half', 'chapters'] as PaperRange[]).map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setRange(r)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                          range === r
+                            ? 'bg-gradient-to-r from-primary-600 to-accent-500 text-white shadow-md shadow-primary-500/25'
+                            : 'bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                        }`}
+                      >
+                        {RANGE_LABELS[r]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {range === 'chapters' && (
+                  <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-3 max-h-48 overflow-auto space-y-1.5">
+                    {bookObj.chapters.map((c) => {
+                      const on = pickedChapters.includes(c);
+                      return (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() =>
+                            setPickedChapters((prev) =>
+                              on ? prev.filter((x) => x !== c) : [...prev, c],
+                            )
+                          }
+                          className={`w-full text-left text-sm px-3 py-1.5 rounded-lg transition-colors ${
+                            on
+                              ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium'
+                              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'
+                          }`}
+                        >
+                          {on ? '✓ ' : ''}
+                          {c}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {rangeChapters.length} chapter(s) included — questions will follow the{' '}
+                  {pattern?.label} pattern automatically.
+                </p>
+              </div>
+            )}
+
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Special Instructions
+              </label>
+              <textarea
+                value={instructions}
+                onChange={(e) => setInstructions(e.target.value)}
+                rows={3}
+                placeholder="Apni requirement yahan likhein… e.g. Chapter 1, 2, 3 se questions zyada rakhein, MCQs conceptual hon, long questions mein numericals shamil karein."
+                className="input-field resize-y"
+              />
+            </div>
+          </Card>
+
           <Card className="p-6">
             <div className="flex items-center gap-2 mb-4">
               <FileText size={20} className="text-primary-500" />

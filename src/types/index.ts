@@ -113,6 +113,18 @@ export interface GenerationSettings {
   subject?: string;
   chapter?: string;
   title?: string;
+  /** Teacher's free-text requirements. */
+  instructions?: string;
+  /** Class / group label, e.g. "11th Class — Pre-Medical". */
+  classGroup?: string;
+  /** Book / subject name. */
+  bookName?: string;
+  /** Full Book / Half Book / Selected Chapters. */
+  rangeLabel?: string;
+  /** Chapters the paper must cover. */
+  chapters?: string[];
+  /** Board pattern brief for the AI + offline engine. */
+  patternBrief?: string;
 }
 
 export interface PaperInfo {

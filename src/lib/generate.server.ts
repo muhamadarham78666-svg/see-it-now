@@ -14,6 +14,18 @@ export interface GenSettings {
   typeCounts?: { mcq: number; short: number; long: number } | null;
   subject?: string | null;
   chapter?: string | null;
+  /** Free-text teacher requirements. */
+  instructions?: string | null;
+  /** Class / group label, e.g. "11th Class — Pre-Medical". */
+  classGroup?: string | null;
+  /** Selected book name. */
+  bookName?: string | null;
+  /** Full Book / Half Book / Selected Chapters. */
+  rangeLabel?: string | null;
+  /** Chapters that the paper must cover. */
+  chapters?: string[] | null;
+  /** Board pattern brief produced by paperPatterns.patternBrief(). */
+  patternBrief?: string | null;
 }
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
@@ -36,15 +48,27 @@ export function buildInstruction(settings: GenSettings) {
         : `Generate exactly ${settings.questionCount} questions, all of type "${settings.questionType}".`;
 
   return [
-    "You are an expert exam paper setter for schools and colleges.",
-    "Read the provided study material (text, images, scans or documents) carefully and create exam questions strictly from that material.",
+    "You are an expert Punjab Board exam paper setter for Pakistani schools and colleges.",
+    "If study material is provided (text, images, scans or documents), build the questions strictly from it. If no material is provided, use the standard Punjab textbook syllabus for the given class, book and chapters.",
+    settings.classGroup ? `Class / Group: ${settings.classGroup}.` : "",
+    settings.bookName ? `Book / Subject: ${settings.bookName}.` : "",
+    settings.rangeLabel ? `Paper range: ${settings.rangeLabel}.` : "",
+    settings.chapters && settings.chapters.length
+      ? `Cover ONLY these chapters, spread the questions fairly across them: ${settings.chapters.join("; ")}.`
+      : "",
+    settings.patternBrief
+      ? `Follow this board pattern closely (about 70% board style, 30% improved original style — questions must be NEW, never copied):\n${settings.patternBrief}`
+      : "",
+    settings.instructions
+      ? `TEACHER'S SPECIAL INSTRUCTIONS (highest priority, obey them): ${settings.instructions}`
+      : "",
     mix,
     `Difficulty: ${settings.difficulty === "mixed" ? "mix easy, medium and hard" : settings.difficulty}.`,
     `Each MCQ must have exactly ${settings.mcqOptionsCount} options labelled A, B, C... and one correct_answer holding the correct option label.`,
     languageRule(settings.language),
     settings.subject ? `Subject: ${settings.subject}.` : "",
     settings.chapter ? `Chapter: ${settings.chapter}.` : "",
-    "Short questions get 2 marks, long questions get 5 marks, MCQs get 1 mark unless the material implies otherwise.",
+    "Use the marks defined by the board pattern above when it is provided; otherwise short = 2, long = 5, MCQ = 1 mark.",
     'Return ONLY JSON in this shape: {"questions":[{"question_text":string,"question_type":"mcq"|"short"|"long","options":[{"label":"A","text":string}]|null,"correct_answer":string|null,"expected_answer":string|null,"answer_points":string[]|null,"explanation":string,"difficulty":"easy"|"medium"|"hard","topic":string,"marks":number}]}',
     "If the material is an image or scan, first read (OCR) all visible text, then build the questions from it.",
   ]

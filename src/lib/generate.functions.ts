@@ -26,6 +26,12 @@ const inputSchema = z.object({
       .optional(),
     subject: z.string().nullable().optional(),
     chapter: z.string().nullable().optional(),
+    instructions: z.string().nullable().optional(),
+    classGroup: z.string().nullable().optional(),
+    bookName: z.string().nullable().optional(),
+    rangeLabel: z.string().nullable().optional(),
+    chapters: z.array(z.string()).nullable().optional(),
+    patternBrief: z.string().nullable().optional(),
   }),
 });
 
