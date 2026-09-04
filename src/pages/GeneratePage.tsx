@@ -30,6 +30,15 @@ import { useBoard } from '@/context/BoardContext';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { questionGenerator, type GenAttachment } from '@/services/aiService';
+import {
+  CLASS_GROUPS,
+  RANGE_LABELS,
+  chaptersForRange,
+  findBook,
+  findGroup,
+  type PaperRange,
+} from '@/lib/curriculum';
+import { patternBrief, patternCounts, resolvePattern } from '@/lib/paperPatterns';
 import type { QuestionType, Language, Difficulty, Question } from '@/types';
 import type { Json } from '@/integrations/supabase/types';
 
