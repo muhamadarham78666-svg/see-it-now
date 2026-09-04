@@ -16,6 +16,8 @@ import {
   Newspaper,
   Eye,
   Layers,
+  GraduationCap,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { Card } from '@/components/nsa/Card';
 import { Button } from '@/components/nsa/Button';
