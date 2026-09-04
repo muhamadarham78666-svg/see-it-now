@@ -87,19 +87,47 @@ export class QuestionGeneratorService {
     this.provider = provider;
   }
 
+  /**
+   * Generates a paper. Uses AI when it is reachable and automatically falls back
+   * to the local offline engine when it is not (no internet, API error, timeout).
+   */
   async generate(
     content: string,
     attachments: GenAttachment[],
     settings: GenerationSettings,
     onProgress?: (step: string) => void,
-  ): Promise<GeneratedQuestionData[]> {
-    onProgress?.('Analyzing Content');
-    onProgress?.('Identifying Important Topics');
+    offline?: OfflineRequest,
+  ): Promise<GenerationResult> {
+    const online = typeof navigator === 'undefined' ? true : navigator.onLine !== false;
+
+    if (online) {
+      onProgress?.('Analyzing Content');
+      onProgress?.('Identifying Important Topics');
+      onProgress?.('Generating Questions');
+      try {
+        const questions = await this.provider.generateQuestions(content, attachments, settings);
+        onProgress?.('Checking Quality');
+        onProgress?.('Finalizing');
+        return { questions, mode: 'ai' };
+      } catch (err) {
+        if (!offline) throw err;
+        return {
+          questions: generateOfflinePaper(offline),
+          mode: 'offline',
+          fallbackReason:
+            err instanceof Error ? err.message : 'AI service is temporarily unavailable.',
+        };
+      }
+    }
+
+    if (!offline) throw new Error('You are offline. Select a class and book to use Offline Mode.');
     onProgress?.('Generating Questions');
-    const questions = await this.provider.generateQuestions(content, attachments, settings);
-    onProgress?.('Checking Quality');
     onProgress?.('Finalizing');
-    return questions;
+    return {
+      questions: generateOfflinePaper(offline),
+      mode: 'offline',
+      fallbackReason: 'No internet connection detected.',
+    };
   }
 
   toLocalQuestions(
