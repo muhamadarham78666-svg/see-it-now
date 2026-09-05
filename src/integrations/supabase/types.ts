@@ -308,8 +308,11 @@ export type Database = {
       questions: {
         Row: {
           answer_points: Json | null
+          chapter: string | null
           correct_answer: string | null
           created_at: string
+          diagram_note: string | null
+          diagram_svg: string | null
           difficulty: string
           expected_answer: string | null
           explanation: string | null
@@ -319,6 +322,7 @@ export type Database = {
           language: string
           marks: number
           options: Json | null
+          parts: Json | null
           question_text: string
           question_type: string
           sort_order: number
@@ -328,8 +332,11 @@ export type Database = {
         }
         Insert: {
           answer_points?: Json | null
+          chapter?: string | null
           correct_answer?: string | null
           created_at?: string
+          diagram_note?: string | null
+          diagram_svg?: string | null
           difficulty?: string
           expected_answer?: string | null
           explanation?: string | null
@@ -339,6 +346,7 @@ export type Database = {
           language?: string
           marks?: number
           options?: Json | null
+          parts?: Json | null
           question_text: string
           question_type: string
           sort_order?: number
@@ -348,8 +356,11 @@ export type Database = {
         }
         Update: {
           answer_points?: Json | null
+          chapter?: string | null
           correct_answer?: string | null
           created_at?: string
+          diagram_note?: string | null
+          diagram_svg?: string | null
           difficulty?: string
           expected_answer?: string | null
           explanation?: string | null
@@ -359,6 +370,7 @@ export type Database = {
           language?: string
           marks?: number
           options?: Json | null
+          parts?: Json | null
           question_text?: string
           question_type?: string
           sort_order?: number
