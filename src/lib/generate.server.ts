@@ -196,11 +196,24 @@ export interface QuestionDraft {
   correct_answer: string | null;
   expected_answer: string | null;
   answer_points: string[] | null;
+  parts: { label: string; text: string; marks: number }[] | null;
+  diagram_svg: string | null;
+  diagram_note: string | null;
   explanation: string | null;
   difficulty: "easy" | "medium" | "hard";
   topic: string | null;
   marks: number;
 }
+
+/** Keeps only safe, self-contained SVG markup. */
+export function sanitizeSvg(input: unknown): string | null {
+  if (typeof input !== "string") return null;
+  const svg = input.trim();
+  if (!svg.startsWith("<svg") || !svg.includes("</svg>")) return null;
+  if (/<script|javascript:|<foreignObject|<image|xlink:href|\son\w+\s*=/i.test(svg)) return null;
+  return svg.length > 20000 ? null : svg;
+}
+
 
 const LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
