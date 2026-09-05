@@ -880,12 +880,19 @@ export function GeneratePage() {
                   </div>
                 </div>
               )}
+                </div>
+              )}
             </div>
           </Card>
 
-          <Button onClick={handleGenerate} size="lg" className="w-full" disabled={!hasMaterial}>
+          <Button
+            onClick={handleGenerate}
+            size="lg"
+            className="w-full"
+            disabled={!hasMaterial && !bookObj}
+          >
             <Sparkles size={18} />
-            Generate Questions
+            Generate Paper
           </Button>
 
           <div className="flex items-center gap-2 flex-wrap">
@@ -893,6 +900,7 @@ export function GeneratePage() {
             <Badge variant="accent">{language}</Badge>
             <Badge>{effectiveCount} Questions</Badge>
             <Badge variant="warning">{difficulty}</Badge>
+            {bookObj && <Badge variant="success">{bookObj.name}</Badge>}
           </div>
         </div>
       </div>
