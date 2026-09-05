@@ -26,7 +26,14 @@ export interface GenSettings {
   chapters?: string[] | null;
   /** Board pattern brief produced by paperPatterns.patternBrief(). */
   patternBrief?: string | null;
+  /** Ask the AI to add simple inline SVG diagrams where useful. */
+  wantDiagrams?: boolean | null;
+  /** Split long questions into parts (a) and (b). */
+  longParts?: boolean | null;
+  /** "Attempt any N" rules per section. */
+  attempts?: { mcq: number; short: number; long: number } | null;
 }
+
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-3-flash-preview";
@@ -69,9 +76,25 @@ export function buildInstruction(settings: GenSettings) {
     settings.subject ? `Subject: ${settings.subject}.` : "",
     settings.chapter ? `Chapter: ${settings.chapter}.` : "",
     "Use the marks defined by the board pattern above when it is provided; otherwise short = 2, long = 5, MCQ = 1 mark.",
-    'Return ONLY JSON in this shape: {"questions":[{"question_text":string,"question_type":"mcq"|"short"|"long","options":[{"label":"A","text":string}]|null,"correct_answer":string|null,"expected_answer":string|null,"answer_points":string[]|null,"explanation":string,"difficulty":"easy"|"medium"|"hard","topic":string,"marks":number}]}',
+    settings.longParts
+      ? 'Every long question MUST be split into two parts: set "parts":[{"label":"a","text":string,"marks":number},{"label":"b","text":string,"marks":number}] and keep question_text as the short stem/heading. Only long questions may have parts; MCQ and short questions must have "parts":null.'
+      : 'Set "parts":null for every question.',
+    settings.attempts
+      ? `The paper is optional-choice: ${[
+          settings.attempts.mcq ? `MCQ section: attempt any ${settings.attempts.mcq}` : "",
+          settings.attempts.short ? `short section: attempt any ${settings.attempts.short}` : "",
+          settings.attempts.long ? `long section: attempt any ${settings.attempts.long}` : "",
+        ]
+          .filter(Boolean)
+          .join(", ")}. Generate the FULL number of questions requested so the student has real choice.`
+      : "",
+    settings.wantDiagrams
+      ? 'Where a diagram, figure, circuit, graph or geometric shape genuinely helps, add "diagram_svg": a small self-contained inline SVG string (root <svg viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg">, only path/line/circle/rect/polygon/text/ellipse elements, stroke="#111" fill="none", no scripts, no external images, no CSS) plus "diagram_note": a one-line caption. Otherwise use null for both.'
+      : 'Set "diagram_svg":null and "diagram_note":null.',
+    'Return ONLY JSON in this shape: {"questions":[{"question_text":string,"question_type":"mcq"|"short"|"long","options":[{"label":"A","text":string}]|null,"correct_answer":string|null,"expected_answer":string|null,"answer_points":string[]|null,"parts":[{"label":"a","text":string,"marks":number}]|null,"diagram_svg":string|null,"diagram_note":string|null,"explanation":string,"difficulty":"easy"|"medium"|"hard","topic":string,"marks":number}]}',
     "If the material is an image or scan, first read (OCR) all visible text, then build the questions from it.",
   ]
+
     .filter(Boolean)
     .join("\n");
 }
@@ -173,11 +196,24 @@ export interface QuestionDraft {
   correct_answer: string | null;
   expected_answer: string | null;
   answer_points: string[] | null;
+  parts: { label: string; text: string; marks: number }[] | null;
+  diagram_svg: string | null;
+  diagram_note: string | null;
   explanation: string | null;
   difficulty: "easy" | "medium" | "hard";
   topic: string | null;
   marks: number;
 }
+
+/** Keeps only safe, self-contained SVG markup. */
+export function sanitizeSvg(input: unknown): string | null {
+  if (typeof input !== "string") return null;
+  const svg = input.trim();
+  if (!svg.startsWith("<svg") || !svg.includes("</svg>")) return null;
+  if (/<script|javascript:|<foreignObject|<image|xlink:href|\son\w+\s*=/i.test(svg)) return null;
+  return svg.length > 20000 ? null : svg;
+}
+
 
 const LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
@@ -213,7 +249,24 @@ export function normalizeQuestions(raw: Record<string, unknown>[]): QuestionDraf
       correct_answer: q["correct_answer"] != null ? String(q["correct_answer"]) : null,
       expected_answer: q["expected_answer"] != null ? String(q["expected_answer"]) : null,
       answer_points: type === "long" ? points : null,
+      parts:
+        type === "long" && Array.isArray(q["parts"])
+          ? (q["parts"] as unknown[])
+              .map((p, i) => {
+                const obj = (typeof p === "object" && p !== null ? p : {}) as Record<string, unknown>;
+                const m = Number(obj["marks"]);
+                return {
+                  label: String(obj["label"] ?? (i === 0 ? "a" : "b")),
+                  text: String(obj["text"] ?? "").trim(),
+                  marks: Number.isFinite(m) && m > 0 ? m : 0,
+                };
+              })
+              .filter((p) => p.text.length > 0)
+          : null,
+      diagram_svg: sanitizeSvg(q["diagram_svg"]),
+      diagram_note: q["diagram_note"] != null ? String(q["diagram_note"]) : null,
       explanation: q["explanation"] != null ? String(q["explanation"]) : null,
+
       difficulty,
       topic: q["topic"] != null ? String(q["topic"]) : null,
       marks: Number.isFinite(marksRaw) && marksRaw > 0 ? marksRaw : type === "long" ? 5 : type === "short" ? 2 : 1,
