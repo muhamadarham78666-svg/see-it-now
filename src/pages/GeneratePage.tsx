@@ -123,6 +123,14 @@ export function GeneratePage() {
     }
   }, [profile, searchParams]);
 
+  // Selecting a book applies that subject's board pattern counts automatically.
+  useEffect(() => {
+    if (!pattern) return;
+    const counts = patternCounts(pattern);
+    setQuestionType('mixed');
+    setMixCounts(counts);
+  }, [pattern]);
+
   // Animate the processing steps while the AI request is in flight.
   useEffect(() => {
     if (!generating) return;
@@ -763,10 +771,26 @@ export function GeneratePage() {
                 </div>
               )}
 
-              {/* Board & class — drives the exam paper style */}
+              <button
+                type="button"
+                onClick={() => setAdvancedOpen((o) => !o)}
+                className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-700/50 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  <SlidersHorizontal size={16} className="text-slate-400" />
+                  Advanced Options
+                </span>
+                <span>{advancedOpen ? '−' : '+'}</span>
+              </button>
+
+              {advancedOpen && (
+                <div className="space-y-5 animate-fade-in-down">
+              {/* Board — drives the exam paper style */}
               <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/40 p-4">
-                <BoardSelector />
+                <BoardSelector showClass={false} />
               </div>
+
+
 
 
 
@@ -864,12 +888,19 @@ export function GeneratePage() {
                   </div>
                 </div>
               )}
+                </div>
+              )}
             </div>
           </Card>
 
-          <Button onClick={handleGenerate} size="lg" className="w-full" disabled={!hasMaterial}>
+          <Button
+            onClick={handleGenerate}
+            size="lg"
+            className="w-full"
+            disabled={!hasMaterial && !bookObj}
+          >
             <Sparkles size={18} />
-            Generate Questions
+            Generate Paper
           </Button>
 
           <div className="flex items-center gap-2 flex-wrap">
@@ -877,6 +908,7 @@ export function GeneratePage() {
             <Badge variant="accent">{language}</Badge>
             <Badge>{effectiveCount} Questions</Badge>
             <Badge variant="warning">{difficulty}</Badge>
+            {bookObj && <Badge variant="success">{bookObj.name}</Badge>}
           </div>
         </div>
       </div>
