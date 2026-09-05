@@ -123,6 +123,14 @@ export function GeneratePage() {
     }
   }, [profile, searchParams]);
 
+  // Selecting a book applies that subject's board pattern counts automatically.
+  useEffect(() => {
+    if (!pattern) return;
+    const counts = patternCounts(pattern);
+    setQuestionType('mixed');
+    setMixCounts(counts);
+  }, [pattern]);
+
   // Animate the processing steps while the AI request is in flight.
   useEffect(() => {
     if (!generating) return;
