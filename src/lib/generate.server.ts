@@ -249,7 +249,24 @@ export function normalizeQuestions(raw: Record<string, unknown>[]): QuestionDraf
       correct_answer: q["correct_answer"] != null ? String(q["correct_answer"]) : null,
       expected_answer: q["expected_answer"] != null ? String(q["expected_answer"]) : null,
       answer_points: type === "long" ? points : null,
+      parts:
+        type === "long" && Array.isArray(q["parts"])
+          ? (q["parts"] as unknown[])
+              .map((p, i) => {
+                const obj = (typeof p === "object" && p !== null ? p : {}) as Record<string, unknown>;
+                const m = Number(obj["marks"]);
+                return {
+                  label: String(obj["label"] ?? (i === 0 ? "a" : "b")),
+                  text: String(obj["text"] ?? "").trim(),
+                  marks: Number.isFinite(m) && m > 0 ? m : 0,
+                };
+              })
+              .filter((p) => p.text.length > 0)
+          : null,
+      diagram_svg: sanitizeSvg(q["diagram_svg"]),
+      diagram_note: q["diagram_note"] != null ? String(q["diagram_note"]) : null,
       explanation: q["explanation"] != null ? String(q["explanation"]) : null,
+
       difficulty,
       topic: q["topic"] != null ? String(q["topic"]) : null,
       marks: Number.isFinite(marksRaw) && marksRaw > 0 ? marksRaw : type === "long" ? 5 : type === "short" ? 2 : 1,
