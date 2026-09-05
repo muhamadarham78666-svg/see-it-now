@@ -26,7 +26,14 @@ export interface GenSettings {
   chapters?: string[] | null;
   /** Board pattern brief produced by paperPatterns.patternBrief(). */
   patternBrief?: string | null;
+  /** Ask the AI to add simple inline SVG diagrams where useful. */
+  wantDiagrams?: boolean | null;
+  /** Split long questions into parts (a) and (b). */
+  longParts?: boolean | null;
+  /** "Attempt any N" rules per section. */
+  attempts?: { mcq: number; short: number; long: number } | null;
 }
+
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-3-flash-preview";
