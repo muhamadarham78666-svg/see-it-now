@@ -76,9 +76,25 @@ export function buildInstruction(settings: GenSettings) {
     settings.subject ? `Subject: ${settings.subject}.` : "",
     settings.chapter ? `Chapter: ${settings.chapter}.` : "",
     "Use the marks defined by the board pattern above when it is provided; otherwise short = 2, long = 5, MCQ = 1 mark.",
-    'Return ONLY JSON in this shape: {"questions":[{"question_text":string,"question_type":"mcq"|"short"|"long","options":[{"label":"A","text":string}]|null,"correct_answer":string|null,"expected_answer":string|null,"answer_points":string[]|null,"explanation":string,"difficulty":"easy"|"medium"|"hard","topic":string,"marks":number}]}',
+    settings.longParts
+      ? 'Every long question MUST be split into two parts: set "parts":[{"label":"a","text":string,"marks":number},{"label":"b","text":string,"marks":number}] and keep question_text as the short stem/heading. Only long questions may have parts; MCQ and short questions must have "parts":null.'
+      : 'Set "parts":null for every question.',
+    settings.attempts
+      ? `The paper is optional-choice: ${[
+          settings.attempts.mcq ? `MCQ section: attempt any ${settings.attempts.mcq}` : "",
+          settings.attempts.short ? `short section: attempt any ${settings.attempts.short}` : "",
+          settings.attempts.long ? `long section: attempt any ${settings.attempts.long}` : "",
+        ]
+          .filter(Boolean)
+          .join(", ")}. Generate the FULL number of questions requested so the student has real choice.`
+      : "",
+    settings.wantDiagrams
+      ? 'Where a diagram, figure, circuit, graph or geometric shape genuinely helps, add "diagram_svg": a small self-contained inline SVG string (root <svg viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg">, only path/line/circle/rect/polygon/text/ellipse elements, stroke="#111" fill="none", no scripts, no external images, no CSS) plus "diagram_note": a one-line caption. Otherwise use null for both.'
+      : 'Set "diagram_svg":null and "diagram_note":null.',
+    'Return ONLY JSON in this shape: {"questions":[{"question_text":string,"question_type":"mcq"|"short"|"long","options":[{"label":"A","text":string}]|null,"correct_answer":string|null,"expected_answer":string|null,"answer_points":string[]|null,"parts":[{"label":"a","text":string,"marks":number}]|null,"diagram_svg":string|null,"diagram_note":string|null,"explanation":string,"difficulty":"easy"|"medium"|"hard","topic":string,"marks":number}]}',
     "If the material is an image or scan, first read (OCR) all visible text, then build the questions from it.",
   ]
+
     .filter(Boolean)
     .join("\n");
 }
