@@ -72,9 +72,19 @@ export class LovableAIProvider implements AIProvider {
           typeCounts: settings.typeCounts ?? null,
           subject: settings.subject ?? null,
           chapter: settings.chapter ?? null,
+          instructions: settings.instructions ?? null,
+          classGroup: settings.classGroup ?? null,
+          bookName: settings.bookName ?? null,
+          rangeLabel: settings.rangeLabel ?? null,
+          chapters: settings.chapters ?? null,
+          patternBrief: settings.patternBrief ?? null,
+          wantDiagrams: settings.wantDiagrams ?? null,
+          longParts: settings.longParts ?? null,
+          attempts: settings.attempts ?? null,
         },
       },
     });
+
 
     return result.questions as GeneratedQuestionData[];
   }
