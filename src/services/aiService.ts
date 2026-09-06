@@ -159,7 +159,11 @@ export class QuestionGeneratorService {
       correct_answer: q.correct_answer ?? null,
       expected_answer: q.expected_answer ?? null,
       answer_points: q.answer_points ?? null,
+      parts: q.parts ?? null,
+      diagram_svg: q.diagram_svg ?? null,
+      diagram_note: q.diagram_note ?? null,
       explanation: q.explanation ?? null,
+
       difficulty: q.difficulty,
       topic: q.topic ?? null,
       marks: q.marks,
