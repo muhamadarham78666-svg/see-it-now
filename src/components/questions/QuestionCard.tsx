@@ -94,6 +94,41 @@ export function QuestionCard({
             {question.question_text}
           </p>
 
+          {/* Diagram */}
+          {question.diagram_svg && (
+            <figure className="mb-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white p-3 inline-block max-w-full">
+              <div
+                className="[&>svg]:max-w-full [&>svg]:h-auto"
+                // Diagram markup is sanitised on the server before it is stored.
+                dangerouslySetInnerHTML={{ __html: question.diagram_svg }}
+              />
+              {question.diagram_note && (
+                <figcaption className="mt-1 text-xs text-slate-500">{question.diagram_note}</figcaption>
+              )}
+            </figure>
+          )}
+
+          {/* Long-question parts (a) / (b) */}
+          {question.parts && question.parts.length > 0 && (
+            <ol className="mb-3 space-y-1.5">
+              {question.parts.map((p, i) => (
+                <li
+                  key={i}
+                  dir={isUrdu ? 'rtl' : 'ltr'}
+                  className={cn(
+                    'text-sm text-slate-700 dark:text-slate-200 flex gap-2',
+                    isUrdu && 'text-right leading-loose',
+                  )}
+                >
+                  <span className="font-bold text-primary-500">({p.label})</span>
+                  <span className="flex-1">{p.text}</span>
+                  {p.marks > 0 && <span className="text-xs text-slate-400">({p.marks})</span>}
+                </li>
+              ))}
+            </ol>
+          )}
+
+
           {/* MCQ options */}
           {expanded && question.question_type === 'mcq' && question.options && (
             <div className="space-y-2 mb-3">

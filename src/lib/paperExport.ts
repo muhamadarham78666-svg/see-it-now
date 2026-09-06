@@ -19,7 +19,10 @@ export interface PaperMeta {
   boardName?: string;
   /** Board style key controlling section names, header and layout. */
   boardStyle?: string;
+  /** "Attempt any N" counts per section (0 / undefined = attempt all). */
+  attempts?: { mcq?: number; short?: number; long?: number };
 }
+
 
 
 const escapeHtml = (value: string) =>
@@ -61,10 +64,16 @@ export function buildPaperHtml(
       const items = questions.filter((q) => q.question_type === key);
       if (!items.length) return '';
       const sectionMarks = items.reduce((s, q) => s + (q.marks || 0), 0);
-      const note =
-        style.attemptAnyNote && key !== 'mcq' && items.length > 2
-          ? `<p class="note">Attempt any ${Math.max(1, items.length - 1)} of ${items.length} questions. (${sectionMarks} marks)</p>`
-          : '';
+      const chosen = meta.attempts?.[key];
+      const attemptAny =
+        chosen && chosen > 0 && chosen < items.length
+          ? chosen
+          : style.attemptAnyNote && key !== 'mcq' && items.length > 2
+            ? Math.max(1, items.length - 1)
+            : 0;
+      const note = attemptAny
+        ? `<p class="note">Attempt any ${attemptAny} of ${items.length} questions. (${sectionMarks} marks total)</p>`
+        : '';
       const rows = items
         .map((q) => {
           counter += 1;
@@ -75,6 +84,22 @@ export function buildPaperHtml(
                   .map(
                     (o) =>
                       `<li><span class="lbl">${escapeHtml(o.label)}.</span> ${escapeHtml(o.text)}</li>`,
+                  )
+                  .join('')}</ol>`
+              : '';
+          const diagram = q.diagram_svg
+            ? `<figure class="fig">${q.diagram_svg}${
+                q.diagram_note ? `<figcaption>${escapeHtml(q.diagram_note)}</figcaption>` : ''
+              }</figure>`
+            : '';
+          const parts =
+            q.parts && q.parts.length
+              ? `<ol class="parts">${q.parts
+                  .map(
+                    (p) =>
+                      `<li><span class="lbl">(${escapeHtml(p.label)})</span> ${escapeHtml(p.text)}${
+                        p.marks ? ` <span class="pmarks">(${p.marks})</span>` : ''
+                      }</li>`,
                   )
                   .join('')}</ol>`
               : '';
@@ -90,8 +115,10 @@ export function buildPaperHtml(
           return `<div class="q ${rtl ? 'rtl' : ''}">
             <div class="qhead"><span class="qno">Q${counter}.</span>${style.perQuestionMarks ? `<span class="marks">(${q.marks})</span>` : ''}</div>
             <p class="qtext">${escapeHtml(q.question_text)}</p>
+            ${diagram}
+            ${parts}
             ${opts}
-            ${q.question_type !== 'mcq' ? '<div class="space"></div>' : ''}
+            ${q.question_type !== 'mcq' && !parts ? '<div class="space"></div>' : ''}
             ${answer}
           </div>`;
         })
@@ -99,6 +126,7 @@ export function buildPaperHtml(
       return `<section><h2>${escapeHtml(label)}</h2>${note}${rows}</section>`;
     })
     .join('');
+
 
 
   return `<!DOCTYPE html>
@@ -131,6 +159,13 @@ export function buildPaperHtml(
   .opts { list-style: none; padding: 0; margin: 0 0 4px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; font-size: 13.5px; }
   .opts .lbl { font-weight: bold; }
   .space { border-bottom: 1px dotted #999; height: 26px; margin-bottom: 6px; }
+  .fig { margin: 6px 0 10px; text-align: center; page-break-inside: avoid; }
+  .fig svg { max-width: 320px; height: auto; }
+  .fig figcaption { font-size: 11.5px; color: #444; margin-top: 2px; }
+  .parts { list-style: none; padding: 0 0 0 14px; margin: 0 0 8px; font-size: 13.5px; }
+  .parts li { margin-bottom: 6px; }
+  .parts .pmarks { color: #444; font-size: 12px; }
+
   .answer { font-size: 12.5px; color: #14532d; background: #f0fdf4; border-left: 3px solid #16a34a; padding: 6px 10px; }
   .rtl { direction: rtl; }
   .rtl .qtext, .rtl .opts { font-family: 'Noto Nastaliq Urdu', serif; text-align: right; line-height: 2.2; }
@@ -270,7 +305,10 @@ export function buildPaperText(meta: PaperMeta, questions: Question[], withAnswe
 
   questions.forEach((q, i) => {
     lines.push(`Q${i + 1}. (${q.marks}) ${q.question_text}`);
+    if (q.diagram_note) lines.push(`   [Figure: ${q.diagram_note}]`);
+    if (q.parts) q.parts.forEach((p) => lines.push(`   (${p.label}) ${p.text}${p.marks ? ` (${p.marks})` : ''}`));
     if (q.options) q.options.forEach((o) => lines.push(`   ${o.label}. ${o.text}`));
+
     if (withAnswers) {
       if (q.question_type === 'mcq') lines.push(`   Answer: ${q.correct_answer ?? '—'}`);
       else if (q.question_type === 'short') lines.push(`   Answer: ${q.expected_answer ?? '—'}`);

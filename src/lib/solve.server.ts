@@ -6,12 +6,19 @@ export interface SolveAttachment {
 }
 
 export interface SolveSettings {
-  subjectArea: "physics" | "math";
+  subjectArea: "physics" | "math" | "book";
   language: string;
   detail: "concise" | "detailed";
   topic?: string | null;
   problemCount?: number | null;
+  /** Book Solver context. */
+  subjectName?: string | null;
+  classGroup?: string | null;
+  chapters?: string[] | null;
+  /** Ask for simple inline SVG diagrams where they help. */
+  wantDiagrams?: boolean | null;
 }
+
 
 import type { SolvedProblem } from "@/types/solve";
 

@@ -72,19 +72,24 @@ const NAMES: Record<SubjectCode, string> = {
   elective: 'Elective Subject',
 };
 
-/** Chapter/unit lists keyed by `<class>:<subject>`. Missing keys fall back to generic units. */
+/**
+ * Chapter/unit lists keyed by `<class>:<subject>`. Missing keys fall back to generic units.
+ * 9th Physics & Mathematics follow the current PCTB / National Curriculum 2023 editions
+ * (in force for the 2025-26 / 2026 session). Other lists follow the same syllabus family.
+ */
 const CHAPTERS: Record<string, string[]> = {
   '9:physics': [
-    'Physical Quantities and Measurement',
+    'Physical Quantities and Measurements',
     'Kinematics',
     'Dynamics',
-    'Turning Effect of Forces',
-    'Gravitation',
-    'Work and Energy',
-    'Properties of Matter',
+    'Turning Effects of Force',
+    'Work, Energy and Power',
+    'Mechanical Properties of Matter',
     'Thermal Properties of Matter',
-    'Transfer of Heat',
+    'Magnetism',
+    'Nature of Science',
   ],
+
   '10:physics': [
     'Simple Harmonic Motion and Waves',
     'Sound',
@@ -117,16 +122,17 @@ const CHAPTERS: Record<string, string[]> = {
     'Chemical Industries',
   ],
   '9:biology': [
-    'Introduction to Biology',
-    'Solving a Biological Problem',
+    'The Science of Biology',
     'Biodiversity',
-    'Cells and Tissues',
+    'The Cell',
     'Cell Cycle',
-    'Enzymes',
-    'Bioenergetics',
+    'Tissues, Organs and Organ Systems',
+    'Enzymes and Bioenergetics',
     'Nutrition',
-    'Transport',
+    'Transport in Plants and Animals',
+    'Human Health and Disease',
   ],
+
   '10:biology': [
     'Gaseous Exchange',
     'Homeostasis',
@@ -139,24 +145,21 @@ const CHAPTERS: Record<string, string[]> = {
     'Pharmacology',
   ],
   '9:math': [
-    'Matrices and Determinants',
-    'Real and Complex Numbers',
+    'Real Numbers',
     'Logarithms',
-    'Algebraic Expressions and Formulas',
-    'Factorization',
-    'Algebraic Manipulation',
+    'Sets and Functions',
+    'Factorization and Algebraic Manipulation',
     'Linear Equations and Inequalities',
-    'Linear Graphs and Their Application',
-    'Introduction to Coordinate Geometry',
-    'Congruent Triangles',
-    'Parallelograms and Triangles',
-    'Line Bisectors and Angle Bisectors',
-    'Sides and Angles of a Triangle',
-    'Ratio and Proportion',
-    'Pythagoras Theorem',
-    'Theorems Related with Area',
-    'Practical Geometry — Triangles',
+    'Trigonometry',
+    'Coordinate Geometry',
+    'Logic',
+    'Similar Figures',
+    'Graphs of Functions',
+    'Loci and Construction',
+    'Information Handling',
+    'Probability',
   ],
+
   '10:math': [
     'Quadratic Equations',
     'Theory of Quadratic Equations',

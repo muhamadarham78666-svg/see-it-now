@@ -36,11 +36,15 @@ export interface GeneratedQuestionData {
   correct_answer?: string | null;
   expected_answer?: string | null;
   answer_points?: string[] | null;
+  parts?: { label: string; text: string; marks: number }[] | null;
+  diagram_svg?: string | null;
+  diagram_note?: string | null;
   explanation?: string | null;
   difficulty: 'easy' | 'medium' | 'hard';
   topic?: string | null;
   marks: number;
 }
+
 
 export class LovableAIProvider implements AIProvider {
   name = 'Lovable AI';
@@ -68,9 +72,19 @@ export class LovableAIProvider implements AIProvider {
           typeCounts: settings.typeCounts ?? null,
           subject: settings.subject ?? null,
           chapter: settings.chapter ?? null,
+          instructions: settings.instructions ?? null,
+          classGroup: settings.classGroup ?? null,
+          bookName: settings.bookName ?? null,
+          rangeLabel: settings.rangeLabel ?? null,
+          chapters: settings.chapters ?? null,
+          patternBrief: settings.patternBrief ?? null,
+          wantDiagrams: settings.wantDiagrams ?? null,
+          longParts: settings.longParts ?? null,
+          attempts: settings.attempts ?? null,
         },
       },
     });
+
 
     return result.questions as GeneratedQuestionData[];
   }
@@ -145,7 +159,11 @@ export class QuestionGeneratorService {
       correct_answer: q.correct_answer ?? null,
       expected_answer: q.expected_answer ?? null,
       answer_points: q.answer_points ?? null,
+      parts: q.parts ?? null,
+      diagram_svg: q.diagram_svg ?? null,
+      diagram_note: q.diagram_note ?? null,
       explanation: q.explanation ?? null,
+
       difficulty: q.difficulty,
       topic: q.topic ?? null,
       marks: q.marks,
@@ -162,7 +180,9 @@ export class QuestionGeneratorService {
     generationId: string | null,
     questions: GeneratedQuestionData[],
     language: Question['language'],
+    chapter?: string | null,
   ): Promise<Question[]> {
+
     const rows = questions.map((q, i) => ({
       user_id: userId,
       generation_id: generationId,
@@ -172,9 +192,15 @@ export class QuestionGeneratorService {
       correct_answer: q.correct_answer ?? null,
       expected_answer: q.expected_answer ?? null,
       answer_points: (q.answer_points ?? null) as Json,
+      parts: (q.parts ?? null) as Json,
+      diagram_svg: q.diagram_svg ?? null,
+      diagram_note: q.diagram_note ?? null,
       explanation: q.explanation ?? null,
+
       difficulty: q.difficulty,
       topic: q.topic ?? null,
+      chapter: chapter ?? q.topic ?? null,
+
       marks: q.marks,
       language,
       sort_order: i,
