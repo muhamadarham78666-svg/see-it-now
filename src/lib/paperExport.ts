@@ -305,7 +305,10 @@ export function buildPaperText(meta: PaperMeta, questions: Question[], withAnswe
 
   questions.forEach((q, i) => {
     lines.push(`Q${i + 1}. (${q.marks}) ${q.question_text}`);
+    if (q.diagram_note) lines.push(`   [Figure: ${q.diagram_note}]`);
+    if (q.parts) q.parts.forEach((p) => lines.push(`   (${p.label}) ${p.text}${p.marks ? ` (${p.marks})` : ''}`));
     if (q.options) q.options.forEach((o) => lines.push(`   ${o.label}. ${o.text}`));
+
     if (withAnswers) {
       if (q.question_type === 'mcq') lines.push(`   Answer: ${q.correct_answer ?? '—'}`);
       else if (q.question_type === 'short') lines.push(`   Answer: ${q.expected_answer ?? '—'}`);
