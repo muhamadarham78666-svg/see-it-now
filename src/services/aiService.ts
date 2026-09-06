@@ -180,7 +180,9 @@ export class QuestionGeneratorService {
     generationId: string | null,
     questions: GeneratedQuestionData[],
     language: Question['language'],
+    chapter?: string | null,
   ): Promise<Question[]> {
+
     const rows = questions.map((q, i) => ({
       user_id: userId,
       generation_id: generationId,
