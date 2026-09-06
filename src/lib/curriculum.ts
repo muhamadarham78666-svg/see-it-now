@@ -122,16 +122,17 @@ const CHAPTERS: Record<string, string[]> = {
     'Chemical Industries',
   ],
   '9:biology': [
-    'Introduction to Biology',
-    'Solving a Biological Problem',
+    'The Science of Biology',
     'Biodiversity',
-    'Cells and Tissues',
+    'The Cell',
     'Cell Cycle',
-    'Enzymes',
-    'Bioenergetics',
+    'Tissues, Organs and Organ Systems',
+    'Enzymes and Bioenergetics',
     'Nutrition',
-    'Transport',
+    'Transport in Plants and Animals',
+    'Human Health and Disease',
   ],
+
   '10:biology': [
     'Gaseous Exchange',
     'Homeostasis',
