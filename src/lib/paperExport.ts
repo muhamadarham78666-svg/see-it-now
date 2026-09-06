@@ -19,7 +19,10 @@ export interface PaperMeta {
   boardName?: string;
   /** Board style key controlling section names, header and layout. */
   boardStyle?: string;
+  /** "Attempt any N" counts per section (0 / undefined = attempt all). */
+  attempts?: { mcq?: number; short?: number; long?: number };
 }
+
 
 
 const escapeHtml = (value: string) =>
