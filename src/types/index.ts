@@ -46,6 +46,12 @@ export interface QuestionOption {
   text: string;
 }
 
+export interface QuestionPart {
+  label: string;
+  text: string;
+  marks: number;
+}
+
 export interface Question {
   id: string;
   user_id: string;
@@ -56,6 +62,12 @@ export interface Question {
   correct_answer: string | null;
   expected_answer: string | null;
   answer_points: string[] | null;
+  /** Long-question sub-parts, e.g. (a) and (b). */
+  parts?: QuestionPart[] | null;
+  /** Inline SVG figure/diagram for the question. */
+  diagram_svg?: string | null;
+  diagram_note?: string | null;
+  chapter?: string | null;
   explanation: string | null;
   marks: number;
   difficulty: QuestionDifficulty;
@@ -66,6 +78,7 @@ export interface Question {
   created_at: string;
   updated_at: string;
 }
+
 
 export interface Paper {
   id: string;
