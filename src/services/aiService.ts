@@ -36,11 +36,15 @@ export interface GeneratedQuestionData {
   correct_answer?: string | null;
   expected_answer?: string | null;
   answer_points?: string[] | null;
+  parts?: { label: string; text: string; marks: number }[] | null;
+  diagram_svg?: string | null;
+  diagram_note?: string | null;
   explanation?: string | null;
   difficulty: 'easy' | 'medium' | 'hard';
   topic?: string | null;
   marks: number;
 }
+
 
 export class LovableAIProvider implements AIProvider {
   name = 'Lovable AI';
