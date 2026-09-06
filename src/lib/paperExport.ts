@@ -64,10 +64,16 @@ export function buildPaperHtml(
       const items = questions.filter((q) => q.question_type === key);
       if (!items.length) return '';
       const sectionMarks = items.reduce((s, q) => s + (q.marks || 0), 0);
-      const note =
-        style.attemptAnyNote && key !== 'mcq' && items.length > 2
-          ? `<p class="note">Attempt any ${Math.max(1, items.length - 1)} of ${items.length} questions. (${sectionMarks} marks)</p>`
-          : '';
+      const chosen = meta.attempts?.[key];
+      const attemptAny =
+        chosen && chosen > 0 && chosen < items.length
+          ? chosen
+          : style.attemptAnyNote && key !== 'mcq' && items.length > 2
+            ? Math.max(1, items.length - 1)
+            : 0;
+      const note = attemptAny
+        ? `<p class="note">Attempt any ${attemptAny} of ${items.length} questions. (${sectionMarks} marks total)</p>`
+        : '';
       const rows = items
         .map((q) => {
           counter += 1;
@@ -78,6 +84,22 @@ export function buildPaperHtml(
                   .map(
                     (o) =>
                       `<li><span class="lbl">${escapeHtml(o.label)}.</span> ${escapeHtml(o.text)}</li>`,
+                  )
+                  .join('')}</ol>`
+              : '';
+          const diagram = q.diagram_svg
+            ? `<figure class="fig">${q.diagram_svg}${
+                q.diagram_note ? `<figcaption>${escapeHtml(q.diagram_note)}</figcaption>` : ''
+              }</figure>`
+            : '';
+          const parts =
+            q.parts && q.parts.length
+              ? `<ol class="parts">${q.parts
+                  .map(
+                    (p) =>
+                      `<li><span class="lbl">(${escapeHtml(p.label)})</span> ${escapeHtml(p.text)}${
+                        p.marks ? ` <span class="pmarks">(${p.marks})</span>` : ''
+                      }</li>`,
                   )
                   .join('')}</ol>`
               : '';
@@ -93,8 +115,10 @@ export function buildPaperHtml(
           return `<div class="q ${rtl ? 'rtl' : ''}">
             <div class="qhead"><span class="qno">Q${counter}.</span>${style.perQuestionMarks ? `<span class="marks">(${q.marks})</span>` : ''}</div>
             <p class="qtext">${escapeHtml(q.question_text)}</p>
+            ${diagram}
+            ${parts}
             ${opts}
-            ${q.question_type !== 'mcq' ? '<div class="space"></div>' : ''}
+            ${q.question_type !== 'mcq' && !parts ? '<div class="space"></div>' : ''}
             ${answer}
           </div>`;
         })
@@ -102,6 +126,7 @@ export function buildPaperHtml(
       return `<section><h2>${escapeHtml(label)}</h2>${note}${rows}</section>`;
     })
     .join('');
+
 
 
   return `<!DOCTYPE html>
