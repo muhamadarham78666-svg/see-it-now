@@ -159,6 +159,13 @@ export function buildPaperHtml(
   .opts { list-style: none; padding: 0; margin: 0 0 4px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; font-size: 13.5px; }
   .opts .lbl { font-weight: bold; }
   .space { border-bottom: 1px dotted #999; height: 26px; margin-bottom: 6px; }
+  .fig { margin: 6px 0 10px; text-align: center; page-break-inside: avoid; }
+  .fig svg { max-width: 320px; height: auto; }
+  .fig figcaption { font-size: 11.5px; color: #444; margin-top: 2px; }
+  .parts { list-style: none; padding: 0 0 0 14px; margin: 0 0 8px; font-size: 13.5px; }
+  .parts li { margin-bottom: 6px; }
+  .parts .pmarks { color: #444; font-size: 12px; }
+
   .answer { font-size: 12.5px; color: #14532d; background: #f0fdf4; border-left: 3px solid #16a34a; padding: 6px 10px; }
   .rtl { direction: rtl; }
   .rtl .qtext, .rtl .opts { font-family: 'Noto Nastaliq Urdu', serif; text-align: right; line-height: 2.2; }
