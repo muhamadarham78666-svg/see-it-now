@@ -1,0 +1,18 @@
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { askNsagpt } from "./ask.server";
+
+const inputSchema = z.object({
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string().min(1).max(8000),
+      }),
+    )
+    .min(1),
+});
+
+export const askNsagptFn = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => inputSchema.parse(data))
+  .handler(async ({ data }) => ({ reply: await askNsagpt(data.messages) }));
