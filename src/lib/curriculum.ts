@@ -72,19 +72,24 @@ const NAMES: Record<SubjectCode, string> = {
   elective: 'Elective Subject',
 };
 
-/** Chapter/unit lists keyed by `<class>:<subject>`. Missing keys fall back to generic units. */
+/**
+ * Chapter/unit lists keyed by `<class>:<subject>`. Missing keys fall back to generic units.
+ * 9th Physics & Mathematics follow the current PCTB / National Curriculum 2023 editions
+ * (in force for the 2025-26 / 2026 session). Other lists follow the same syllabus family.
+ */
 const CHAPTERS: Record<string, string[]> = {
   '9:physics': [
-    'Physical Quantities and Measurement',
+    'Physical Quantities and Measurements',
     'Kinematics',
     'Dynamics',
-    'Turning Effect of Forces',
-    'Gravitation',
-    'Work and Energy',
-    'Properties of Matter',
+    'Turning Effects of Force',
+    'Work, Energy and Power',
+    'Mechanical Properties of Matter',
     'Thermal Properties of Matter',
-    'Transfer of Heat',
+    'Magnetism',
+    'Nature of Science',
   ],
+
   '10:physics': [
     'Simple Harmonic Motion and Waves',
     'Sound',
