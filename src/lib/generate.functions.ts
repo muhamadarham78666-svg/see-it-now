@@ -32,8 +32,15 @@ const inputSchema = z.object({
     rangeLabel: z.string().nullable().optional(),
     chapters: z.array(z.string()).nullable().optional(),
     patternBrief: z.string().nullable().optional(),
+    wantDiagrams: z.boolean().nullable().optional(),
+    longParts: z.boolean().nullable().optional(),
+    attempts: z
+      .object({ mcq: z.number(), short: z.number(), long: z.number() })
+      .nullable()
+      .optional(),
   }),
 });
+
 
 export const generateQuestionsFn = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => inputSchema.parse(data))
