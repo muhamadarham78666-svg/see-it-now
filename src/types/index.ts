@@ -138,6 +138,13 @@ export interface GenerationSettings {
   chapters?: string[];
   /** Board pattern brief for the AI + offline engine. */
   patternBrief?: string;
+  /** Ask AI to include simple SVG diagrams where useful. */
+  wantDiagrams?: boolean;
+  /** Split long questions into parts (a) and (b). */
+  longParts?: boolean;
+  /** "Attempt any N" counts per section. */
+  attempts?: QuestionTypeCounts | null;
+
 }
 
 export interface PaperInfo {
