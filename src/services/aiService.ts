@@ -199,6 +199,8 @@ export class QuestionGeneratorService {
 
       difficulty: q.difficulty,
       topic: q.topic ?? null,
+      chapter: chapter ?? q.topic ?? null,
+
       marks: q.marks,
       language,
       sort_order: i,
