@@ -12,25 +12,7 @@ export interface PlanInput {
   counts: { mcq: number; short: number; long: number };
 }
 
-export interface PaperPlan {
-  /** One short paragraph describing the paper the AI will build. */
-  summary: string;
-  /** Section lines, e.g. "Section A — 12 MCQs, 12 marks". */
-  sections: string[];
-  /** Extra ideas the teacher may accept. */
-  recommendations: string[];
-  /** Settings the teacher can apply with one click. */
-  patch: {
-    counts?: { mcq: number; short: number; long: number } | null;
-    attempts?: { mcq: number; short: number; long: number } | null;
-    language?: string | null;
-    wantDiagrams?: boolean | null;
-    longParts?: boolean | null;
-    statements?: boolean | null;
-    composition?: string[] | null;
-    translation?: string | null;
-  };
-}
+export type { PaperPlan } from "@/types/plan";
 
 const SHAPE = `{"summary":string,"sections":string[],"recommendations":string[],"patch":{"counts":{"mcq":number,"short":number,"long":number}|null,"attempts":{"mcq":number,"short":number,"long":number}|null,"language":"english"|"urdu"|"mixed"|null,"wantDiagrams":boolean|null,"longParts":boolean|null,"statements":boolean|null,"composition":string[]|null,"translation":"urdu-to-english"|"english-to-urdu"|"both"|null}}`;
 
