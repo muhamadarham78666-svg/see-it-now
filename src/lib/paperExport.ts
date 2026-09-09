@@ -58,7 +58,9 @@ export function buildPaperHtml(
     { key: 'long', label: style.sections.long },
   ];
 
-  let counter = 0;
+  const t = isUrduPaper ? URDU_LABELS : EN_LABELS;
+
+  let qNumber = 0;
   const sections = groups
     .map(({ key, label }) => {
       const items = questions.filter((q) => q.question_type === key);
@@ -72,12 +74,16 @@ export function buildPaperHtml(
             ? Math.max(1, items.length - 1)
             : 0;
       const note = attemptAny
-        ? `<p class="note">Attempt any ${attemptAny} of ${items.length} questions. (${sectionMarks} marks total)</p>`
+        ? `<p class="note">${t.attemptAny(attemptAny, items.length)} (${sectionMarks} ${t.marks})</p>`
         : '';
+      // MCQ and short sections carry ONE question number with roman sub-items;
+      // long questions each get their own number. Numbering restarts per section.
+      const grouped = key !== 'long';
+      const sectionNo = grouped ? ++qNumber : 0;
       const rows = items
-        .map((q) => {
-          counter += 1;
-          const rtl = q.language === 'urdu';
+        .map((q, index) => {
+          const itemNo = grouped ? `(${roman(index + 1)})` : `${t.q}${++qNumber}.`;
+          const rtl = q.language === 'urdu' || isUrduPaper;
           const opts =
             q.question_type === 'mcq' && q.options
               ? `<ol class="opts">${q.options
