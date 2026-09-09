@@ -50,7 +50,7 @@ export function Hero({ onGetStarted, onWatchGuide }: HeroProps) {
             <div className="flex items-center gap-6 justify-center lg:justify-start text-sm text-slate-500 dark:text-slate-400">
               <span className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-success-500" />
-                Free to use
+                Save Time
               </span>
               <span className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-accent-500" />
