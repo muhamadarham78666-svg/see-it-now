@@ -26,8 +26,19 @@ export const Route = createFileRoute("/")({
           operatingSystem: "Web",
           description:
             "AI question and paper generator for teachers: build board-pattern papers, solve physics and math problems, and create notes from any file.",
+          image: "https://nsagpt.org/nsagpt-icon.png",
           inLanguage: ["en", "ur"],
-          publisher: { "@type": "Organization", name: "NSAGPT", url: "https://nsagpt.org/" },
+          publisher: {
+            "@type": "Organization",
+            name: "NSAGPT",
+            url: "https://nsagpt.org/",
+            logo: {
+              "@type": "ImageObject",
+              url: "https://nsagpt.org/nsagpt-icon.png",
+              width: 512,
+              height: 512,
+            },
+          },
         }),
       },
     ],
