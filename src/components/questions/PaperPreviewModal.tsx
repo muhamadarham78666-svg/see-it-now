@@ -25,11 +25,28 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta }: Pap
   const [withAnswers, setWithAnswers] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
   const logoInput = useRef<HTMLInputElement>(null);
+  const paneRef = useRef<HTMLDivElement>(null);
+  const [zoom, setZoom] = useState(1);
+  const [docHeight, setDocHeight] = useState(1123);
+
+  const fitZoom = useCallback(() => {
+    const width = paneRef.current?.clientWidth;
+    if (!width) return;
+    setZoom(Math.min(1.2, Math.max(0.4, (width - 32) / A4_WIDTH)));
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    fitZoom();
+    window.addEventListener('resize', fitZoom);
+    return () => window.removeEventListener('resize', fitZoom);
+  }, [open, fitZoom]);
 
   const html = useMemo(
     () => buildPaperHtml(meta, questions, { withAnswers }),
     [meta, questions, withAnswers],
   );
+
 
   if (!open) return null;
 
