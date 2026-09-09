@@ -2,6 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { Bot, Loader2, Send, Sparkles, User } from 'lucide-react';
 import { Card } from '@/components/nsa/Card';
 import { Button } from '@/components/nsa/Button';
+import {
+  Message,
+  MessageContent,
+  MessageResponse,
+} from '@/components/ai-elements/message';
 import { askNsagptFn } from '@/lib/ask.functions';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -16,6 +21,8 @@ const SUGGESTIONS = [
   '9th Physics ka half book test kaise generate karun?',
   'Notes AI se kaise banaye jate hain?',
 ];
+
+const containsRtlText = (value: string) => /[\u0600-\u06ff\u0750-\u077f]/.test(value);
 
 export function AskAiPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -103,9 +110,29 @@ export function AskAiPage() {
                 <p className="text-xs text-slate-400 mb-1">
                   {m.role === 'user' ? 'You' : 'NSAGPT AI'}
                 </p>
-                <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
-                  {m.content}
-                </p>
+                {m.role === 'assistant' ? (
+                  <Message from="assistant" className="max-w-full">
+                    <MessageContent className="w-full">
+                      <MessageResponse
+                        dir={containsRtlText(m.content) ? 'rtl' : 'ltr'}
+                        className={`nsagpt-ai-response text-slate-700 dark:text-slate-200 ${
+                          containsRtlText(m.content) ? 'font-urdu' : ''
+                        }`}
+                      >
+                        {m.content}
+                      </MessageResponse>
+                    </MessageContent>
+                  </Message>
+                ) : (
+                  <p
+                    dir={containsRtlText(m.content) ? 'rtl' : 'ltr'}
+                    className={`text-sm text-slate-700 dark:text-slate-200 whitespace-pre-wrap leading-relaxed ${
+                      containsRtlText(m.content) ? 'font-urdu' : ''
+                    }`}
+                  >
+                    {m.content}
+                  </p>
+                )}
               </div>
             </div>
           ))}

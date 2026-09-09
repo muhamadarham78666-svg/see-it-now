@@ -241,6 +241,53 @@ body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
   line-height: 2.2;
 }
 
+.nsagpt-ai-response {
+  overflow-wrap: anywhere;
+  line-height: 1.75;
+}
+
+.nsagpt-ai-response :where(h1, h2, h3, h4) {
+  color: var(--color-foreground);
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.35;
+  margin-block: 1.1rem 0.45rem;
+}
+
+.nsagpt-ai-response :where(h1, h2) { font-size: 1.125rem; }
+.nsagpt-ai-response :where(h3, h4) { font-size: 1rem; }
+.nsagpt-ai-response :where(p, ul, ol, blockquote, pre, table) { margin-block: 0.65rem; }
+.nsagpt-ai-response :where(ul, ol) { padding-inline-start: 1.4rem; }
+.nsagpt-ai-response ul { list-style-type: disc; }
+.nsagpt-ai-response ol { list-style-type: decimal; }
+.nsagpt-ai-response li { margin-block: 0.3rem; padding-inline-start: 0.2rem; }
+.nsagpt-ai-response strong { color: var(--color-foreground); font-weight: 700; }
+.nsagpt-ai-response em { font-style: italic; }
+.nsagpt-ai-response a { color: var(--color-primary-600); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.dark .nsagpt-ai-response a { color: var(--color-primary-400); }
+.nsagpt-ai-response blockquote {
+  border-inline-start: 3px solid var(--color-primary-400);
+  color: var(--color-muted-foreground);
+  padding-inline-start: 0.9rem;
+}
+.nsagpt-ai-response :not(pre) > code {
+  background: var(--color-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 0.35rem;
+  color: var(--color-foreground);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.86em;
+  padding: 0.1rem 0.35rem;
+}
+.nsagpt-ai-response pre {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  max-width: 100%;
+  overflow-x: auto;
+}
+.nsagpt-ai-response table { display: block; max-width: 100%; overflow-x: auto; }
+.nsagpt-ai-response hr { border-color: var(--color-border); margin-block: 1rem; }
+
 .glass { @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/20 dark:border-slate-700/50; }
 .glass-card { @apply bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl border border-slate-200/60 dark:border-slate-700/50 rounded-2xl; }
 .gradient-text {
