@@ -18,6 +18,9 @@ import {
   Layers,
   GraduationCap,
   SlidersHorizontal,
+  Lightbulb,
+  Wand2,
+  PenLine,
 } from 'lucide-react';
 import { Card } from '@/components/nsa/Card';
 import { Button } from '@/components/nsa/Button';
@@ -41,6 +44,8 @@ import {
   type PaperRange,
 } from '@/lib/curriculum';
 import { patternBrief, patternCounts, resolvePattern } from '@/lib/paperPatterns';
+import { suggestPaperPlanFn } from '@/lib/plan.functions';
+import type { PaperPlan } from '@/lib/plan.server';
 import type { QuestionType, Language, Difficulty, Question } from '@/types';
 import type { Json } from '@/integrations/supabase/types';
 
