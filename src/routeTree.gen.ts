@@ -15,6 +15,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardBankRouteImport } from './routes/dashboard.bank'
+import { Route as DashboardBookSolverRouteImport } from './routes/dashboard.book-solver'
 import { Route as DashboardGenerateRouteImport } from './routes/dashboard.generate'
 import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history'
 import { Route as DashboardNotesRouteImport } from './routes/dashboard.notes'
@@ -50,6 +51,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
 const DashboardBankRoute = DashboardBankRouteImport.update({
   id: '/bank',
   path: '/bank',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardBookSolverRoute = DashboardBookSolverRouteImport.update({
+  id: '/book-solver',
+  path: '/book-solver',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardGenerateRoute = DashboardGenerateRouteImport.update({
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/dashboard/bank': typeof DashboardBankRoute
+  '/dashboard/book-solver': typeof DashboardBookSolverRoute
   '/dashboard/generate': typeof DashboardGenerateRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/notes': typeof DashboardNotesRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/login': typeof LoginRoute
   '/dashboard/bank': typeof DashboardBankRoute
+  '/dashboard/book-solver': typeof DashboardBookSolverRoute
   '/dashboard/generate': typeof DashboardGenerateRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/notes': typeof DashboardNotesRoute
@@ -117,6 +125,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/dashboard/bank': typeof DashboardBankRoute
+  '/dashboard/book-solver': typeof DashboardBookSolverRoute
   '/dashboard/generate': typeof DashboardGenerateRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/notes': typeof DashboardNotesRoute
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/dashboard/bank'
+    | '/dashboard/book-solver'
     | '/dashboard/generate'
     | '/dashboard/history'
     | '/dashboard/notes'
@@ -146,6 +156,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/login'
     | '/dashboard/bank'
+    | '/dashboard/book-solver'
     | '/dashboard/generate'
     | '/dashboard/history'
     | '/dashboard/notes'
@@ -160,6 +171,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/dashboard/bank'
+    | '/dashboard/book-solver'
     | '/dashboard/generate'
     | '/dashboard/history'
     | '/dashboard/notes'
@@ -220,6 +232,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBankRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/book-solver': {
+      id: '/dashboard/book-solver'
+      path: '/book-solver'
+      fullPath: '/dashboard/book-solver'
+      preLoaderRoute: typeof DashboardBookSolverRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/generate': {
       id: '/dashboard/generate'
       path: '/generate'
@@ -267,6 +286,7 @@ declare module '@tanstack/react-router' {
 
 interface DashboardRouteChildren {
   DashboardBankRoute: typeof DashboardBankRoute
+  DashboardBookSolverRoute: typeof DashboardBookSolverRoute
   DashboardGenerateRoute: typeof DashboardGenerateRoute
   DashboardHistoryRoute: typeof DashboardHistoryRoute
   DashboardNotesRoute: typeof DashboardNotesRoute
@@ -278,6 +298,7 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardBankRoute: DashboardBankRoute,
+  DashboardBookSolverRoute: DashboardBookSolverRoute,
   DashboardGenerateRoute: DashboardGenerateRoute,
   DashboardHistoryRoute: DashboardHistoryRoute,
   DashboardNotesRoute: DashboardNotesRoute,
