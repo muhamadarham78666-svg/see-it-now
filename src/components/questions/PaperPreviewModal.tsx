@@ -12,6 +12,8 @@ interface PaperPreviewModalProps {
 }
 
 const LOGO_KEY = 'nsagpt.paper.logo';
+const A4_WIDTH = 794;
+
 
 export function PaperPreviewModal({ open, onClose, questions, defaultMeta }: PaperPreviewModalProps) {
   const [meta, setMeta] = useState<PaperMeta>(() => ({
