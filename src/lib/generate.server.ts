@@ -36,7 +36,7 @@ export interface GenSettings {
 
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
-const MODEL = "google/gemini-3-flash-preview";
+const MODEL = "google/gemini-3.8-flash";
 
 function languageRule(lang: string) {
   if (lang === "urdu") return "Write EVERY question, option and answer in Urdu script only.";
@@ -144,6 +144,33 @@ function extractJson(raw: string): unknown {
   }
 }
 
+/** Finds a question array anywhere in the parsed JSON. */
+function pickQuestions(parsed: unknown): Record<string, unknown>[] {
+  const isQuestionLike = (v: unknown) =>
+    Array.isArray(v) &&
+    v.length > 0 &&
+    v.every((i) => typeof i === "object" && i !== null) &&
+    (v as Record<string, unknown>[]).some(
+      (i) => "question_text" in i || "question" in i || "text" in i,
+    );
+
+  if (isQuestionLike(parsed)) return parsed as Record<string, unknown>[];
+  if (typeof parsed !== "object" || parsed === null) return [];
+  const obj = parsed as Record<string, unknown>;
+  for (const key of ["questions", "items", "data", "paper", "result", "output"]) {
+    const v = obj[key];
+    if (isQuestionLike(v)) return v as Record<string, unknown>[];
+    if (v && typeof v === "object") {
+      const nested = pickQuestions(v);
+      if (nested.length) return nested;
+    }
+  }
+  for (const v of Object.values(obj)) {
+    if (isQuestionLike(v)) return v as Record<string, unknown>[];
+  }
+  return [];
+}
+
 export async function requestQuestions(
   text: string,
   attachments: GenAttachment[],
@@ -159,6 +186,7 @@ export async function requestQuestions(
   };
 
   let lastError = "";
+  let sawEmpty = false;
   for (let attempt = 0; attempt < 3; attempt++) {
     const res = await fetch(GATEWAY_URL, {
       method: "POST",
@@ -168,21 +196,52 @@ export async function requestQuestions(
 
     if (res.ok) {
       const json = (await res.json()) as {
-        choices?: { message?: { content?: string } }[];
+        choices?: { message?: { content?: string }; finish_reason?: string }[];
       };
       const raw = json.choices?.[0]?.message?.content ?? "";
-      const parsed = extractJson(raw) as { questions?: Record<string, unknown>[] };
-      const questions = Array.isArray(parsed?.questions) ? parsed.questions : [];
-      if (!questions.length) throw new Error("AI could not create questions from this material.");
-      return questions;
+      let questions: Record<string, unknown>[] = [];
+      try {
+        questions = pickQuestions(extractJson(raw));
+      } catch {
+        questions = [];
+      }
+      if (questions.length) return questions;
+      // Empty or unreadable reply: retry with a stricter nudge before failing.
+      sawEmpty = true;
+      console.error("[generate] empty AI reply", {
+        attempt,
+        finish_reason: json.choices?.[0]?.finish_reason,
+        preview: raw.slice(0, 400),
+      });
+      body.messages = [
+        {
+          role: "user",
+          content: [
+            ...buildContentBlocks(text, attachments, settings),
+            {
+              type: "text",
+              text: 'Your previous answer was empty or invalid. Reply with ONLY the JSON object {"questions":[...]} and at least one question. No prose, no markdown fences.',
+            },
+          ],
+        },
+      ];
+      await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
+      continue;
     }
 
     lastError = await res.text().catch(() => "");
     if (res.status === 429)
       throw new Error("AI rate limit reached. Please wait a moment and try again.");
+    if (res.status === 402 || res.status === 403)
+      throw new Error(`AI is unavailable: ${lastError.slice(0, 200)}`);
     if (res.status < 500) break;
     await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
   }
+
+  if (sawEmpty)
+    throw new Error(
+      "AI could not create questions from this material. Try fewer questions, a smaller file, or add clearer study material.",
+    );
 
   throw new Error(
     lastError ? `AI generation failed: ${lastError.slice(0, 200)}` : "AI generation failed.",
