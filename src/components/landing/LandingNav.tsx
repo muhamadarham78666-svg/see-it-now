@@ -38,7 +38,7 @@ export function LandingNav({ onGetStarted }: LandingNavProps) {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         <Logo size="sm" />
 
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden lg:flex items-center gap-8">
           {navLinks.map((link) => (
             <a
               key={link.href}
@@ -54,7 +54,7 @@ export function LandingNav({ onGetStarted }: LandingNavProps) {
           </button>
         </div>
 
-        <div className="md:hidden flex items-center gap-2">
+        <div className="lg:hidden flex items-center gap-2">
           <LanguageChip />
         <button
           className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -66,7 +66,7 @@ export function LandingNav({ onGetStarted }: LandingNavProps) {
       </div>
 
       {mobileOpen && (
-        <div className="md:hidden glass border-t border-slate-200 dark:border-slate-700 animate-fade-in-down">
+        <div className="lg:hidden glass border-t border-slate-200 dark:border-slate-700 animate-fade-in-down">
           <div className="px-4 py-4 space-y-3">
             {navLinks.map((link) => (
               <a
