@@ -403,18 +403,30 @@ export const adminDeviceActionFn = createServerFn({ method: "POST" })
       await db.from("user_devices").delete().eq("id", data.id);
       return { ok: true as const };
     }
+    const { data: row } = await db.from("user_devices").select("user_id, email, label").eq("id", data.id).maybeSingle();
     if (data.action === "approve") {
       // One active device per account: approving a device releases the others.
-      const { data: row } = await db.from("user_devices").select("user_id").eq("id", data.id).maybeSingle();
       if (row?.user_id) {
         await db.from("user_devices").delete().eq("user_id", row.user_id).neq("id", data.id);
       }
       await db.from("user_devices").update({ status: "approved" }).eq("id", data.id);
-      return { ok: true as const };
+    } else {
+      await db.from("user_devices").update({ status: "rejected" }).eq("id", data.id);
     }
-    await db.from("user_devices").update({ status: "rejected" }).eq("id", data.id);
+    if (row?.email) {
+      const { sendMail } = await import("./email.server");
+      const approved = data.action === "approve";
+      await sendMail({
+        to: row.email,
+        subject: approved ? "Your new device is approved" : "Your new device was not approved",
+        html: approved
+          ? `<p>Your device <strong>${row.label ?? "new device"}</strong> has been approved. You can sign in to NSAGPT now.</p>`
+          : `<p>The sign-in from <strong>${row.label ?? "a new device"}</strong> was not approved. Please contact the administrator if you need access.</p>`,
+      });
+    }
     return { ok: true as const };
   });
+
 
 /** Clears every device of one user so they can sign in fresh on any device. */
 export const adminResetDevicesFn = createServerFn({ method: "POST" })
