@@ -50,6 +50,23 @@ import {
 
 type Tab = 'overview' | 'users' | 'reviews' | 'requests' | 'devices' | 'boards' | 'content';
 
+interface RequestAccountForm {
+  id: string;
+  fullName: string;
+  email: string;
+  password: string;
+  makeAdmin: boolean;
+}
+
+/** Suggests a readable, strong starter password for a new account. */
+function randomPassword(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+  let out = '';
+  for (let i = 0; i < 10; i += 1) out += chars[Math.floor(Math.random() * chars.length)];
+  return `${out}#7`;
+}
+
+
 interface Stats {
   users: number;
   papers: number;
