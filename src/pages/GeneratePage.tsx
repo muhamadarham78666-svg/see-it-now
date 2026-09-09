@@ -729,16 +729,115 @@ export function GeneratePage() {
             )}
 
             <div className="mt-4">
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <PenLine size={16} className="text-primary-500" />
                 Special Instructions
+                <span className="text-xs font-normal text-primary-600 dark:text-primary-400">
+                  (highest priority — AI inko literally follow karega)
+                </span>
               </label>
               <textarea
                 value={instructions}
                 onChange={(e) => setInstructions(e.target.value)}
-                rows={3}
-                placeholder="Apni requirement yahan likhein… e.g. Chapter 1, 2, 3 se questions zyada rakhein, MCQs conceptual hon, long questions mein numericals shamil karein."
+                rows={6}
+                placeholder="Apni requirement yahan likhein… e.g. Sara paper Urdu mein ho, nazm ki tashreeh add karein, long questions ke 2 parts hon, diagrams shamil karein, short questions mein se koi 5 attempt karne hon."
                 className="input-field resize-y"
               />
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {[
+                  'Sara paper Urdu mein ho',
+                  'Diagrams shamil karein',
+                  'Long questions ke part (a) aur (b)',
+                  'Khat, kahani aur mazmoon add karein',
+                  'Urdu → English translation ka question',
+                  'Har question ke saath mafhoom likhein',
+                ].map((chip) => (
+                  <button
+                    key={chip}
+                    type="button"
+                    onClick={() =>
+                      setInstructions((v) => (v.trim() ? `${v.trim()}\n${chip}` : chip))
+                    }
+                    className="px-2.5 py-1 rounded-full text-xs bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-primary-100 dark:hover:bg-primary-900/40 transition-colors"
+                  >
+                    + {chip}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-4 rounded-2xl border border-amber-200 dark:border-amber-800/50 bg-gradient-to-br from-amber-50 to-white dark:from-amber-900/20 dark:to-slate-800/40 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <Lightbulb size={18} className="text-amber-500" />
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                      Best approach (AI suggestion)
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSuggest}
+                    disabled={planLoading}
+                    className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-semibold hover:bg-amber-600 disabled:opacity-60 transition-colors"
+                  >
+                    <Wand2 size={14} />
+                    {planLoading ? 'Soch raha hai…' : plan ? 'Dobara suggest karein' : 'Suggest karein'}
+                  </button>
+                </div>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  Generate karne se pehle dekhein AI is paper ko kaise banayega — chahein to ek click
+                  mein apply karein, warna aage barh jayein.
+                </p>
+                {planError && (
+                  <p className="mt-2 text-xs text-red-600 dark:text-red-400">{planError}</p>
+                )}
+                {plan && (
+                  <div className="mt-3 space-y-2 animate-fade-in-down">
+                    {plan.summary && (
+                      <p className="text-sm text-slate-700 dark:text-slate-200">{plan.summary}</p>
+                    )}
+                    {plan.sections.length > 0 && (
+                      <ul className="text-xs text-slate-600 dark:text-slate-300 space-y-1">
+                        {plan.sections.map((s) => (
+                          <li key={s}>• {s}</li>
+                        ))}
+                      </ul>
+                    )}
+                    {plan.recommendations.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
+                          Behtar banane ke mashware
+                        </p>
+                        <ul className="text-xs text-slate-600 dark:text-slate-300 space-y-1">
+                          {plan.recommendations.map((r) => (
+                            <li key={r}>✓ {r}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => applyPlan(plan)}
+                        className="px-3 py-1.5 rounded-xl bg-primary-500 text-white text-xs font-semibold hover:bg-primary-600 transition-colors"
+                      >
+                        Apply karein
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPlan(null)}
+                        className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs text-slate-600 dark:text-slate-200"
+                      >
+                        Aise hi aage barhein
+                      </button>
+                      {planApplied && (
+                        <span className="text-xs text-green-600 dark:text-green-400">
+                          Settings apply ho gayin
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </Card>
 
