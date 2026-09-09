@@ -97,7 +97,7 @@ export function HeroVisual() {
         PDF • DOC • TXT
       </div>
       <div className="absolute -bottom-4 -left-4 glass-card px-4 py-2 text-sm font-medium text-accent-600 dark:text-accent-400 animate-float" style={{ animationDelay: '3s' }}>
-        English • Urdu
+        Multi Languages Support
       </div>
     </div>
   );
