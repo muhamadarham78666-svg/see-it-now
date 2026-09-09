@@ -135,6 +135,12 @@ export function GeneratePage() {
     setMixCounts(counts);
   }, [pattern]);
 
+  // Urdu-medium books (Urdu, Islamiat, Mutalia Pakistan) force the whole paper into Urdu.
+  useEffect(() => {
+    if (bookObj?.urdu) setLanguage('urdu');
+  }, [bookObj]);
+
+
   // Animate the processing steps while the AI request is in flight.
   useEffect(() => {
     if (!generating) return;
