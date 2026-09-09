@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Bot, Loader2, Send, Sparkles, User } from 'lucide-react';
 import { Card } from '@/components/nsa/Card';
 import { Button } from '@/components/nsa/Button';
@@ -43,6 +43,18 @@ export function AskAiPage() {
       requestAnimationFrame(() => endRef.current?.scrollIntoView({ behavior: 'smooth' }));
     }
   };
+
+  const sendRef = useRef(send);
+  sendRef.current = send;
+  const bootstrapped = useRef(false);
+
+  useEffect(() => {
+    if (bootstrapped.current) return;
+    bootstrapped.current = true;
+    const q = new URLSearchParams(window.location.search).get('q');
+    if (q) sendRef.current(q);
+  }, []);
+
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">

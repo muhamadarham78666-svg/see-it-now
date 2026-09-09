@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { X, Printer, Download, FileText, Eye, EyeOff, ImagePlus, Trash2, Building2, CalendarDays, ListChecks } from 'lucide-react';
 import { buildPaperHtml, buildPaperText, downloadFile, printHtml, type PaperMeta } from '@/lib/paperExport';
 import { BOARD_STYLE_OPTIONS } from '@/lib/boardStyles';
@@ -12,6 +12,8 @@ interface PaperPreviewModalProps {
 }
 
 const LOGO_KEY = 'nsagpt.paper.logo';
+const A4_WIDTH = 794;
+
 
 export function PaperPreviewModal({ open, onClose, questions, defaultMeta }: PaperPreviewModalProps) {
   const [meta, setMeta] = useState<PaperMeta>(() => ({
@@ -23,11 +25,28 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta }: Pap
   const [withAnswers, setWithAnswers] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
   const logoInput = useRef<HTMLInputElement>(null);
+  const paneRef = useRef<HTMLDivElement>(null);
+  const [zoom, setZoom] = useState(1);
+  const [docHeight, setDocHeight] = useState(1123);
+
+  const fitZoom = useCallback(() => {
+    const width = paneRef.current?.clientWidth;
+    if (!width) return;
+    setZoom(Math.min(1.2, Math.max(0.4, (width - 32) / A4_WIDTH)));
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    fitZoom();
+    window.addEventListener('resize', fitZoom);
+    return () => window.removeEventListener('resize', fitZoom);
+  }, [open, fitZoom]);
 
   const html = useMemo(
     () => buildPaperHtml(meta, questions, { withAnswers }),
     [meta, questions, withAnswers],
   );
+
 
   if (!open) return null;
 
@@ -207,13 +226,59 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta }: Pap
             </button>
           </div>
 
-          <div className="min-h-0 overflow-hidden bg-slate-100 dark:bg-slate-900 p-3">
-            <iframe
-              title="Paper preview"
-              srcDoc={html}
-              className="w-full h-full rounded-xl bg-white shadow-inner"
-            />
+          <div className="min-h-0 flex flex-col bg-slate-200 dark:bg-slate-900">
+            <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-slate-300/60 dark:border-slate-700">
+              <p className="text-xs text-slate-500 dark:text-slate-400">Full page preview (A4)</p>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setZoom((z) => Math.max(0.4, Math.round((z - 0.1) * 10) / 10))}
+                  className="px-2 py-1 rounded-md text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700"
+                >
+                  −
+                </button>
+                <span className="text-xs w-10 text-center text-slate-500 dark:text-slate-400">{Math.round(zoom * 100)}%</span>
+                <button
+                  onClick={() => setZoom((z) => Math.min(2, Math.round((z + 0.1) * 10) / 10))}
+                  className="px-2 py-1 rounded-md text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700"
+                >
+                  +
+                </button>
+                <button
+                  onClick={fitZoom}
+                  className="ml-1 px-2 py-1 rounded-md text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700"
+                >
+                  Fit
+                </button>
+              </div>
+            </div>
+            <div ref={paneRef} className="flex-1 min-h-0 overflow-auto p-4">
+              <div
+                style={{ width: A4_WIDTH * zoom, height: docHeight * zoom }}
+                className="relative mx-auto"
+              >
+                <iframe
+                  title="Paper preview"
+                  srcDoc={html}
+                  onLoad={(e) => {
+                    const doc = e.currentTarget.contentDocument;
+                    if (doc) {
+                      setDocHeight(
+                        Math.max(1123, doc.documentElement.scrollHeight, doc.body.scrollHeight),
+                      );
+                    }
+                  }}
+                  style={{
+                    width: A4_WIDTH,
+                    height: docHeight,
+                    transform: `scale(${zoom})`,
+                    transformOrigin: 'top left',
+                  }}
+                  className="absolute top-0 left-0 rounded-lg bg-white shadow-xl border border-slate-300 dark:border-slate-700"
+                />
+              </div>
+            </div>
           </div>
+
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2 px-5 py-4 border-t border-slate-200 dark:border-slate-700">

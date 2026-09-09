@@ -14,7 +14,10 @@ import {
   Layers,
   CheckCircle,
   NotebookPen,
+  Bot,
+  Send,
 } from 'lucide-react';
+
 import { useAuth } from '@/context/AuthContext';
 import { Card } from '@/components/nsa/Card';
 import { Badge } from '@/components/nsa/Badge';
@@ -24,7 +27,15 @@ import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { formatDateTime } from '@/lib/utils';
 import type { Generation } from '@/types';
 
+const AI_SUGGESTIONS = [
+  'NSAGPT kya hai aur kaise kaam karta hai?',
+  'Board pattern ka paper kaise banaun?',
+  '9th Physics half book test',
+];
+
 export function DashboardPage() {
+  const [askInput, setAskInput] = useState('');
+
   const { profile, session } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -134,6 +145,57 @@ export function DashboardPage() {
           Create high-quality questions from your study material with AI.
         </p>
       </div>
+
+      {/* NSAGPT AI quick ask card */}
+      <div className="animate-fade-in-up relative overflow-hidden rounded-2xl border border-primary-200/60 dark:border-primary-800/50 bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-primary-950/40 dark:via-slate-900 dark:to-accent-950/30 p-5 sm:p-6">
+        <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary-400/20 blur-3xl" />
+        <div className="pointer-events-none absolute -left-12 -bottom-10 h-32 w-32 rounded-full bg-accent-400/20 blur-3xl" />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="w-12 h-12 shrink-0 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 text-white flex items-center justify-center shadow-lg shadow-primary-500/30">
+            <Bot size={22} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h2 className="font-display text-lg font-semibold text-slate-900 dark:text-white">NSAGPT AI</h2>
+              <Badge variant="primary">Ask anything</Badge>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-0.5">
+              Papers, syllabus, ya koi bhi sawal — Urdu, Roman Urdu ya English me poochein.
+            </p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const q = askInput.trim();
+                navigate(q ? `/dashboard/ask?q=${encodeURIComponent(q)}` : '/dashboard/ask');
+              }}
+              className="mt-3 flex items-center gap-2"
+            >
+              <input
+                value={askInput}
+                onChange={(e) => setAskInput(e.target.value)}
+                placeholder="Ask NSAGPT AI…"
+                className="input-field text-sm !py-2.5 flex-1"
+              />
+              <button type="submit" className="btn-primary text-sm !py-2.5">
+                <Send size={16} />
+                <span className="hidden sm:inline">Ask</span>
+              </button>
+            </form>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {AI_SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => navigate(`/dashboard/ask?q=${encodeURIComponent(s)}`)}
+                  className="text-xs px-3 py-1.5 rounded-full bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-primary-300 dark:hover:border-primary-700 transition-colors"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
