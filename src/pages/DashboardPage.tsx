@@ -14,7 +14,10 @@ import {
   Layers,
   CheckCircle,
   NotebookPen,
+  Bot,
+  Send,
 } from 'lucide-react';
+
 import { useAuth } from '@/context/AuthContext';
 import { Card } from '@/components/nsa/Card';
 import { Badge } from '@/components/nsa/Badge';
