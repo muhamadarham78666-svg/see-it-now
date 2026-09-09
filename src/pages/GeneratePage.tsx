@@ -1019,6 +1019,73 @@ export function GeneratePage() {
                   />
                   Split long questions into parts (a) and (b)
                 </label>
+                <label className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={statements}
+                    onChange={(e) => setStatements(e.target.checked)}
+                    className="w-4 h-4 accent-primary-500"
+                  />
+                  Print each question&apos;s statement / مفہوم
+                </label>
+              </div>
+
+              {/* Writing & composition items */}
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  Writing / Composition
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                  English aur Urdu papers ke liye — jo chunein ge wo paper mein zaroor aayega.
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { key: 'letter', label: 'Letter / خط' },
+                    { key: 'application', label: 'Application / درخواست' },
+                    { key: 'story', label: 'Story / کہانی' },
+                    { key: 'essay', label: 'Essay / مضمون' },
+                    { key: 'dialogue', label: 'Dialogue / مکالمہ' },
+                    { key: 'comprehension', label: 'Paragraph / پیراگراف' },
+                    { key: 'tashreeh', label: 'Nazm/Ghazal تشریح' },
+                    { key: 'khulasa', label: 'خلاصہ' },
+                    { key: 'markazi', label: 'مرکزی خیال' },
+                    { key: 'conceptual', label: 'Conceptual short' },
+                  ].map(({ key, label }) => {
+                    const on = effectiveComposition.includes(key);
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() =>
+                          setComposition((list) =>
+                            list.includes(key) ? list.filter((k) => k !== key) : [...list, key],
+                          )
+                        }
+                        className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
+                          on
+                            ? 'bg-primary-500 border-primary-500 text-white'
+                            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <label className="block text-xs text-slate-500 dark:text-slate-400 mt-4 mb-1">
+                  Translation question
+                </label>
+                <select
+                  value={translation}
+                  onChange={(e) => setTranslation(e.target.value)}
+                  className="input-field"
+                >
+                  <option value="">None</option>
+                  <option value="urdu-to-english">Urdu → English</option>
+                  <option value="english-to-urdu">English → Urdu</option>
+                  <option value="both">Both (student ki marzi)</option>
+                </select>
               </div>
 
               {/* Attempt any N */}
