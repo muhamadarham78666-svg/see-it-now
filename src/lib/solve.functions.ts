@@ -15,11 +15,16 @@ const inputSchema = z.object({
     )
     .default([]),
   settings: z.object({
-    subjectArea: z.enum(["physics", "math"]),
+    subjectArea: z.enum(["physics", "math", "book"]),
     language: z.string(),
     detail: z.enum(["concise", "detailed"]),
     topic: z.string().nullable().optional(),
     problemCount: z.number().nullable().optional(),
+    subjectName: z.string().nullable().optional(),
+    classGroup: z.string().nullable().optional(),
+    chapters: z.array(z.string()).nullable().optional(),
+    wantDiagrams: z.boolean().nullable().optional(),
+
   }),
 });
 
