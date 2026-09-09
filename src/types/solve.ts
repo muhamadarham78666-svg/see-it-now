@@ -7,6 +7,9 @@ export interface SolvedProblem {
   units: string | null;
   concept: string | null;
   topic: string | null;
+  /** Optional inline SVG figure for the solution. */
+  diagram_svg?: string | null;
+  diagram_note?: string | null;
   difficulty: 'easy' | 'medium' | 'hard';
   marks: number;
 }

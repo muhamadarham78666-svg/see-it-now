@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from '@/lib/rr';
-import { Search, Filter, Archive, Plus, Trash2, Newspaper, X, Download } from 'lucide-react';
+import { Search, Filter, Archive, Plus, Trash2, Newspaper, X, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/nsa/Card';
 import { Button } from '@/components/nsa/Button';
 
@@ -28,6 +28,19 @@ export function QuestionBankPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
   const [editQuestion, setEditQuestion] = useState<Question | null>(null);
+  const [openChapter, setOpenChapter] = useState<string | null>(null);
+
+  const chapterGroups = (() => {
+    const map = new Map<string, Question[]>();
+    for (const q of questions) {
+      const key = q.chapter?.trim() || q.topic?.trim() || 'Other questions';
+      const list = map.get(key);
+      if (list) list.push(q);
+      else map.set(key, [q]);
+    }
+    return Array.from(map, ([chapter, items]) => ({ chapter, items }));
+  })();
+
 
   const loadQuestions = useCallback(async () => {
     if (!userId) {
@@ -246,10 +259,22 @@ export function QuestionBankPage() {
             action={<Button onClick={() => navigate('/dashboard/generate')}><Plus size={16} /> Generate Questions</Button>}
           />
         </Card>
-      ) : (
+      ) : openChapter ? (
         <div className="space-y-3">
-          <p className="text-sm text-slate-500 dark:text-slate-400">{questions.length} questions</p>
-          {questions.map((q, i) => (
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <Button variant="ghost" size="sm" onClick={() => setOpenChapter(null)}>
+                <ChevronLeft size={16} /> All chapters
+              </Button>
+              <h2 className="mt-2 font-display text-xl font-bold text-slate-900 dark:text-white">
+                {openChapter}
+              </h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {chapterGroups.find((g) => g.chapter === openChapter)?.items.length ?? 0} questions
+              </p>
+            </div>
+          </div>
+          {(chapterGroups.find((g) => g.chapter === openChapter)?.items ?? []).map((q, i) => (
             <QuestionCard
               key={q.id}
               question={q}
@@ -262,7 +287,44 @@ export function QuestionBankPage() {
             />
           ))}
         </div>
+      ) : (
+        <div className="space-y-3">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            {questions.length} questions in {chapterGroups.length} chapter
+            {chapterGroups.length === 1 ? '' : 's'}
+          </p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {chapterGroups.map((group) => {
+              const counts = {
+                mcq: group.items.filter((q) => q.question_type === 'mcq').length,
+                short: group.items.filter((q) => q.question_type === 'short').length,
+                long: group.items.filter((q) => q.question_type === 'long').length,
+              };
+              return (
+                <button
+                  key={group.chapter}
+                  onClick={() => setOpenChapter(group.chapter)}
+                  className="text-left p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-primary-400 hover:shadow-md transition-all"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-slate-800 dark:text-slate-100 truncate">
+                        {group.chapter}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        {group.items.length} questions · {counts.mcq} MCQs · {counts.short} short ·{' '}
+                        {counts.long} long
+                      </p>
+                    </div>
+                    <ChevronRight size={18} className="text-slate-400 shrink-0 mt-1" />
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       )}
+
 
       {editQuestion && (
         <QuestionEditModal

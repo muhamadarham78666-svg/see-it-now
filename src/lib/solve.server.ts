@@ -21,6 +21,8 @@ export interface SolveSettings {
 
 
 import type { SolvedProblem } from "@/types/solve";
+import { sanitizeSvg } from "./generate.server";
+
 
 export type { SolvedProblem };
 
@@ -35,31 +37,45 @@ function languageRule(lang: string) {
 }
 
 export function buildSolveInstruction(settings: SolveSettings) {
-  const area =
-    settings.subjectArea === "physics"
+  const isBook = settings.subjectArea === "book";
+  const area = isBook
+    ? `exercise questions of the school/college book "${settings.subjectName ?? "the selected book"}"`
+    : settings.subjectArea === "physics"
       ? "physics numericals (mechanics, heat, waves, electricity, modern physics)"
       : "mathematics problems (algebra, trigonometry, calculus, geometry, statistics)";
 
   return [
-    `You are an expert ${settings.subjectArea === "physics" ? "physics" : "mathematics"} teacher who solves ${area} for exam preparation.`,
-    "Read the provided material (text, images, scans or documents). Extract EVERY numerical / problem / exercise you can find and solve each one completely.",
+    isBook
+      ? `You are an expert Pakistani teacher of ${settings.subjectName ?? "this subject"} who solves ${area} exactly the way board examiners expect.`
+      : `You are an expert ${settings.subjectArea === "physics" ? "physics" : "mathematics"} teacher who solves ${area} for exam preparation.`,
+    settings.classGroup ? `Class / Group: ${settings.classGroup}.` : "",
+    settings.chapters && settings.chapters.length
+      ? `Chapters / units: ${settings.chapters.join("; ")}.`
+      : "",
+    "Read the provided material (text, images, scans or documents). Extract EVERY question / numerical / exercise you can find and answer each one completely.",
     settings.problemCount
-      ? `Solve at most ${settings.problemCount} problems (the most important ones first).`
-      : "Solve all problems you find. If the material contains no explicit problems, create and solve 5 representative problems from the given topic.",
-    "For each problem: list the given data with units, state the formula used, then give a clear numbered step-by-step working with substitution of values, and finally the exact final answer with correct units and sensible rounding.",
+      ? `Solve at most ${settings.problemCount} questions (the most important ones first).`
+      : "Solve all questions you find. If the material contains no explicit questions, create and solve 5 important exercise questions from the given chapters.",
+    isBook
+      ? 'For each question: put the question in "problem_text", key points/keywords in "given", and the complete model answer as clear numbered points in "steps", with a one-line summary in "final_answer". For numericals also state the formula. For language/religious subjects give the answer the way it should be written in the paper.'
+      : "For each problem: list the given data with units, state the formula used, then give a clear numbered step-by-step working with substitution of values, and finally the exact final answer with correct units and sensible rounding.",
     settings.detail === "detailed"
       ? "Working must be detailed: explain each step in one short sentence before the mathematics."
-      : "Keep steps short and mathematical, no extra commentary.",
+      : "Keep steps short and to the point, no extra commentary.",
     "Use plain-text mathematics (e.g. v = u + a*t, x^2, sqrt(2), 3.0 x 10^8 m/s). Never use LaTeX or markdown.",
     languageRule(settings.language),
     settings.topic ? `Topic / chapter: ${settings.topic}.` : "",
-    "Double-check all arithmetic before answering; the final answer must be correct.",
-    'Return ONLY JSON in this shape: {"problems":[{"problem_text":string,"given":string[],"formula":string|null,"steps":string[],"final_answer":string,"units":string|null,"concept":string,"topic":string,"difficulty":"easy"|"medium"|"hard","marks":number}]}',
+    settings.wantDiagrams
+      ? 'Where a diagram, figure, circuit, ray diagram, graph or geometric shape genuinely helps, add "diagram_svg": a small self-contained inline SVG string (root <svg viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg">, only path/line/circle/rect/polygon/ellipse/text elements, stroke="#111" fill="none", no scripts, no external images, no CSS) and "diagram_note": a one-line caption. Otherwise use null for both.'
+      : 'Set "diagram_svg":null and "diagram_note":null.',
+    "Double-check all arithmetic and facts before answering; the final answer must be correct.",
+    'Return ONLY JSON in this shape: {"problems":[{"problem_text":string,"given":string[],"formula":string|null,"steps":string[],"final_answer":string,"units":string|null,"concept":string,"topic":string,"diagram_svg":string|null,"diagram_note":string|null,"difficulty":"easy"|"medium"|"hard","marks":number}]}',
     "If the material is an image or scan, first read (OCR) all visible text and equations, then solve.",
   ]
     .filter(Boolean)
     .join("\n");
 }
+
 
 type Block = Record<string, unknown>;
 
@@ -164,6 +180,9 @@ export function normalizeSolutions(raw: Record<string, unknown>[]): SolvedProble
         units: p["units"] != null ? String(p["units"]) : null,
         concept: p["concept"] != null ? String(p["concept"]) : null,
         topic: p["topic"] != null ? String(p["topic"]) : null,
+        diagram_svg: sanitizeSvg(p["diagram_svg"]),
+        diagram_note: p["diagram_note"] != null ? String(p["diagram_note"]) : null,
+
         difficulty: (difficultyRaw === "easy" || difficultyRaw === "hard"
           ? difficultyRaw
           : "medium") as SolvedProblem["difficulty"],

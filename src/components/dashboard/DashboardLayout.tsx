@@ -6,6 +6,9 @@ import {
   Archive,
   Newspaper,
   Calculator,
+  BookOpenCheck,
+  MessageCircle,
+
   History,
   NotebookPen,
   Settings,
@@ -26,8 +29,11 @@ import { BoardChip } from '@/components/boards/BoardSelector';
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/dashboard/generate', label: 'Generate Questions', icon: Sparkles, end: false },
+  { to: '/dashboard/ask', label: 'NSAGPT AI', icon: MessageCircle, end: false },
   { to: '/dashboard/solver', label: 'Physics / Math Solver', icon: Calculator, end: false },
+  { to: '/dashboard/book-solver', label: 'Book Solver', icon: BookOpenCheck, end: false },
   { to: '/dashboard/bank', label: 'Question Bank', icon: Archive, end: false },
+
   { to: '/dashboard/papers', label: 'Question Papers', icon: Newspaper, end: false },
   { to: '/dashboard/history', label: 'History', icon: History, end: false },
   { to: '/dashboard/notes', label: 'Notes', icon: NotebookPen, end: false },

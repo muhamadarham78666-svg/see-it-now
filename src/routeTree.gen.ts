@@ -14,7 +14,9 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as DashboardAskRouteImport } from './routes/dashboard.ask'
 import { Route as DashboardBankRouteImport } from './routes/dashboard.bank'
+import { Route as DashboardBookSolverRouteImport } from './routes/dashboard.book-solver'
 import { Route as DashboardGenerateRouteImport } from './routes/dashboard.generate'
 import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history'
 import { Route as DashboardNotesRouteImport } from './routes/dashboard.notes'
@@ -47,9 +49,19 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAskRoute = DashboardAskRouteImport.update({
+  id: '/ask',
+  path: '/ask',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardBankRoute = DashboardBankRouteImport.update({
   id: '/bank',
   path: '/bank',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardBookSolverRoute = DashboardBookSolverRouteImport.update({
+  id: '/book-solver',
+  path: '/book-solver',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardGenerateRoute = DashboardGenerateRouteImport.update({
@@ -88,7 +100,9 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
+  '/dashboard/ask': typeof DashboardAskRoute
   '/dashboard/bank': typeof DashboardBankRoute
+  '/dashboard/book-solver': typeof DashboardBookSolverRoute
   '/dashboard/generate': typeof DashboardGenerateRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/notes': typeof DashboardNotesRoute
@@ -101,7 +115,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/login': typeof LoginRoute
+  '/dashboard/ask': typeof DashboardAskRoute
   '/dashboard/bank': typeof DashboardBankRoute
+  '/dashboard/book-solver': typeof DashboardBookSolverRoute
   '/dashboard/generate': typeof DashboardGenerateRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/notes': typeof DashboardNotesRoute
@@ -116,7 +132,9 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
+  '/dashboard/ask': typeof DashboardAskRoute
   '/dashboard/bank': typeof DashboardBankRoute
+  '/dashboard/book-solver': typeof DashboardBookSolverRoute
   '/dashboard/generate': typeof DashboardGenerateRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/notes': typeof DashboardNotesRoute
@@ -132,7 +150,9 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/login'
+    | '/dashboard/ask'
     | '/dashboard/bank'
+    | '/dashboard/book-solver'
     | '/dashboard/generate'
     | '/dashboard/history'
     | '/dashboard/notes'
@@ -145,7 +165,9 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/login'
+    | '/dashboard/ask'
     | '/dashboard/bank'
+    | '/dashboard/book-solver'
     | '/dashboard/generate'
     | '/dashboard/history'
     | '/dashboard/notes'
@@ -159,7 +181,9 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/login'
+    | '/dashboard/ask'
     | '/dashboard/bank'
+    | '/dashboard/book-solver'
     | '/dashboard/generate'
     | '/dashboard/history'
     | '/dashboard/notes'
@@ -213,11 +237,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/ask': {
+      id: '/dashboard/ask'
+      path: '/ask'
+      fullPath: '/dashboard/ask'
+      preLoaderRoute: typeof DashboardAskRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/bank': {
       id: '/dashboard/bank'
       path: '/bank'
       fullPath: '/dashboard/bank'
       preLoaderRoute: typeof DashboardBankRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/book-solver': {
+      id: '/dashboard/book-solver'
+      path: '/book-solver'
+      fullPath: '/dashboard/book-solver'
+      preLoaderRoute: typeof DashboardBookSolverRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/generate': {
@@ -266,7 +304,9 @@ declare module '@tanstack/react-router' {
 }
 
 interface DashboardRouteChildren {
+  DashboardAskRoute: typeof DashboardAskRoute
   DashboardBankRoute: typeof DashboardBankRoute
+  DashboardBookSolverRoute: typeof DashboardBookSolverRoute
   DashboardGenerateRoute: typeof DashboardGenerateRoute
   DashboardHistoryRoute: typeof DashboardHistoryRoute
   DashboardNotesRoute: typeof DashboardNotesRoute
@@ -277,7 +317,9 @@ interface DashboardRouteChildren {
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAskRoute: DashboardAskRoute,
   DashboardBankRoute: DashboardBankRoute,
+  DashboardBookSolverRoute: DashboardBookSolverRoute,
   DashboardGenerateRoute: DashboardGenerateRoute,
   DashboardHistoryRoute: DashboardHistoryRoute,
   DashboardNotesRoute: DashboardNotesRoute,
