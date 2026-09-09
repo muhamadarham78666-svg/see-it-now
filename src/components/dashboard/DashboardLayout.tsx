@@ -7,7 +7,7 @@ import {
   Newspaper,
   Calculator,
   BookOpenCheck,
-  MessageCircle,
+  
 
   History,
   NotebookPen,
