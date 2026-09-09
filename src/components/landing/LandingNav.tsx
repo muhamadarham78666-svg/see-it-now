@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Sun, Moon } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { LanguageChip } from '@/components/LanguageChip';
 import { useLanguage } from '@/context/LanguageContext';
+import { useTheme } from '@/context/ThemeContext';
 
 interface LandingNavProps {
   onGetStarted: () => void;
