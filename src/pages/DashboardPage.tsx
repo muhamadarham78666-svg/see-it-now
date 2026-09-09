@@ -27,7 +27,15 @@ import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { formatDateTime } from '@/lib/utils';
 import type { Generation } from '@/types';
 
+const AI_SUGGESTIONS = [
+  'NSAGPT kya hai aur kaise kaam karta hai?',
+  'Board pattern ka paper kaise banaun?',
+  '9th Physics half book test',
+];
+
 export function DashboardPage() {
+  const [askInput, setAskInput] = useState('');
+
   const { profile, session } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
