@@ -339,3 +339,56 @@ export const adminDeleteContentFn = createServerFn({ method: "POST" })
     await db.from(data.table).delete().eq("id", data.id);
     return { ok: true as const };
   });
+
+/** Device approvals for the one-device login rule. */
+export const adminDevicesFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => tokenInput.parse(data))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as Ctx, data.token);
+    const db = await admin();
+    const { data: rows } = await db
+      .from("user_devices")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    return rows ?? [];
+  });
+
+export const adminDeviceActionFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    tokenInput
+      .extend({ id: z.string().uuid(), action: z.enum(["approve", "reject", "delete"]) })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as Ctx, data.token);
+    const db = await admin();
+    if (data.action === "delete") {
+      await db.from("user_devices").delete().eq("id", data.id);
+      return { ok: true as const };
+    }
+    if (data.action === "approve") {
+      // One active device per account: approving a device releases the others.
+      const { data: row } = await db.from("user_devices").select("user_id").eq("id", data.id).maybeSingle();
+      if (row?.user_id) {
+        await db.from("user_devices").delete().eq("user_id", row.user_id).neq("id", data.id);
+      }
+      await db.from("user_devices").update({ status: "approved" }).eq("id", data.id);
+      return { ok: true as const };
+    }
+    await db.from("user_devices").update({ status: "rejected" }).eq("id", data.id);
+    return { ok: true as const };
+  });
+
+/** Clears every device of one user so they can sign in fresh on any device. */
+export const adminResetDevicesFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => tokenInput.extend({ userId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as Ctx, data.token);
+    const db = await admin();
+    await db.from("user_devices").delete().eq("user_id", data.userId);
+    return { ok: true as const };
+  });

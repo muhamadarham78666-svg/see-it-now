@@ -10,6 +10,8 @@ export interface PlanInput {
   patternBrief?: string | null;
   language: string;
   counts: { mcq: number; short: number; long: number };
+  /** Interface language of the teacher; advice text is written in it. */
+  uiLanguage?: string | null;
 }
 
 import type { PaperPlan } from "@/types/plan";
@@ -32,7 +34,10 @@ function prompt(input: PlanInput) {
       ? `TEACHER'S SPECIAL INSTRUCTIONS:\n${input.instructions}`
       : "The teacher gave no special instructions — suggest the ideal board-style setup for this book.",
     "Rules:",
-    "- summary: 2-3 short sentences in the teacher's own language style (Roman Urdu is fine if they wrote Roman Urdu), describing exactly the paper you will build.",
+    input.uiLanguage
+      ? `- Write summary, sections and recommendations in ${input.uiLanguage}. If the teacher's instructions are written in another language, use that language instead.`
+      : "",
+    "- summary: 2-3 short sentences describing exactly the paper you will build.",
     "- sections: one line per section with question count and marks.",
     "- recommendations: 2-4 short, practical improvements the teacher may not have thought of.",
     "- patch: only fields you are confident about; use null for the rest. composition keys may be: letter, application, story, essay, dialogue, precis, comprehension, conceptual, translation, tashreeh, khulasa, markazi, kahani, khat, mukalma, mazmoon.",

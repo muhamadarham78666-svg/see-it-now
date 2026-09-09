@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { Card } from '@/components/nsa/Card';
 import { Badge } from '@/components/nsa/Badge';
 import { Spinner, EmptyState } from '@/components/nsa/Feedback';
@@ -27,16 +28,18 @@ import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { formatDateTime } from '@/lib/utils';
 import type { Generation } from '@/types';
 
-const AI_SUGGESTIONS = [
-  'NSAGPT kya hai aur kaise kaam karta hai?',
-  'Board pattern ka paper kaise banaun?',
-  '9th Physics half book test',
-];
+const AI_SUGGESTIONS: Record<string, string[]> = {
+  en: ['What is NSAGPT and how does it work?', 'How do I build a board-pattern paper?', '9th Physics half book test'],
+  ur: ['NSAGPT کیا ہے اور کیسے کام کرتا ہے؟', 'بورڈ پیٹرن کا پیپر کیسے بناؤں؟', 'نویں فزکس ہاف بک ٹیسٹ'],
+  roman: ['NSAGPT kya hai aur kaise kaam karta hai?', 'Board pattern ka paper kaise banaun?', '9th Physics half book test'],
+};
 
 export function DashboardPage() {
   const [askInput, setAskInput] = useState('');
 
   const { profile, session } = useAuth();
+  const { t, lang } = useLanguage();
+  const suggestions = AI_SUGGESTIONS[lang] ?? AI_SUGGESTIONS['en']!;
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -107,23 +110,23 @@ export function DashboardPage() {
   useRealtimeSync(['generations', 'questions', 'papers', 'notes'], userId, loadDashboardData);
 
   const quickActions = [
-    { label: 'Generate MCQs', icon: Sparkles, color: 'from-primary-500 to-primary-600', action: () => navigate('/dashboard/generate?type=mcq') },
-    { label: 'Generate Short Questions', icon: AlignLeft, color: 'from-accent-500 to-accent-600', action: () => navigate('/dashboard/generate?type=short') },
-    { label: 'Generate Long Questions', icon: FileEdit, color: 'from-success-500 to-success-600', action: () => navigate('/dashboard/generate?type=long') },
-    { label: 'Generate Mixed', icon: Shuffle, color: 'from-warning-500 to-warning-600', action: () => navigate('/dashboard/generate?type=mixed') },
-    { label: 'Physics / Math Solver', icon: Calculator, color: 'from-accent-600 to-primary-500', action: () => navigate('/dashboard/solver') },
-    { label: 'Upload Material', icon: FileUp, color: 'from-primary-400 to-accent-400', action: () => navigate('/dashboard/generate') },
-    { label: 'Question Bank', icon: Archive, color: 'from-slate-500 to-slate-600', action: () => navigate('/dashboard/bank') },
-    { label: 'Create Paper', icon: Newspaper, color: 'from-primary-600 to-accent-500', action: () => navigate('/dashboard/papers') },
-    { label: 'My Notes', icon: NotebookPen, color: 'from-success-500 to-primary-500', action: () => navigate('/dashboard/notes') },
+    { label: t('qa.mcq'), icon: Sparkles, color: 'from-primary-500 to-primary-600', action: () => navigate('/dashboard/generate?type=mcq') },
+    { label: t('qa.short'), icon: AlignLeft, color: 'from-accent-500 to-accent-600', action: () => navigate('/dashboard/generate?type=short') },
+    { label: t('qa.long'), icon: FileEdit, color: 'from-success-500 to-success-600', action: () => navigate('/dashboard/generate?type=long') },
+    { label: t('qa.mixed'), icon: Shuffle, color: 'from-warning-500 to-warning-600', action: () => navigate('/dashboard/generate?type=mixed') },
+    { label: t('qa.solver'), icon: Calculator, color: 'from-accent-600 to-primary-500', action: () => navigate('/dashboard/solver') },
+    { label: t('qa.upload'), icon: FileUp, color: 'from-primary-400 to-accent-400', action: () => navigate('/dashboard/generate') },
+    { label: t('qa.bank'), icon: Archive, color: 'from-slate-500 to-slate-600', action: () => navigate('/dashboard/bank') },
+    { label: t('qa.paper'), icon: Newspaper, color: 'from-primary-600 to-accent-500', action: () => navigate('/dashboard/papers') },
+    { label: t('qa.notes'), icon: NotebookPen, color: 'from-success-500 to-primary-500', action: () => navigate('/dashboard/notes') },
   ];
 
   const statCards = [
-    { label: 'Questions Generated', value: stats.questionsGenerated, icon: TrendingUp, color: 'text-primary-500', bg: 'bg-primary-50 dark:bg-primary-900/20' },
-    { label: 'Papers Created', value: stats.papersCreated, icon: Newspaper, color: 'text-accent-500', bg: 'bg-accent-50 dark:bg-accent-900/20' },
-    { label: 'Recent Generations', value: stats.recentGenerations, icon: Clock, color: 'text-success-500', bg: 'bg-success-50 dark:bg-success-900/20' },
-    { label: 'Saved Questions', value: stats.savedQuestions, icon: Layers, color: 'text-warning-500', bg: 'bg-warning-50 dark:bg-warning-900/20' },
-    { label: 'Saved Notes', value: stats.notes, icon: NotebookPen, color: 'text-success-500', bg: 'bg-success-50 dark:bg-success-900/20' },
+    { label: t('stats.questions'), value: stats.questionsGenerated, icon: TrendingUp, color: 'text-primary-500', bg: 'bg-primary-50 dark:bg-primary-900/20' },
+    { label: t('stats.papers'), value: stats.papersCreated, icon: Newspaper, color: 'text-accent-500', bg: 'bg-accent-50 dark:bg-accent-900/20' },
+    { label: t('stats.recent'), value: stats.recentGenerations, icon: Clock, color: 'text-success-500', bg: 'bg-success-50 dark:bg-success-900/20' },
+    { label: t('stats.saved'), value: stats.savedQuestions, icon: Layers, color: 'text-warning-500', bg: 'bg-warning-50 dark:bg-warning-900/20' },
+    { label: t('stats.notes'), value: stats.notes, icon: NotebookPen, color: 'text-success-500', bg: 'bg-success-50 dark:bg-success-900/20' },
   ];
 
   if (loading) {
@@ -139,10 +142,10 @@ export function DashboardPage() {
       {/* Welcome */}
       <div className="animate-fade-in-up">
         <h1 className="font-display text-3xl font-bold text-slate-900 dark:text-white mb-2">
-          Welcome to NSAGPT{profile?.full_name ? `, ${profile.full_name}` : ''}
+          {t('dash.welcome')}{profile?.full_name ? `, ${profile.full_name}` : ''}
         </h1>
         <p className="text-slate-600 dark:text-slate-400">
-          Create high-quality questions from your study material with AI.
+          {t('dash.subtitle')}
         </p>
       </div>
 
@@ -157,10 +160,10 @@ export function DashboardPage() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h2 className="font-display text-lg font-semibold text-slate-900 dark:text-white">NSAGPT AI</h2>
-              <Badge variant="primary">Ask anything</Badge>
+              <Badge variant="primary">{t('dash.askAnything')}</Badge>
             </div>
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-0.5">
-              Papers, syllabus, ya koi bhi sawal — Urdu, Roman Urdu ya English me poochein.
+              {t('dash.askHint')}
             </p>
             <form
               onSubmit={(e) => {
@@ -173,16 +176,16 @@ export function DashboardPage() {
               <input
                 value={askInput}
                 onChange={(e) => setAskInput(e.target.value)}
-                placeholder="Ask NSAGPT AI…"
+                placeholder={t('dash.askPlaceholder')}
                 className="input-field text-sm !py-2.5 flex-1"
               />
               <button type="submit" className="btn-primary text-sm !py-2.5">
                 <Send size={16} />
-                <span className="hidden sm:inline">Ask</span>
+                <span className="hidden sm:inline">{t('common.ask')}</span>
               </button>
             </form>
             <div className="mt-3 flex flex-wrap gap-2">
-              {AI_SUGGESTIONS.map((s) => (
+              {suggestions.map((s) => (
                 <button
                   key={s}
                   onClick={() => navigate(`/dashboard/ask?q=${encodeURIComponent(s)}`)}
@@ -217,7 +220,7 @@ export function DashboardPage() {
 
       {/* Quick Actions */}
       <div>
-        <h2 className="font-display text-xl font-semibold text-slate-900 dark:text-white mb-4">Quick Actions</h2>
+        <h2 className="font-display text-xl font-semibold text-slate-900 dark:text-white mb-4">{t('dash.quickActions')}</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {quickActions.map((action, i) => {
             const Icon = action.icon;
@@ -241,9 +244,9 @@ export function DashboardPage() {
       {/* Recent Generations */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-xl font-semibold text-slate-900 dark:text-white">Recent Generations</h2>
+          <h2 className="font-display text-xl font-semibold text-slate-900 dark:text-white">{t('dash.recent')}</h2>
           <button onClick={() => navigate('/dashboard/history')} className="text-sm text-primary-600 dark:text-primary-400 hover:underline">
-            View all
+            {t('common.viewAll')}
           </button>
         </div>
 
@@ -251,12 +254,12 @@ export function DashboardPage() {
           <Card>
             <EmptyState
               icon={<Sparkles size={32} />}
-              title="No generations yet"
-              description="Start by uploading your study material and generating your first set of questions."
+              title={t('dash.noneTitle')}
+              description={t('dash.noneDesc')}
               action={
                 <button onClick={() => navigate('/dashboard/generate')} className="btn-primary text-sm">
                   <Sparkles size={16} />
-                  Generate Questions
+                  {t('nav.generate')}
                 </button>
               }
             />
@@ -269,7 +272,7 @@ export function DashboardPage() {
                   <div className="flex items-center gap-2 mb-1">
                     <p className="font-medium text-slate-700 dark:text-slate-200 truncate">{gen.title}</p>
                     {gen.status === 'completed' && (
-                      <Badge variant="success"><CheckCircle size={12} /> Completed</Badge>
+                      <Badge variant="success"><CheckCircle size={12} /> {t('dash.completed')}</Badge>
                     )}
                   </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400">{formatDateTime(gen.created_at)}</p>

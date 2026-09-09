@@ -3,6 +3,8 @@ import { useNavigate, Link } from '@/lib/rr';
 import { Eye, EyeOff, Lock, Mail, ArrowLeft, AlertCircle, Loader2, ShieldCheck, KeyRound } from 'lucide-react';
 import { useServerFn } from '@tanstack/react-start';
 import { verifyAdminCodeFn } from '@/lib/admin.functions';
+import { checkDeviceFn } from '@/lib/devices.functions';
+import { deviceInfo } from '@/lib/deviceId';
 import { ADMIN_TOKEN_KEY } from '@/lib/adminSession';
 import { useAuth } from '@/context/AuthContext';
 import { Logo } from '@/components/Logo';
@@ -19,6 +21,7 @@ export function LoginPage() {
   const [step, setStep] = useState<'credentials' | 'code'>('credentials');
   const [code, setCode] = useState('');
   const verifyCode = useServerFn(verifyAdminCodeFn);
+  const checkDevice = useServerFn(checkDeviceFn);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -33,6 +36,29 @@ export function LoginPage() {
       setError(error);
       setLoading(false);
       return;
+    }
+
+    if (mode !== 'admin') {
+      // One approved device per account — a new device needs administrator approval.
+      try {
+        const info = deviceInfo();
+        const check = await checkDevice({ data: info });
+        if (check.status !== 'approved') {
+          await supabase.auth.signOut();
+          setError(
+            check.status === 'rejected'
+              ? 'This device has been blocked. Please contact the administrator.'
+              : 'This device is not approved yet. Your request has been sent — please contact the administrator.',
+          );
+          setLoading(false);
+          return;
+        }
+      } catch {
+        await supabase.auth.signOut();
+        setError('Device verification failed. Please contact the administrator.');
+        setLoading(false);
+        return;
+      }
     }
 
     if (mode === 'admin') {

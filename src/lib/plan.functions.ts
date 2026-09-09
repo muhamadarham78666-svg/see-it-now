@@ -11,6 +11,7 @@ const inputSchema = z.object({
   patternBrief: z.string().nullable().optional(),
   language: z.string().default("english"),
   counts: z.object({ mcq: z.number(), short: z.number(), long: z.number() }),
+  uiLanguage: z.string().max(60).nullable().optional(),
 });
 
 export const suggestPaperPlanFn = createServerFn({ method: "POST" })

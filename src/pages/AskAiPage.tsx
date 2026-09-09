@@ -3,6 +3,7 @@ import { Bot, Loader2, Send, Sparkles, User } from 'lucide-react';
 import { Card } from '@/components/nsa/Card';
 import { Button } from '@/components/nsa/Button';
 import { askNsagptFn } from '@/lib/ask.functions';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -21,6 +22,7 @@ export function AskAiPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { langName } = useLanguage();
   const endRef = useRef<HTMLDivElement>(null);
 
   const send = async (text: string) => {
@@ -34,7 +36,7 @@ export function AskAiPage() {
     setLoading(true);
 
     try {
-      const { reply } = await askNsagptFn({ data: { messages: next } });
+      const { reply } = await askNsagptFn({ data: { messages: next, uiLanguage: langName } });
       setMessages([...next, { role: 'assistant', content: reply }]);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'NSAGPT AI could not answer right now.');

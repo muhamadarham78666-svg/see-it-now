@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, ChevronDown, GraduationCap, Landmark, Search } from 'lucide-react';
 import { useBoard } from '@/context/BoardContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { CLASS_LEVELS, groupByRegion } from '@/lib/boards';
 import { getBoardStyle } from '@/lib/boardStyles';
 
@@ -14,6 +15,7 @@ export function BoardSelector({
   showClass?: boolean;
 }) {
   const { boards, board, boardCode, classLevel, setBoard, setClassLevel } = useBoard();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -42,14 +44,14 @@ export function BoardSelector({
       <div ref={wrapRef} className="relative">
         <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
           <Landmark size={16} className="text-slate-400" />
-          Board
+          {t('common.board')}
         </label>
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
           className="w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-left text-slate-800 dark:text-slate-100 hover:border-primary-400 transition-colors"
         >
-          <span className="truncate">{board?.name ?? 'Select your board'}</span>
+          <span className="truncate">{board?.name ?? t('common.selectBoard')}</span>
           <ChevronDown size={16} className={`flex-shrink-0 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
         </button>
 
@@ -138,6 +140,7 @@ export function BoardSelector({
 /** Small header chip that opens the same board picker. */
 export function BoardChip() {
   const { board } = useBoard();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -157,7 +160,7 @@ export function BoardChip() {
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300 hover:border-primary-400 transition-colors max-w-[190px]"
       >
         <Landmark size={13} className="text-primary-500 flex-shrink-0" />
-        <span className="truncate">{board?.name ?? 'Select board'}</span>
+        <span className="truncate">{board?.name ?? t('common.selectBoard')}</span>
         <ChevronDown size={13} className="flex-shrink-0 text-slate-400" />
       </button>
       {open && (
