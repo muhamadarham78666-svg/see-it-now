@@ -89,5 +89,29 @@ export const checkDeviceFn = createServerFn({ method: "POST" })
       status: hasApproved ? "pending" : "approved",
     });
 
+    if (hasApproved && profile?.email) {
+      const { sendMail, deviceRequestEmail, adminAlertEmail } = await import("./email.server");
+      await sendMail({
+        to: profile.email,
+        subject: "New device sign-in needs approval",
+        html: deviceRequestEmail(""),
+      });
+      const adminTo = process.env["ADMIN_NOTIFY_EMAIL"];
+      if (adminTo) {
+        await sendMail({
+          to: adminTo,
+          subject: `New device request — ${profile.email}`,
+          html: adminAlertEmail({
+            Email: profile.email,
+            Device: data.label,
+            Browser: data.browser,
+            OS: data.os,
+            IP: ip,
+          }),
+        });
+      }
+    }
+
     return { status: hasApproved ? "pending" : "approved" };
   });
+

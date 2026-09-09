@@ -162,7 +162,23 @@ export const adminCreateUserFn = createServerFn({ method: "POST" })
       { onConflict: "id" },
     );
     if (data.makeAdmin) await db.from("user_roles").upsert({ user_id: created.user.id, role: "admin" });
-    return { ok: true as const, message: "User created." };
+    const { sendMail, accountCreatedEmail } = await import("./email.server");
+    const mail = await sendMail({
+      to: data.email,
+      toName: data.fullName || undefined,
+      subject: "Your NSAGPT account is ready",
+      html: accountCreatedEmail({
+        name: data.fullName,
+        email: data.email,
+        password: data.password,
+        loginUrl: "https://nsagpt.org/login",
+      }),
+    });
+    return {
+      ok: true as const,
+      message: mail.ok ? "User created and login details emailed." : "User created, but the email could not be sent.",
+    };
+
   });
 
 export const adminUpdateUserFn = createServerFn({ method: "POST" })
@@ -301,14 +317,32 @@ export const adminRequestActionFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context as Ctx, data.token);
     const db = await admin();
-    if (data.action === "delete") await db.from("access_requests").delete().eq("id", data.id);
-    else
-      await db
-        .from("access_requests")
-        .update({ status: data.action === "approve" ? "approved" : "rejected" })
-        .eq("id", data.id);
+    if (data.action === "delete") {
+      await db.from("access_requests").delete().eq("id", data.id);
+      return { ok: true as const };
+    }
+    const { data: row } = await db
+      .from("access_requests")
+      .select("email, first_name, last_name")
+      .eq("id", data.id)
+      .maybeSingle();
+    await db
+      .from("access_requests")
+      .update({ status: data.action === "approve" ? "approved" : "rejected" })
+      .eq("id", data.id);
+    if (row?.email) {
+      const { sendMail, requestApprovedEmail, requestRejectedEmail } = await import("./email.server");
+      const name = [row.first_name, row.last_name].filter(Boolean).join(" ");
+      await sendMail({
+        to: row.email,
+        toName: name || undefined,
+        subject: data.action === "approve" ? "Your NSAGPT access request is approved" : "About your NSAGPT access request",
+        html: data.action === "approve" ? requestApprovedEmail(name, "https://nsagpt.org/login") : requestRejectedEmail(name),
+      });
+    }
     return { ok: true as const };
   });
+
 
 export const adminContentFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -369,18 +403,30 @@ export const adminDeviceActionFn = createServerFn({ method: "POST" })
       await db.from("user_devices").delete().eq("id", data.id);
       return { ok: true as const };
     }
+    const { data: row } = await db.from("user_devices").select("user_id, email, label").eq("id", data.id).maybeSingle();
     if (data.action === "approve") {
       // One active device per account: approving a device releases the others.
-      const { data: row } = await db.from("user_devices").select("user_id").eq("id", data.id).maybeSingle();
       if (row?.user_id) {
         await db.from("user_devices").delete().eq("user_id", row.user_id).neq("id", data.id);
       }
       await db.from("user_devices").update({ status: "approved" }).eq("id", data.id);
-      return { ok: true as const };
+    } else {
+      await db.from("user_devices").update({ status: "rejected" }).eq("id", data.id);
     }
-    await db.from("user_devices").update({ status: "rejected" }).eq("id", data.id);
+    if (row?.email) {
+      const { sendMail } = await import("./email.server");
+      const approved = data.action === "approve";
+      await sendMail({
+        to: row.email,
+        subject: approved ? "Your new device is approved" : "Your new device was not approved",
+        html: approved
+          ? `<p>Your device <strong>${row.label ?? "new device"}</strong> has been approved. You can sign in to NSAGPT now.</p>`
+          : `<p>The sign-in from <strong>${row.label ?? "a new device"}</strong> was not approved. Please contact the administrator if you need access.</p>`,
+      });
+    }
     return { ok: true as const };
   });
+
 
 /** Clears every device of one user so they can sign in fresh on any device. */
 export const adminResetDevicesFn = createServerFn({ method: "POST" })
