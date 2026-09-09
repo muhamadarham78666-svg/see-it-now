@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { normalizeSolutions, requestSolutions } from "./solve.server";
 
 const inputSchema = z.object({
@@ -29,6 +30,7 @@ const inputSchema = z.object({
 });
 
 export const solveProblemsFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data }) => {
     const raw = await requestSolutions(data.text, data.attachments, data.settings);
