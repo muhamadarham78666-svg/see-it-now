@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Play, Pause, RotateCcw, Sparkles, Upload, Settings2, Brain, CheckCircle, Newspaper, Download } from 'lucide-react';
+import { Play, Pause, RotateCcw, Sparkles, GraduationCap, Settings2, Brain, CheckCircle, Newspaper, Download, Layers, Wand2, BookOpen, PenLine } from 'lucide-react';
 
 const TOTAL_DURATION = 30;
 
@@ -12,12 +12,14 @@ interface Scene {
 }
 
 const scenes: Scene[] = [
-  { start: 0, end: 4, title: 'NSAGPT', subtitle: 'AI Question & Paper Generator — Turn Your Study Material Into Smart Questions', icon: Sparkles },
-  { start: 4, end: 9, title: '1. Upload Your Chapter', subtitle: 'PDF • DOC • TXT • Image — Drag & drop or browse', icon: Upload },
-  { start: 9, end: 14, title: '2. Choose Your Settings', subtitle: 'English / Urdu • MCQ / Short / Long / Mixed • Count & Difficulty', icon: Settings2 },
-  { start: 14, end: 20, title: '3. AI Understands Your Material', subtitle: 'Reading chapter... Identifying important topics... Generating questions...', icon: Brain },
-  { start: 20, end: 25, title: '4. Review & Edit Your Questions', subtitle: 'MCQs • Short Questions • Long Questions — Edit, save, organize', icon: CheckCircle },
-  { start: 25, end: 30, title: 'Build Your Paper', subtitle: 'Create professional exam papers — Download / Print', icon: Newspaper },
+  { start: 0, end: 3.5, title: 'NSAGPT', subtitle: 'AI Paper Generator for Pakistani Boards — study material se smart board-pattern papers', icon: Sparkles },
+  { start: 3.5, end: 7.5, title: '1. Board & Book Select Karein', subtitle: 'Punjab • Sindh • Federal • KPK — Class 9 se 12 tak, latest 2026 books', icon: GraduationCap },
+  { start: 7.5, end: 11.5, title: '2. Pattern & Range Choose Karein', subtitle: 'Full / Half book ya chapter-wise — MCQ, Short, Long counts & difficulty', icon: Settings2 },
+  { start: 11.5, end: 15.5, title: '3. Special Instructions Likhein', subtitle: '"Attempt any 3 of 5" • Urdu paper • diagrams • translation — jo likhein wohi bane', icon: PenLine },
+  { start: 15.5, end: 19.5, title: '4. AI Paper Generate Kare', subtitle: 'Syllabus parhna → board pattern apply → questions generate — best approach suggestion ke sath', icon: Brain },
+  { start: 19.5, end: 23.5, title: '5. Preview & Edit', subtitle: 'Statement / مفہوم • parts (a) (b) • chapter-wise question bank — edit, reorder, save', icon: CheckCircle },
+  { start: 23.5, end: 27, title: '6. Download & Print', subtitle: 'Board-styled paper apne logo ke sath — PDF / Print ready', icon: Newspaper },
+  { start: 27, end: 30, title: 'Aur Bhi Bohat Kuch', subtitle: 'Physics/Math Solver • AI Notes • Book Solver • NSAGPT AI — sab ek jagah', icon: Layers },
 ];
 
 export function GuideAnimation() {
@@ -81,23 +83,35 @@ export function GuideAnimation() {
       <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary-500/20 rounded-full blur-3xl animate-pulse-glow" />
       <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-accent-500/20 rounded-full blur-3xl animate-pulse-glow" style={{ animationDelay: '1.5s' }} />
 
+      {/* Step dots */}
+      <div className="absolute top-3 left-0 right-0 flex items-center justify-center gap-1.5 z-10">
+        {scenes.map((_, i) => (
+          <div
+            key={i}
+            className={`h-1 rounded-full transition-all duration-300 ${
+              i === sceneIndex ? 'w-6 bg-primary-400' : i < sceneIndex ? 'w-2 bg-primary-600/60' : 'w-2 bg-slate-600/60'
+            }`}
+          />
+        ))}
+      </div>
+
       {/* Scene content */}
-      <div className="relative h-full flex flex-col items-center justify-center p-6 sm:p-10 text-center">
-        <div className="mb-6 transition-all duration-500" key={sceneIndex}>
-          <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white shadow-xl shadow-primary-500/30 mx-auto mb-4 animate-fade-in-up">
-            <currentScene.icon size={36} />
+      <div className="relative h-full flex flex-col items-center justify-center p-6 sm:p-10 pt-8 text-center">
+        <div className="mb-4 transition-all duration-500" key={sceneIndex}>
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white shadow-xl shadow-primary-500/30 mx-auto mb-3 animate-fade-in-up">
+            <currentScene.icon size={30} />
           </div>
         </div>
 
-        <h3 className="font-display text-xl sm:text-2xl font-bold text-white mb-3 animate-fade-in-up" key={`title-${sceneIndex}`}>
+        <h3 className="font-display text-lg sm:text-2xl font-bold text-white mb-2 animate-fade-in-up" key={`title-${sceneIndex}`}>
           {currentScene.title}
         </h3>
-        <p className="text-slate-300 text-sm sm:text-base max-w-md mx-auto leading-relaxed animate-fade-in" key={`sub-${sceneIndex}`}>
+        <p className="text-slate-300 text-xs sm:text-sm max-w-md mx-auto leading-relaxed animate-fade-in" key={`sub-${sceneIndex}`}>
           {currentScene.subtitle}
         </p>
 
         {/* Scene-specific visual */}
-        <div className="mt-6 w-full max-w-sm">
+        <div className="mt-5 w-full max-w-sm">
           <SceneVisual sceneIndex={sceneIndex} progress={sceneProgress} />
         </div>
       </div>
@@ -168,10 +182,10 @@ export function GuideAnimation() {
 function SceneVisual({ sceneIndex, progress }: { sceneIndex: number; progress: number }) {
   if (sceneIndex === 0) {
     return (
-      <div className="flex items-center justify-center gap-3">
-        {['MCQ', 'Short', 'Long'].map((t, i) => (
-          <div key={t} className="glass rounded-lg px-4 py-2 animate-fade-in-up" style={{ animationDelay: `${i * 0.15}s` }}>
-            <div className="text-sm font-medium text-white">{t}</div>
+      <div className="flex items-center justify-center gap-2 flex-wrap">
+        {['MCQ', 'Short', 'Long', 'اردو', 'Diagrams'].map((t, i) => (
+          <div key={t} className="glass rounded-lg px-3 py-1.5 animate-fade-in-up" style={{ animationDelay: `${i * 0.12}s` }}>
+            <div className="text-xs font-medium text-white">{t}</div>
           </div>
         ))}
       </div>
@@ -180,11 +194,24 @@ function SceneVisual({ sceneIndex, progress }: { sceneIndex: number; progress: n
 
   if (sceneIndex === 1) {
     return (
-      <div className="border-2 border-dashed border-white/20 rounded-xl p-6 animate-fade-in">
-        <Upload size={28} className="text-primary-400 mx-auto mb-2" />
-        <div className="text-xs text-slate-400 mb-2">chapter_photosynthesis.pdf</div>
-        <div className="h-1.5 rounded-full bg-slate-700 overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-primary-500 to-accent-500 transition-all duration-300" style={{ width: `${Math.min(progress * 100, 100)}%` }} />
+      <div className="space-y-2 animate-fade-in">
+        <div className="flex items-center justify-center gap-2 flex-wrap">
+          {['Punjab', 'Sindh', 'Federal', 'KPK'].map((b, i) => (
+            <span key={b} className={`glass rounded-full px-3 py-1 text-[11px] transition-all ${i === 0 ? 'text-primary-300 border border-primary-500/50' : 'text-slate-400'}`}>
+              {b}
+            </span>
+          ))}
+        </div>
+        <div className="glass rounded-lg p-3 text-left">
+          <div className="flex items-center gap-2 mb-1.5">
+            <GraduationCap size={13} className="text-primary-400" />
+            <span className="text-xs font-semibold text-white">Class 9 — Science Group</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {['Physics', 'Chemistry', 'Biology', 'Math', 'English', 'Urdu'].map((s) => (
+              <span key={s} className="rounded bg-white/10 px-2 py-0.5 text-[10px] text-slate-300">{s}</span>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -193,7 +220,7 @@ function SceneVisual({ sceneIndex, progress }: { sceneIndex: number; progress: n
   if (sceneIndex === 2) {
     return (
       <div className="space-y-2 animate-fade-in">
-        {['English / Urdu', 'MCQ / Short / Long', '20 Questions • Medium'].map((s, i) => (
+        {['Full Book / Half Book / Chapter 1–4', 'MCQ 10 • Short 5 • Long 2', 'Board Pattern: Lahore Style'].map((s, i) => (
           <div key={i} className="flex items-center gap-2 glass rounded-lg px-3 py-2 text-xs text-slate-300">
             <CheckCircle size={14} className="text-success-400" /> {s}
           </div>
@@ -203,7 +230,23 @@ function SceneVisual({ sceneIndex, progress }: { sceneIndex: number; progress: n
   }
 
   if (sceneIndex === 3) {
-    const labels = ['Reading chapter...', 'Identifying important topics...', 'Generating questions...'];
+    const lines = ['"Attempt any 4 of 6 short questions"', '"Paper urdu mein ho"', '"Diagrams shamil karein"'];
+    const shown = Math.min(Math.floor(progress * lines.length) + 1, lines.length);
+    return (
+      <div className="glass rounded-xl p-4 text-left space-y-2 animate-fade-in">
+        <div className="flex items-center gap-2 text-[10px] uppercase tracking-wide text-primary-300 font-semibold">
+          <Wand2 size={11} /> Special Instructions
+        </div>
+        {lines.slice(0, shown).map((l, i) => (
+          <p key={i} className="text-xs text-slate-300 animate-fade-in">{l}</p>
+        ))}
+        <p className="text-[10px] text-slate-500">Jo likhein — wohi paper mein aaye ✦</p>
+      </div>
+    );
+  }
+
+  if (sceneIndex === 4) {
+    const labels = ['Syllabus parh raha hai...', 'Board pattern apply...', 'Questions generate...'];
     return (
       <div className="space-y-2">
         {labels.map((label, i) => {
@@ -219,18 +262,18 @@ function SceneVisual({ sceneIndex, progress }: { sceneIndex: number; progress: n
     );
   }
 
-  if (sceneIndex === 4) {
+  if (sceneIndex === 5) {
     return (
       <div className="space-y-2">
         {[
-          { type: 'MCQ', text: 'What is the primary function of chlorophyll?', count: 8 },
-          { type: 'Short', text: 'Define photosynthesis in one sentence.', count: 6 },
-          { type: 'Long', text: 'Explain the light and dark reactions...', count: 6 },
+          { type: 'MCQ', text: 'Q1 — (i) (ii) (iii)… har item apni line par', count: 10 },
+          { type: 'Short', text: 'Attempt any 4 of 6 — مفہوم ke sath', count: 6 },
+          { type: 'Long', text: 'Q3 (a) + (b) — parts ke sath', count: 2 },
         ].map((q, i) => (
-          <div key={i} className="glass rounded-lg p-3 text-left animate-fade-in-up" style={{ animationDelay: `${i * 0.15}s` }}>
+          <div key={i} className="glass rounded-lg p-3 text-left animate-fade-in-up" style={{ animationDelay: `${i * 0.12}s` }}>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs font-bold text-primary-400">{q.type}</span>
-              <span className="text-xs text-slate-500">{q.count} questions</span>
+              <span className="text-xs text-slate-500">{q.count}</span>
             </div>
             <p className="text-xs text-slate-300">{q.text}</p>
           </div>
@@ -239,18 +282,18 @@ function SceneVisual({ sceneIndex, progress }: { sceneIndex: number; progress: n
     );
   }
 
-  if (sceneIndex === 5) {
+  if (sceneIndex === 6) {
     return (
       <div className="space-y-2">
         <div className="glass rounded-lg p-4 text-left">
           <div className="text-center border-b border-white/10 pb-2 mb-2">
-            <p className="text-xs font-bold text-white">Academy Examination</p>
-            <p className="text-xs text-slate-400">Subject: Biology • Total Marks: 100</p>
+            <p className="text-xs font-bold text-white">Academy Examination — Logo ✦</p>
+            <p className="text-xs text-slate-400">Physics • Class 9 • Lahore Board Pattern</p>
           </div>
           <div className="space-y-1">
-            <p className="text-xs text-slate-300">Section A — MCQs (20 marks)</p>
+            <p className="text-xs text-slate-300">Section A — MCQs (12 marks)</p>
             <p className="text-xs text-slate-300">Section B — Short Questions (30 marks)</p>
-            <p className="text-xs text-slate-300">Section C — Long Questions (50 marks)</p>
+            <p className="text-xs text-slate-300">Section C — Long Questions (33 marks)</p>
           </div>
         </div>
         <div className="flex items-center justify-center gap-3 animate-fade-in">
@@ -261,6 +304,24 @@ function SceneVisual({ sceneIndex, progress }: { sceneIndex: number; progress: n
             <Newspaper size={12} /> Print
           </span>
         </div>
+      </div>
+    );
+  }
+
+  if (sceneIndex === 7) {
+    return (
+      <div className="grid grid-cols-2 gap-2">
+        {[
+          { icon: Brain, label: 'Physics/Math Solver' },
+          { icon: PenLine, label: 'AI Notes Generator' },
+          { icon: BookOpen, label: 'Book Solver' },
+          { icon: Sparkles, label: 'NSAGPT AI' },
+        ].map((f, i) => (
+          <div key={i} className="glass rounded-lg p-3 flex flex-col items-center gap-1.5 animate-fade-in-up" style={{ animationDelay: `${i * 0.1}s` }}>
+            <f.icon size={16} className="text-primary-400" />
+            <span className="text-[11px] text-slate-300">{f.label}</span>
+          </div>
+        ))}
       </div>
     );
   }
