@@ -563,7 +563,10 @@ export function AdminPage() {
                   </p>
                   <Badge variant={r.status === 'approved' ? 'success' : r.status === 'rejected' ? 'error' : 'warning'}>{r.status}</Badge>
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{r.email}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  {r.email}
+                  {r.phone ? ` · ${r.phone}` : ''}
+                </p>
                 <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 whitespace-pre-wrap">{r.note ?? ''}</p>
               </div>
               <div className="flex items-center gap-2">

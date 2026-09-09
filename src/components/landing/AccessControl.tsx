@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Lock, LogIn, ShieldCheck, Send, CheckCircle, AlertCircle, Loader2, User, Mail, MessageSquare, PlayCircle } from 'lucide-react';
+import { Lock, LogIn, ShieldCheck, Send, CheckCircle, AlertCircle, Loader2, User, Mail, Phone, MessageSquare, PlayCircle } from 'lucide-react';
 import { AccessRequestAnimation } from './AccessRequestAnimation';
 import { supabase } from '@/lib/supabase';
 
@@ -12,13 +12,14 @@ interface FormData {
   firstName: string;
   lastName: string;
   email: string;
+  phone: string;
   note: string;
 }
 
 type Status = 'idle' | 'submitting' | 'success' | 'error';
 
 export function AccessControl({ onLogin }: AccessControlProps) {
-  const [form, setForm] = useState<FormData>({ firstName: '', lastName: '', email: '', note: '' });
+  const [form, setForm] = useState<FormData>({ firstName: '', lastName: '', email: '', phone: '', note: '' });
   const [status, setStatus] = useState<Status>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
@@ -31,6 +32,12 @@ export function AccessControl({ onLogin }: AccessControlProps) {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       newErrors.email = 'Please enter a valid email address';
+    }
+    const phone = form.phone.replace(/[\s()-]/g, '');
+    if (!phone) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!/^\+?\d{7,15}$/.test(phone)) {
+      newErrors.phone = 'Please enter a valid phone number';
     }
     if (!form.note.trim()) {
       newErrors.note = 'Please tell us why you need access';
@@ -54,6 +61,7 @@ export function AccessControl({ onLogin }: AccessControlProps) {
         first_name: form.firstName.trim(),
         last_name: form.lastName.trim(),
         email: form.email.trim(),
+        phone: form.phone.trim(),
         note: form.note.trim(),
         status: 'new',
       });
@@ -72,6 +80,7 @@ export function AccessControl({ onLogin }: AccessControlProps) {
             first_name: form.firstName.trim(),
             last_name: form.lastName.trim(),
             email: form.email.trim(),
+            phone: form.phone.trim(),
             note: form.note.trim(),
           }),
         });
@@ -80,7 +89,7 @@ export function AccessControl({ onLogin }: AccessControlProps) {
       }
 
       setStatus('success');
-      setForm({ firstName: '', lastName: '', email: '', note: '' });
+      setForm({ firstName: '', lastName: '', email: '', phone: '', note: '' });
     } catch {
       setStatus('error');
       setErrorMsg('Something went wrong. Please try again or contact the administrator directly.');
@@ -196,6 +205,17 @@ export function AccessControl({ onLogin }: AccessControlProps) {
                   error={errors.email}
                   placeholder="you@example.com"
                   type="email"
+                  required
+                />
+
+                <FormField
+                  label="Phone / WhatsApp"
+                  icon={<Phone size={16} />}
+                  value={form.phone}
+                  onChange={(v) => updateField('phone', v)}
+                  error={errors.phone}
+                  placeholder="+92 300 1234567"
+                  type="tel"
                   required
                 />
 
