@@ -303,7 +303,7 @@ function RequestGuide() {
         </div>
       </div>
 
-      <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 mb-6 h-64 sm:h-72">
+      <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 mb-6 h-[380px] sm:h-[400px]">
         <AccessRequestAnimation />
       </div>
 
