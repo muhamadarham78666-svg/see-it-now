@@ -317,14 +317,32 @@ export const adminRequestActionFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context as Ctx, data.token);
     const db = await admin();
-    if (data.action === "delete") await db.from("access_requests").delete().eq("id", data.id);
-    else
-      await db
-        .from("access_requests")
-        .update({ status: data.action === "approve" ? "approved" : "rejected" })
-        .eq("id", data.id);
+    if (data.action === "delete") {
+      await db.from("access_requests").delete().eq("id", data.id);
+      return { ok: true as const };
+    }
+    const { data: row } = await db
+      .from("access_requests")
+      .select("email, first_name, last_name")
+      .eq("id", data.id)
+      .maybeSingle();
+    await db
+      .from("access_requests")
+      .update({ status: data.action === "approve" ? "approved" : "rejected" })
+      .eq("id", data.id);
+    if (row?.email) {
+      const { sendMail, requestApprovedEmail, requestRejectedEmail } = await import("./email.server");
+      const name = [row.first_name, row.last_name].filter(Boolean).join(" ");
+      await sendMail({
+        to: row.email,
+        toName: name || undefined,
+        subject: data.action === "approve" ? "Your NSAGPT access request is approved" : "About your NSAGPT access request",
+        html: data.action === "approve" ? requestApprovedEmail(name, "https://nsagpt.org/login") : requestRejectedEmail(name),
+      });
+    }
     return { ok: true as const };
   });
+
 
 export const adminContentFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
