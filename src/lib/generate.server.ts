@@ -381,6 +381,8 @@ export function normalizeQuestions(raw: Record<string, unknown>[]): QuestionDraf
           : null,
       diagram_svg: sanitizeSvg(q["diagram_svg"]),
       diagram_note: q["diagram_note"] != null ? String(q["diagram_note"]) : null,
+      statement: q["statement"] != null ? String(q["statement"]).trim() || null : null,
+      category: q["category"] != null ? String(q["category"]).trim().toLowerCase() || null : null,
       explanation: q["explanation"] != null ? String(q["explanation"]) : null,
 
       difficulty,
