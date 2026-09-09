@@ -90,6 +90,10 @@ export function GeneratePage() {
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [mcqOptions, setMcqOptions] = useState(4);
   const [mixCounts, setMixCounts] = useState({ mcq: 10, short: 3, long: 1 });
+  const [wantDiagrams, setWantDiagrams] = useState(false);
+  const [longParts, setLongParts] = useState(true);
+  const [attempts, setAttempts] = useState({ mcq: 0, short: 0, long: 0 });
+
 
   const [generating, setGenerating] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
