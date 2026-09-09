@@ -149,7 +149,7 @@ export function DashboardPage() {
       {/* NSAGPT AI quick ask card */}
       <div className="animate-fade-in-up relative overflow-hidden rounded-2xl border border-primary-200/60 dark:border-primary-800/50 bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-primary-950/40 dark:via-slate-900 dark:to-accent-950/30 p-5 sm:p-6">
         <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary-400/20 blur-3xl" />
-        <div className="pointer-events-none absolute -left-12 bottom--10 h-32 w-32 rounded-full bg-accent-400/20 blur-3xl" />
+        <div className="pointer-events-none absolute -left-12 -bottom-10 h-32 w-32 rounded-full bg-accent-400/20 blur-3xl" />
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="w-12 h-12 shrink-0 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 text-white flex items-center justify-center shadow-lg shadow-primary-500/30">
             <Bot size={22} />
