@@ -94,6 +94,19 @@ export function QuestionCard({
             {question.question_text}
           </p>
 
+          {question.statement && (
+            <p
+              dir={isUrdu ? 'rtl' : 'ltr'}
+              className={cn(
+                'mb-3 text-xs italic text-slate-500 dark:text-slate-400',
+                isUrdu && 'text-right leading-loose',
+              )}
+            >
+              {question.statement}
+            </p>
+          )}
+
+
           {/* Diagram */}
           {question.diagram_svg && (
             <figure className="mb-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white p-3 inline-block max-w-full">
