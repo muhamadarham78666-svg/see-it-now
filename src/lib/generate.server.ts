@@ -97,7 +97,12 @@ export function buildInstruction(settings: GenSettings) {
       ? `Follow this board pattern closely (about 70% board style, 30% improved original style — questions must be NEW, never copied):\n${settings.patternBrief}`
       : "",
     settings.instructions
-      ? `TEACHER'S SPECIAL INSTRUCTIONS (highest priority, obey them): ${settings.instructions}`
+      ? [
+          "=== TEACHER'S SPECIAL INSTRUCTIONS — HIGHEST PRIORITY ===",
+          settings.instructions,
+          "These instructions override EVERY other rule above, including the board pattern, counts, marks, difficulty, language and section layout. Obey every single point literally. If an instruction conflicts with the pattern, follow the instruction. If an instruction asks for extra question kinds (essay, letter, story, application, translation, tashreeh, khulasa, markazi khayal, numericals, diagrams, choice questions), include them. Never ignore or partially apply an instruction.",
+          "=== END OF SPECIAL INSTRUCTIONS ===",
+        ].join("\n")
       : "",
     mix,
     `Difficulty: ${settings.difficulty === "mixed" ? "mix easy, medium and hard" : settings.difficulty}.`,
