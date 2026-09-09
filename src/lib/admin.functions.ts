@@ -144,12 +144,28 @@ export const adminCreateUserFn = createServerFn({ method: "POST" })
         password: z.string().min(8),
         fullName: z.string().default(""),
         makeAdmin: z.boolean().default(false),
+        requestId: z.string().uuid().nullable().default(null),
       })
       .parse(data),
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context as Ctx, data.token);
     const db = await admin();
+    let requestEmail: string | null = null;
+    if (data.requestId) {
+      const { data: request, error: requestError } = await db
+        .from("access_requests")
+        .select("email")
+        .eq("id", data.requestId)
+        .maybeSingle();
+      if (requestError || !request) {
+        return { ok: false as const, message: "Access request was not found." };
+      }
+      requestEmail = request.email.trim().toLowerCase();
+      if (requestEmail !== data.email.trim().toLowerCase()) {
+        return { ok: false as const, message: "The account email must match the access request." };
+      }
+    }
     const { data: created, error } = await db.auth.admin.createUser({
       email: data.email,
       password: data.password,
@@ -157,16 +173,36 @@ export const adminCreateUserFn = createServerFn({ method: "POST" })
       user_metadata: { full_name: data.fullName || null },
     });
     if (error || !created.user) return { ok: false as const, message: error?.message ?? "Could not create user." };
-    await db.from("profiles").upsert(
+    const { error: profileError } = await db.from("profiles").upsert(
       { id: created.user.id, email: data.email, full_name: data.fullName || null },
       { onConflict: "id" },
     );
-    if (data.makeAdmin) await db.from("user_roles").upsert({ user_id: created.user.id, role: "admin" });
+    if (profileError) {
+      await db.auth.admin.deleteUser(created.user.id);
+      return { ok: false as const, message: profileError.message };
+    }
+    const { error: roleError } = await db
+      .from("user_roles")
+      .upsert({ user_id: created.user.id, role: data.makeAdmin ? "admin" : "user" });
+    if (roleError) {
+      await db.auth.admin.deleteUser(created.user.id);
+      return { ok: false as const, message: roleError.message };
+    }
+    if (data.requestId) {
+      const { error: approvalError } = await db
+        .from("access_requests")
+        .update({ status: "approved" })
+        .eq("id", data.requestId);
+      if (approvalError) {
+        await db.auth.admin.deleteUser(created.user.id);
+        return { ok: false as const, message: approvalError.message };
+      }
+    }
     const { sendMail, accountCreatedEmail } = await import("./email.server");
     const mail = await sendMail({
       to: data.email,
       toName: data.fullName || undefined,
-      subject: "Your NSAGPT account is ready",
+      subject: data.requestId ? "Your NSAGPT access is approved — account ready" : "Your NSAGPT account is ready",
       html: accountCreatedEmail({
         name: data.fullName,
         email: data.email,
@@ -176,7 +212,13 @@ export const adminCreateUserFn = createServerFn({ method: "POST" })
     });
     return {
       ok: true as const,
-      message: mail.ok ? "User created and login details emailed." : "User created, but the email could not be sent.",
+       message: mail.ok
+         ? data.requestId
+           ? "Account created, request approved, and login details emailed."
+           : "User created and login details emailed."
+         : data.requestId
+           ? "Account created and request approved, but the email could not be sent."
+           : "User created, but the email could not be sent.",
     };
 
   });
