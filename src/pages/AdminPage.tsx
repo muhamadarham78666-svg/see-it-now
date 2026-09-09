@@ -23,6 +23,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/lib/supabase';
 import { Card } from '@/components/nsa/Card';
 import { Badge } from '@/components/nsa/Badge';
 import { Spinner } from '@/components/nsa/Feedback';
@@ -198,6 +199,21 @@ export function AdminPage() {
     if (gate === 'ready' && token) void load(tab, token);
   }, [gate, token, tab, load]);
 
+  useEffect(() => {
+    if (gate !== 'ready' || !token) return;
+    const refresh = () => void load(tab, token);
+    const channel = supabase
+      .channel(`admin-live-${tab}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'access_requests' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reviews' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_devices' }, refresh)
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [gate, token, tab, load]);
+
   const submitCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setGateBusy(true);
@@ -293,6 +309,7 @@ export function AdminPage() {
     try {
       const res = await fn();
       if (res && res.ok === false) flash(res.message ?? 'Action failed.');
+      else if (res?.message) flash(res.message);
       else if (done) flash(done);
       if (token) await load(tab, token);
     } catch (e) {
@@ -649,10 +666,16 @@ export function AdminPage() {
                             if (!form) return { ok: false, message: 'Form closed.' };
                             if (form.password.length < 8) return { ok: false, message: 'Password must be at least 8 characters.' };
                             const res = await createUser({
-                              data: { token: tk, email: form.email, password: form.password, fullName: form.fullName, makeAdmin: form.makeAdmin },
+                              data: {
+                                token: tk,
+                                email: form.email,
+                                password: form.password,
+                                fullName: form.fullName,
+                                makeAdmin: form.makeAdmin,
+                                requestId: r.id,
+                              },
                             });
                             if (!res.ok) return res;
-                            await requestAction({ data: { token: tk, id: r.id, action: 'approve' } });
                             setReqForm(null);
                             return res;
                           },
