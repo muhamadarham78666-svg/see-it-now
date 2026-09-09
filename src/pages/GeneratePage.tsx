@@ -790,8 +790,58 @@ export function GeneratePage() {
                 <BoardSelector showClass={false} />
               </div>
 
+              {/* Diagrams / long-question parts */}
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
+                <label className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={wantDiagrams}
+                    onChange={(e) => setWantDiagrams(e.target.checked)}
+                    className="w-4 h-4 accent-primary-500"
+                  />
+                  Include diagrams / figures where helpful
+                </label>
+                <label className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={longParts}
+                    onChange={(e) => setLongParts(e.target.checked)}
+                    className="w-4 h-4 accent-primary-500"
+                  />
+                  Split long questions into parts (a) and (b)
+                </label>
+              </div>
 
-
+              {/* Attempt any N */}
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  Attempt Any (optional)
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                  Example: 5 short questions given, students attempt any 4. Leave 0 to attempt all.
+                </p>
+                <div className="grid grid-cols-3 gap-3">
+                  {(['mcq', 'short', 'long'] as const).map((key) => (
+                    <div key={key}>
+                      <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1 capitalize">
+                        {key === 'mcq' ? 'MCQs' : key}
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={attempts[key]}
+                        onChange={(e) =>
+                          setAttempts((prev) => ({
+                            ...prev,
+                            [key]: Math.max(0, parseInt(e.target.value, 10) || 0),
+                          }))
+                        }
+                        className="input-field"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
 
 
               {/* Language */}
