@@ -257,10 +257,10 @@ export function buildPaperHtml(
     </div>
     ${metaLine ? `<div class="meta">${metaLine}</div>` : ''}
   </header>
-  ${style.rollNoBox ? '<div class="idbox"><div>Roll No: ______________</div><div>Name: ______________________</div></div>' : ''}
-  <div class="totals"><span>Total Questions: ${questions.length}</span><span>Total Marks: ${totalMarks}</span></div>
+  ${style.rollNoBox ? `<div class="idbox"><div>${t.rollNo}: ______________</div><div>${t.name}: ______________________</div></div>` : ''}
+  <div class="totals"><span>${t.totalQuestions}: ${questions.length}</span><span>${t.totalMarks}: ${totalMarks}</span></div>
 
-  ${meta.instructions ? `<div class="instructions"><strong>Instructions:</strong>\n${escapeHtml(meta.instructions)}</div>` : ''}
+  ${meta.instructions ? `<div class="instructions"><strong>${t.instructions}:</strong>\n${escapeHtml(meta.instructions)}</div>` : ''}
   ${sections}
   ${meta.footerNote ? `<footer>${escapeHtml(meta.footerNote)}</footer>` : ''}
 </body>
