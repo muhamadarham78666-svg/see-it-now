@@ -271,7 +271,7 @@ export function BookSolverPage() {
             <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
               Upload the exercise (optional)
             </p>
-            <FileUpload attachments={attachments} onChange={setAttachments} />
+            <FileUpload onAttachmentsChange={setAttachments} />
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
