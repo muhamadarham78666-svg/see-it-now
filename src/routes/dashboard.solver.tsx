@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SolverPage } from "@/pages/SolverPage";
 
 export const Route = createFileRoute("/dashboard/solver")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Physics / Math Solver — NSAGPT" },

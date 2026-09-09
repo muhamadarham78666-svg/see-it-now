@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PaperBuilderPage } from "@/pages/PaperBuilderPage";
 
 export const Route = createFileRoute("/dashboard/papers")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Question Papers — NSAGPT" },

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { LandingPage } from "@/pages/LandingPage";
 
 export const Route = createFileRoute("/")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "NSAGPT — AI Question Paper Generator for Teachers" },
