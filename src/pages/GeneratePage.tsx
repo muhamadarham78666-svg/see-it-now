@@ -45,7 +45,7 @@ import {
 } from '@/lib/curriculum';
 import { patternBrief, patternCounts, resolvePattern } from '@/lib/paperPatterns';
 import { suggestPaperPlanFn } from '@/lib/plan.functions';
-import type { PaperPlan } from '@/lib/plan.server';
+import type { PaperPlan } from '@/types/plan';
 import type { QuestionType, Language, Difficulty, Question } from '@/types';
 import type { Json } from '@/integrations/supabase/types';
 

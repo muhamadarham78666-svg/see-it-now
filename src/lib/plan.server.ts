@@ -12,7 +12,8 @@ export interface PlanInput {
   counts: { mcq: number; short: number; long: number };
 }
 
-export type { PaperPlan } from "@/types/plan";
+import type { PaperPlan } from "@/types/plan";
+export type { PaperPlan };
 
 const SHAPE = `{"summary":string,"sections":string[],"recommendations":string[],"patch":{"counts":{"mcq":number,"short":number,"long":number}|null,"attempts":{"mcq":number,"short":number,"long":number}|null,"language":"english"|"urdu"|"mixed"|null,"wantDiagrams":boolean|null,"longParts":boolean|null,"statements":boolean|null,"composition":string[]|null,"translation":"urdu-to-english"|"english-to-urdu"|"both"|null}}`;
 
