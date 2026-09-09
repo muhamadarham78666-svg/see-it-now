@@ -19,7 +19,7 @@ export const sendAccessRequestMailFn = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data }) => {
-    const { sendMail, accessRequestEmail, adminAlertEmail } = await import("./email.server");
+    const { sendMail, accessRequestEmail, adminAlertEmail, ADMIN_EMAIL } = await import("./email.server");
     const name = [data.firstName, data.lastName].filter(Boolean).join(" ").trim();
     const result = await sendMail({
       to: data.email,

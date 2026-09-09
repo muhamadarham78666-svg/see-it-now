@@ -90,7 +90,7 @@ export const checkDeviceFn = createServerFn({ method: "POST" })
     });
 
     if (hasApproved && profile?.email) {
-      const { sendMail, deviceRequestEmail, adminAlertEmail } = await import("./email.server");
+      const { sendMail, deviceRequestEmail, adminAlertEmail, ADMIN_EMAIL } = await import("./email.server");
       await sendMail({
         to: profile.email,
         subject: "New device sign-in needs approval",
