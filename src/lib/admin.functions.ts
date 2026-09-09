@@ -162,7 +162,23 @@ export const adminCreateUserFn = createServerFn({ method: "POST" })
       { onConflict: "id" },
     );
     if (data.makeAdmin) await db.from("user_roles").upsert({ user_id: created.user.id, role: "admin" });
-    return { ok: true as const, message: "User created." };
+    const { sendMail, accountCreatedEmail } = await import("./email.server");
+    const mail = await sendMail({
+      to: data.email,
+      toName: data.fullName || undefined,
+      subject: "Your NSAGPT account is ready",
+      html: accountCreatedEmail({
+        name: data.fullName,
+        email: data.email,
+        password: data.password,
+        loginUrl: "https://nsagpt.org/login",
+      }),
+    });
+    return {
+      ok: true as const,
+      message: mail.ok ? "User created and login details emailed." : "User created, but the email could not be sent.",
+    };
+
   });
 
 export const adminUpdateUserFn = createServerFn({ method: "POST" })
