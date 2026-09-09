@@ -276,10 +276,14 @@ export function GeneratePage() {
       rangeLabel: bookObj ? RANGE_LABELS[range] : undefined,
       chapters: rangeChapters.length ? rangeChapters : undefined,
       patternBrief: pattern ? patternBrief(pattern) : undefined,
-      wantDiagrams,
-      longParts,
+      wantDiagrams: wantDiagrams || intent.diagrams,
+      longParts: longParts || intent.parts,
       attempts:
         attempts.mcq || attempts.short || attempts.long ? attempts : null,
+      composition: effectiveComposition.length ? effectiveComposition : null,
+      translation: translation || null,
+      statements: statements || intent.statements,
+      forceUrdu: effectiveUrdu,
     };
 
 
