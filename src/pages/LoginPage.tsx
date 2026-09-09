@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from '@/lib/rr';
-import { Eye, EyeOff, Lock, Mail, ArrowLeft, AlertCircle, Loader2, ShieldCheck, KeyRound } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, ArrowLeft, AlertCircle, Loader2, ShieldCheck, KeyRound, X } from 'lucide-react';
 import { useServerFn } from '@tanstack/react-start';
 import { verifyAdminCodeFn } from '@/lib/admin.functions';
 import { checkDeviceFn } from '@/lib/devices.functions';
@@ -8,6 +8,7 @@ import { deviceInfo } from '@/lib/deviceId';
 import { ADMIN_TOKEN_KEY } from '@/lib/adminSession';
 import { useAuth } from '@/context/AuthContext';
 import { Logo } from '@/components/Logo';
+import { AccessRequestForm } from '@/components/AccessRequestForm';
 import { supabase } from '@/lib/supabase';
 
 export function LoginPage() {
@@ -24,6 +25,7 @@ export function LoginPage() {
   const checkDevice = useServerFn(checkDeviceFn);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -315,13 +317,39 @@ export function LoginPage() {
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
               There is no public registration. Need an account?{' '}
-              <Link to="/" hash="contact" className="font-medium text-primary-600 dark:text-primary-400 hover:underline">
+              <button
+                type="button"
+                onClick={() => setContactOpen(true)}
+                className="font-medium text-primary-600 dark:text-primary-400 hover:underline"
+              >
                 Contact the administrator
-              </Link>
+              </button>
             </p>
           </div>
         </div>
       </div>
+
+      {contactOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4"
+          onClick={() => setContactOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl p-6 sm:p-8 animate-fade-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setContactOpen(false)}
+              className="absolute top-4 right-4 p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+            <AccessRequestForm onClose={() => setContactOpen(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
