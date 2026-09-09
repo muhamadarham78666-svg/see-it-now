@@ -6,6 +6,9 @@ import {
   Archive,
   Newspaper,
   Calculator,
+  BookOpenCheck,
+  MessageCircle,
+
   History,
   NotebookPen,
   Settings,

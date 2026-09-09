@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as DashboardAskRouteImport } from './routes/dashboard.ask'
 import { Route as DashboardBankRouteImport } from './routes/dashboard.bank'
 import { Route as DashboardBookSolverRouteImport } from './routes/dashboard.book-solver'
 import { Route as DashboardGenerateRouteImport } from './routes/dashboard.generate'
@@ -46,6 +47,11 @@ const LoginRoute = LoginRouteImport.update({
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAskRoute = DashboardAskRouteImport.update({
+  id: '/ask',
+  path: '/ask',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardBankRoute = DashboardBankRouteImport.update({
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
+  '/dashboard/ask': typeof DashboardAskRoute
   '/dashboard/bank': typeof DashboardBankRoute
   '/dashboard/book-solver': typeof DashboardBookSolverRoute
   '/dashboard/generate': typeof DashboardGenerateRoute
@@ -108,6 +115,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/login': typeof LoginRoute
+  '/dashboard/ask': typeof DashboardAskRoute
   '/dashboard/bank': typeof DashboardBankRoute
   '/dashboard/book-solver': typeof DashboardBookSolverRoute
   '/dashboard/generate': typeof DashboardGenerateRoute
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
+  '/dashboard/ask': typeof DashboardAskRoute
   '/dashboard/bank': typeof DashboardBankRoute
   '/dashboard/book-solver': typeof DashboardBookSolverRoute
   '/dashboard/generate': typeof DashboardGenerateRoute
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/login'
+    | '/dashboard/ask'
     | '/dashboard/bank'
     | '/dashboard/book-solver'
     | '/dashboard/generate'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/login'
+    | '/dashboard/ask'
     | '/dashboard/bank'
     | '/dashboard/book-solver'
     | '/dashboard/generate'
@@ -170,6 +181,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/login'
+    | '/dashboard/ask'
     | '/dashboard/bank'
     | '/dashboard/book-solver'
     | '/dashboard/generate'
@@ -223,6 +235,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/ask': {
+      id: '/dashboard/ask'
+      path: '/ask'
+      fullPath: '/dashboard/ask'
+      preLoaderRoute: typeof DashboardAskRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/bank': {
@@ -285,6 +304,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface DashboardRouteChildren {
+  DashboardAskRoute: typeof DashboardAskRoute
   DashboardBankRoute: typeof DashboardBankRoute
   DashboardBookSolverRoute: typeof DashboardBookSolverRoute
   DashboardGenerateRoute: typeof DashboardGenerateRoute
@@ -297,6 +317,7 @@ interface DashboardRouteChildren {
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAskRoute: DashboardAskRoute,
   DashboardBankRoute: DashboardBankRoute,
   DashboardBookSolverRoute: DashboardBookSolverRoute,
   DashboardGenerateRoute: DashboardGenerateRoute,
