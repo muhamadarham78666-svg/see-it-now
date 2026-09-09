@@ -4,6 +4,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { BoardProvider } from "@/context/BoardContext";
 
 export const Route = createFileRoute("/dashboard")({
+  staticData: { sitemap: "exclude-subtree" },
   component: DashboardShell,
 });
 

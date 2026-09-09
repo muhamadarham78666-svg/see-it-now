@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { GeneratePage } from "@/pages/GeneratePage";
 
 export const Route = createFileRoute("/dashboard/generate")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Generate Questions — NSAGPT" },

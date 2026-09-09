@@ -3,6 +3,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminPage } from "@/pages/AdminPage";
 
 export const Route = createFileRoute("/admin")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Admin Panel — NSAGPT" },

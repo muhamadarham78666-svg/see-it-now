@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { HistoryPage } from "@/pages/HistoryPage";
 
 export const Route = createFileRoute("/dashboard/history")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "History — NSAGPT" },

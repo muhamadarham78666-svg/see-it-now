@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { AskAiPage } from '@/pages/AskAiPage';
 
 export const Route = createFileRoute('/dashboard/ask')({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: 'NSAGPT AI — Ask Anything' },
