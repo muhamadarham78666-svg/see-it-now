@@ -25,6 +25,49 @@ export interface PaperMeta {
 
 
 
+const ROMAN = [
+  'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x',
+  'xi', 'xii', 'xiii', 'xiv', 'xv', 'xvi', 'xvii', 'xviii', 'xix', 'xx',
+  'xxi', 'xxii', 'xxiii', 'xxiv', 'xxv', 'xxvi', 'xxvii', 'xxviii', 'xxix', 'xxx',
+];
+const roman = (n: number) => ROMAN[n - 1] ?? String(n);
+
+interface PaperLabels {
+  q: string;
+  marks: string;
+  totalMarks: string;
+  totalQuestions: string;
+  answer: string;
+  instructions: string;
+  rollNo: string;
+  name: string;
+  attemptAny: (pick: number, total: number) => string;
+}
+
+const EN_LABELS: PaperLabels = {
+  q: 'Q',
+  marks: 'marks',
+  totalMarks: 'Total Marks',
+  totalQuestions: 'Total Questions',
+  answer: 'Answer',
+  instructions: 'Instructions',
+  rollNo: 'Roll No',
+  name: 'Name',
+  attemptAny: (pick, total) => `Attempt any ${pick} of ${total} questions.`,
+};
+
+const URDU_LABELS: PaperLabels = {
+  q: 'سوال ',
+  marks: 'نمبر',
+  totalMarks: 'کل نمبر',
+  totalQuestions: 'کل سوالات',
+  answer: 'جواب',
+  instructions: 'ہدایات',
+  rollNo: 'رول نمبر',
+  name: 'نام',
+  attemptAny: (pick, total) => `کل ${total} سوالات میں سے کوئی سے ${pick} سوال حل کریں۔`,
+};
+
 const escapeHtml = (value: string) =>
   value
     .replace(/&/g, '&amp;')
@@ -58,7 +101,9 @@ export function buildPaperHtml(
     { key: 'long', label: style.sections.long },
   ];
 
-  let counter = 0;
+  const t = isUrduPaper ? URDU_LABELS : EN_LABELS;
+
+  let qNumber = 0;
   const sections = groups
     .map(({ key, label }) => {
       const items = questions.filter((q) => q.question_type === key);
@@ -72,12 +117,16 @@ export function buildPaperHtml(
             ? Math.max(1, items.length - 1)
             : 0;
       const note = attemptAny
-        ? `<p class="note">Attempt any ${attemptAny} of ${items.length} questions. (${sectionMarks} marks total)</p>`
+        ? `<p class="note">${t.attemptAny(attemptAny, items.length)} (${sectionMarks} ${t.marks})</p>`
         : '';
+      // MCQ and short sections carry ONE question number with roman sub-items;
+      // long questions each get their own number. Numbering restarts per section.
+      const grouped = key !== 'long';
+      const sectionNo = grouped ? ++qNumber : 0;
       const rows = items
-        .map((q) => {
-          counter += 1;
-          const rtl = q.language === 'urdu';
+        .map((q, index) => {
+          const itemNo = grouped ? `(${roman(index + 1)})` : `${t.q}${++qNumber}.`;
+          const rtl = q.language === 'urdu' || isUrduPaper;
           const opts =
             q.question_type === 'mcq' && q.options
               ? `<ol class="opts">${q.options
@@ -103,8 +152,11 @@ export function buildPaperHtml(
                   )
                   .join('')}</ol>`
               : '';
+          const statement = q.statement
+            ? `<p class="stmt">${escapeHtml(q.statement)}</p>`
+            : '';
           const answer = options.withAnswers
-            ? `<div class="answer"><strong>Answer:</strong> ${escapeHtml(
+            ? `<div class="answer"><strong>${t.answer}:</strong> ${escapeHtml(
                 q.question_type === 'mcq'
                   ? (q.correct_answer ?? '—')
                   : q.question_type === 'short'
@@ -112,9 +164,10 @@ export function buildPaperHtml(
                     : (q.answer_points ?? []).join(' • ') || '—',
               )}</div>`
             : '';
-          return `<div class="q ${rtl ? 'rtl' : ''}">
-            <div class="qhead"><span class="qno">Q${counter}.</span>${style.perQuestionMarks ? `<span class="marks">(${q.marks})</span>` : ''}</div>
+          return `<div class="q ${grouped ? 'sub' : ''} ${rtl ? 'rtl' : ''}">
+            <div class="qhead"><span class="qno">${itemNo}</span>${style.perQuestionMarks && !grouped ? `<span class="marks">(${q.marks})</span>` : ''}</div>
             <p class="qtext">${escapeHtml(q.question_text)}</p>
+            ${statement}
             ${diagram}
             ${parts}
             ${opts}
@@ -123,7 +176,12 @@ export function buildPaperHtml(
           </div>`;
         })
         .join('');
-      return `<section><h2>${escapeHtml(label)}</h2>${note}${rows}</section>`;
+      const lead = grouped
+        ? `<p class="lead"><span class="qno">${t.q}${sectionNo}.</span> ${escapeHtml(label)}${
+            style.perQuestionMarks ? ` <span class="marks">(${sectionMarks})</span>` : ''
+          }</p>`
+        : '';
+      return `<section class="${isUrduPaper ? 'rtl' : ''}"><h2>${escapeHtml(label)}</h2>${lead}${note}${rows}</section>`;
     })
     .join('');
 
@@ -165,11 +223,25 @@ export function buildPaperHtml(
   .parts { list-style: none; padding: 0 0 0 14px; margin: 0 0 8px; font-size: 13.5px; }
   .parts li { margin-bottom: 6px; }
   .parts .pmarks { color: #444; font-size: 12px; }
+  .lead { font-size: 13.5px; font-weight: bold; margin: 0 0 10px; }
+  .lead .marks { font-weight: normal; color: #444; }
+  .stmt { font-size: 12px; color: #444; font-style: italic; margin: -4px 0 8px; }
+  .q.sub { margin-bottom: 10px; padding-left: 16px; }
+  .q.sub .qhead { font-weight: bold; }
 
   .answer { font-size: 12.5px; color: #14532d; background: #f0fdf4; border-left: 3px solid #16a34a; padding: 6px 10px; }
   .rtl { direction: rtl; }
-  .rtl .qtext, .rtl .opts { font-family: 'Noto Nastaliq Urdu', serif; text-align: right; line-height: 2.2; }
+  .rtl .qtext, .rtl .opts, .rtl .lead, .rtl .stmt, .rtl .parts, .rtl .note { font-family: 'Noto Nastaliq Urdu', serif; text-align: right; line-height: 2.2; }
   .rtl .qhead { flex-direction: row-reverse; }
+  .rtl .q.sub { padding-left: 0; padding-right: 16px; }
+  ${
+    isUrduPaper
+      ? `body { direction: rtl; font-family: 'Noto Nastaliq Urdu', serif; line-height: 2.1; }
+  h2, .totals, .instructions, .idbox, footer { font-family: 'Noto Nastaliq Urdu', serif; }
+  h2 { text-transform: none; }
+  .qtext, .opts { text-align: right; }`
+      : ''
+  }
   @media print { body { padding: 18px 24px; } }
 </style>
 </head>
@@ -185,10 +257,10 @@ export function buildPaperHtml(
     </div>
     ${metaLine ? `<div class="meta">${metaLine}</div>` : ''}
   </header>
-  ${style.rollNoBox ? '<div class="idbox"><div>Roll No: ______________</div><div>Name: ______________________</div></div>' : ''}
-  <div class="totals"><span>Total Questions: ${questions.length}</span><span>Total Marks: ${totalMarks}</span></div>
+  ${style.rollNoBox ? `<div class="idbox"><div>${t.rollNo}: ______________</div><div>${t.name}: ______________________</div></div>` : ''}
+  <div class="totals"><span>${t.totalQuestions}: ${questions.length}</span><span>${t.totalMarks}: ${totalMarks}</span></div>
 
-  ${meta.instructions ? `<div class="instructions"><strong>Instructions:</strong>\n${escapeHtml(meta.instructions)}</div>` : ''}
+  ${meta.instructions ? `<div class="instructions"><strong>${t.instructions}:</strong>\n${escapeHtml(meta.instructions)}</div>` : ''}
   ${sections}
   ${meta.footerNote ? `<footer>${escapeHtml(meta.footerNote)}</footer>` : ''}
 </body>
@@ -303,8 +375,27 @@ export function buildPaperText(meta: PaperMeta, questions: Question[], withAnswe
   );
   if (meta.instructions) lines.push(`Instructions: ${meta.instructions}`, '');
 
-  questions.forEach((q, i) => {
-    lines.push(`Q${i + 1}. (${q.marks}) ${q.question_text}`);
+  let qNo = 0;
+  let lastType: Question['question_type'] | null = null;
+  let subNo = 0;
+  questions.forEach((q) => {
+    const grouped = q.question_type !== 'long';
+    if (q.question_type !== lastType) {
+      lastType = q.question_type;
+      subNo = 0;
+      if (grouped) {
+        qNo += 1;
+        lines.push(`Q${qNo}.`);
+      }
+    }
+    if (grouped) {
+      subNo += 1;
+      lines.push(`  (${roman(subNo)}) ${q.question_text}`);
+    } else {
+      qNo += 1;
+      lines.push(`Q${qNo}. (${q.marks}) ${q.question_text}`);
+    }
+    if (q.statement) lines.push(`   → ${q.statement}`);
     if (q.diagram_note) lines.push(`   [Figure: ${q.diagram_note}]`);
     if (q.parts) q.parts.forEach((p) => lines.push(`   (${p.label}) ${p.text}${p.marks ? ` (${p.marks})` : ''}`));
     if (q.options) q.options.forEach((o) => lines.push(`   ${o.label}. ${o.text}`));

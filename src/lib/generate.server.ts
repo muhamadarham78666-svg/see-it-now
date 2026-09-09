@@ -32,7 +32,37 @@ export interface GenSettings {
   longParts?: boolean | null;
   /** "Attempt any N" rules per section. */
   attempts?: { mcq: number; short: number; long: number } | null;
+  /** Composition / writing items the paper must contain (letter, essay, tashreeh...). */
+  composition?: string[] | null;
+  /** Translation direction for English papers. */
+  translation?: string | null;
+  /** Print a one-line statement / mafhoom under each question. */
+  statements?: boolean | null;
+  /** Force the whole paper into Urdu (Urdu, Islamiat, Mutalia Pakistan books). */
+  forceUrdu?: boolean | null;
 }
+
+/** Human labels for the composition keys, used in the AI brief. */
+export const COMPOSITION_RULES: Record<string, string> = {
+  letter: 'a letter-writing question (formal or informal letter to be written by the student)',
+  application: 'an application-writing question (e.g. application to the principal)',
+  story: 'a story-writing question (write a story on a given moral / outline)',
+  essay: 'an essay question with a choice of at least three topics',
+  dialogue: 'a dialogue / conversation writing question',
+  precis: 'a precis / summary writing question with a given passage',
+  comprehension: 'an unseen-passage comprehension question with sub-questions',
+  conceptual:
+    'extra SHORT conceptual questions that test understanding (why / how / explain briefly), not just recall',
+  translation:
+    'a translation question: give sentences/paragraph for Urdu → English and English → Urdu translation',
+  tashreeh: 'نظم یا غزل کے اشعار کی تشریح کا سوال (اشعار دیں اور تشریح طلب کریں)',
+  khulasa: 'سبق کا خلاصہ لکھنے کا سوال',
+  markazi: 'نظم/سبق کا مرکزی خیال لکھنے کا سوال',
+  kahani: 'کہانی نویسی کا سوال',
+  khat: 'خط نویسی کا سوال',
+  mukalma: 'مکالمہ نگاری کا سوال',
+  mazmoon: 'مضمون نویسی کا سوال (کم از کم تین عنوانات کا انتخاب دیں)',
+};
 
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
@@ -67,7 +97,12 @@ export function buildInstruction(settings: GenSettings) {
       ? `Follow this board pattern closely (about 70% board style, 30% improved original style — questions must be NEW, never copied):\n${settings.patternBrief}`
       : "",
     settings.instructions
-      ? `TEACHER'S SPECIAL INSTRUCTIONS (highest priority, obey them): ${settings.instructions}`
+      ? [
+          "=== TEACHER'S SPECIAL INSTRUCTIONS — HIGHEST PRIORITY ===",
+          settings.instructions,
+          "These instructions override EVERY other rule above, including the board pattern, counts, marks, difficulty, language and section layout. Obey every single point literally. If an instruction conflicts with the pattern, follow the instruction. If an instruction asks for extra question kinds (essay, letter, story, application, translation, tashreeh, khulasa, markazi khayal, numericals, diagrams, choice questions), include them. Never ignore or partially apply an instruction.",
+          "=== END OF SPECIAL INSTRUCTIONS ===",
+        ].join("\n")
       : "",
     mix,
     `Difficulty: ${settings.difficulty === "mixed" ? "mix easy, medium and hard" : settings.difficulty}.`,
@@ -91,7 +126,27 @@ export function buildInstruction(settings: GenSettings) {
     settings.wantDiagrams
       ? 'Where a diagram, figure, circuit, graph or geometric shape genuinely helps, add "diagram_svg": a small self-contained inline SVG string (root <svg viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg">, only path/line/circle/rect/polygon/text/ellipse elements, stroke="#111" fill="none", no scripts, no external images, no CSS) plus "diagram_note": a one-line caption. Otherwise use null for both.'
       : 'Set "diagram_svg":null and "diagram_note":null.',
-    'Return ONLY JSON in this shape: {"questions":[{"question_text":string,"question_type":"mcq"|"short"|"long","options":[{"label":"A","text":string}]|null,"correct_answer":string|null,"expected_answer":string|null,"answer_points":string[]|null,"parts":[{"label":"a","text":string,"marks":number}]|null,"diagram_svg":string|null,"diagram_note":string|null,"explanation":string,"difficulty":"easy"|"medium"|"hard","topic":string,"marks":number}]}',
+    settings.composition && settings.composition.length
+      ? `The paper MUST also contain these writing / composition items (put each one as a "long" question unless it is clearly a short item, and set "category" to the key given in brackets):\n${settings.composition
+          .map((key) => `- [${key}] ${COMPOSITION_RULES[key] ?? key}`)
+          .join("\n")}`
+      : "",
+    settings.translation
+      ? settings.translation === "urdu-to-english"
+        ? "Translation question: give an Urdu paragraph/sentences and ask the student to translate them into English."
+        : settings.translation === "english-to-urdu"
+          ? "Translation question: give an English paragraph/sentences and ask the student to translate them into Urdu."
+          : "Translation question: give BOTH an Urdu → English part and an English → Urdu part, and let the student choose which one to attempt."
+      : "",
+    settings.statements
+      ? 'For every question add "statement": one short line (same language as the question) explaining in simple words what the student has to do / the sense (مفہوم) of the question. Keep it under 18 words.'
+      : 'Set "statement":null.',
+    settings.forceUrdu
+      ? "This is an Urdu-medium paper: EVERY question, option, part, statement, topic and answer must be written in Urdu script only. Do not use a single English sentence."
+      : "",
+    'NEVER write question numbers, "Q1", "Question 3", "(i)", "1." or section headings inside question_text, parts or options — numbering is added by the app for each section separately.',
+    'Set "category" to a short key when the question is a special item (letter, application, story, essay, dialogue, precis, comprehension, translation, tashreeh, khulasa, markazi, kahani, khat, mukalma, mazmoon, numerical, conceptual); otherwise null.',
+    'Return ONLY JSON in this shape: {"questions":[{"question_text":string,"question_type":"mcq"|"short"|"long","options":[{"label":"A","text":string}]|null,"correct_answer":string|null,"expected_answer":string|null,"answer_points":string[]|null,"parts":[{"label":"a","text":string,"marks":number}]|null,"diagram_svg":string|null,"diagram_note":string|null,"statement":string|null,"category":string|null,"explanation":string,"difficulty":"easy"|"medium"|"hard","topic":string,"marks":number}]}',
     "If the material is an image or scan, first read (OCR) all visible text, then build the questions from it.",
   ]
 
@@ -258,6 +313,8 @@ export interface QuestionDraft {
   parts: { label: string; text: string; marks: number }[] | null;
   diagram_svg: string | null;
   diagram_note: string | null;
+  statement: string | null;
+  category: string | null;
   explanation: string | null;
   difficulty: "easy" | "medium" | "hard";
   topic: string | null;
@@ -324,6 +381,8 @@ export function normalizeQuestions(raw: Record<string, unknown>[]): QuestionDraf
           : null,
       diagram_svg: sanitizeSvg(q["diagram_svg"]),
       diagram_note: q["diagram_note"] != null ? String(q["diagram_note"]) : null,
+      statement: q["statement"] != null ? String(q["statement"]).trim() || null : null,
+      category: q["category"] != null ? String(q["category"]).trim().toLowerCase() || null : null,
       explanation: q["explanation"] != null ? String(q["explanation"]) : null,
 
       difficulty,

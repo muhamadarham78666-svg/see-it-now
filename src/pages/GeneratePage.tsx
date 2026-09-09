@@ -18,6 +18,9 @@ import {
   Layers,
   GraduationCap,
   SlidersHorizontal,
+  Lightbulb,
+  Wand2,
+  PenLine,
 } from 'lucide-react';
 import { Card } from '@/components/nsa/Card';
 import { Button } from '@/components/nsa/Button';
@@ -41,6 +44,8 @@ import {
   type PaperRange,
 } from '@/lib/curriculum';
 import { patternBrief, patternCounts, resolvePattern } from '@/lib/paperPatterns';
+import { suggestPaperPlanFn } from '@/lib/plan.functions';
+import type { PaperPlan } from '@/types/plan';
 import type { QuestionType, Language, Difficulty, Question } from '@/types';
 import type { Json } from '@/integrations/supabase/types';
 
@@ -93,6 +98,13 @@ export function GeneratePage() {
   const [wantDiagrams, setWantDiagrams] = useState(false);
   const [longParts, setLongParts] = useState(true);
   const [attempts, setAttempts] = useState({ mcq: 0, short: 0, long: 0 });
+  const [composition, setComposition] = useState<string[]>([]);
+  const [translation, setTranslation] = useState<string>('');
+  const [statements, setStatements] = useState(true);
+  const [plan, setPlan] = useState<PaperPlan | null>(null);
+  const [planLoading, setPlanLoading] = useState(false);
+  const [planError, setPlanError] = useState<string | null>(null);
+  const [planApplied, setPlanApplied] = useState(false);
 
 
   const [generating, setGenerating] = useState(false);
@@ -116,6 +128,85 @@ export function GeneratePage() {
   }, [isMixed, mixTotal, customCount, questionCount]);
 
   const hasMaterial = content.trim().length > 0 || attachments.length > 0;
+
+  // Special instructions are read for intent too, so typing "diagrams add karo"
+  // or "sab urdu me" works without touching any toggle.
+  const intent = useMemo(() => {
+    const text = instructions.toLowerCase();
+    const has = (...words: string[]) => words.some((w) => text.includes(w));
+    return {
+      diagrams: has('diagram', 'figure', 'shakal', 'naqsha', 'خاکہ', 'ڈایاگرام'),
+      urdu: has('urdu me', 'urdu mein', 'sab urdu', 'اردو میں', 'urdu paper'),
+      statements: has('statement', 'mafhoom', 'مفہوم'),
+      parts: has('part a', 'parts', 'حصہ'),
+      composition: [
+        ['letter', ['letter', 'khat', 'خط']],
+        ['application', ['application', 'darkhwast', 'درخواست']],
+        ['story', ['story', 'kahani', 'کہانی']],
+        ['essay', ['essay', 'mazmoon', 'مضمون']],
+        ['dialogue', ['dialogue', 'mukalma', 'مکالمہ']],
+        ['translation', ['translation', 'tarjuma', 'ترجمہ']],
+        ['tashreeh', ['tashreeh', 'tashree', 'تشریح']],
+        ['khulasa', ['khulasa', 'خلاصہ']],
+        ['markazi', ['markazi', 'مرکزی خیال']],
+        ['comprehension', ['comprehension', 'paragraph', 'پیراگراف']],
+        ['conceptual', ['conceptual', 'concept']],
+      ].filter(([, words]) => has(...(words as string[]))).map(([key]) => key as string),
+    };
+  }, [instructions]);
+
+  const effectiveComposition = useMemo(
+    () => Array.from(new Set([...composition, ...intent.composition])),
+    [composition, intent.composition],
+  );
+  const effectiveUrdu = language === 'urdu' || Boolean(bookObj?.urdu) || intent.urdu;
+
+  const applyPlan = (p: PaperPlan) => {
+    const patch = p.patch;
+    if (patch.counts && patch.counts.mcq + patch.counts.short + patch.counts.long > 0) {
+      setQuestionType('mixed');
+      setMixCounts(patch.counts);
+    }
+    if (patch.attempts) setAttempts(patch.attempts);
+    if (patch.language) setLanguage(patch.language as typeof language);
+    if (typeof patch.wantDiagrams === 'boolean') setWantDiagrams(patch.wantDiagrams);
+    if (typeof patch.longParts === 'boolean') setLongParts(patch.longParts);
+    if (typeof patch.statements === 'boolean') setStatements(patch.statements);
+    if (patch.composition?.length) setComposition(patch.composition);
+    if (patch.translation) setTranslation(patch.translation);
+    setPlanApplied(true);
+  };
+
+  const handleSuggest = async () => {
+    setPlanLoading(true);
+    setPlanError(null);
+    setPlanApplied(false);
+    try {
+      const result = await suggestPaperPlanFn({
+        data: {
+          instructions: instructions.trim(),
+          classGroup: group?.label ?? null,
+          bookName: bookObj?.name ?? null,
+          rangeLabel: bookObj ? RANGE_LABELS[range] : null,
+          chapters: rangeChapters.length ? rangeChapters : null,
+          patternBrief: pattern ? patternBrief(pattern) : null,
+          language,
+          counts: isMixed
+            ? mixCounts
+            : {
+                mcq: questionType === 'mcq' ? effectiveCount : 0,
+                short: questionType === 'short' ? effectiveCount : 0,
+                long: questionType === 'long' ? effectiveCount : 0,
+              },
+        },
+      });
+      setPlan(result);
+    } catch (e) {
+      setPlanError(e instanceof Error ? e.message : 'Could not prepare the suggestion.');
+    } finally {
+      setPlanLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (profile?.preferences) {
@@ -185,10 +276,14 @@ export function GeneratePage() {
       rangeLabel: bookObj ? RANGE_LABELS[range] : undefined,
       chapters: rangeChapters.length ? rangeChapters : undefined,
       patternBrief: pattern ? patternBrief(pattern) : undefined,
-      wantDiagrams,
-      longParts,
+      wantDiagrams: wantDiagrams || intent.diagrams,
+      longParts: longParts || intent.parts,
       attempts:
         attempts.mcq || attempts.short || attempts.long ? attempts : null,
+      composition: effectiveComposition.length ? effectiveComposition : null,
+      translation: translation || null,
+      statements: statements || intent.statements,
+      forceUrdu: effectiveUrdu,
     };
 
 
@@ -634,16 +729,115 @@ export function GeneratePage() {
             )}
 
             <div className="mt-4">
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <PenLine size={16} className="text-primary-500" />
                 Special Instructions
+                <span className="text-xs font-normal text-primary-600 dark:text-primary-400">
+                  (highest priority — AI inko literally follow karega)
+                </span>
               </label>
               <textarea
                 value={instructions}
                 onChange={(e) => setInstructions(e.target.value)}
-                rows={3}
-                placeholder="Apni requirement yahan likhein… e.g. Chapter 1, 2, 3 se questions zyada rakhein, MCQs conceptual hon, long questions mein numericals shamil karein."
+                rows={6}
+                placeholder="Apni requirement yahan likhein… e.g. Sara paper Urdu mein ho, nazm ki tashreeh add karein, long questions ke 2 parts hon, diagrams shamil karein, short questions mein se koi 5 attempt karne hon."
                 className="input-field resize-y"
               />
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {[
+                  'Sara paper Urdu mein ho',
+                  'Diagrams shamil karein',
+                  'Long questions ke part (a) aur (b)',
+                  'Khat, kahani aur mazmoon add karein',
+                  'Urdu → English translation ka question',
+                  'Har question ke saath mafhoom likhein',
+                ].map((chip) => (
+                  <button
+                    key={chip}
+                    type="button"
+                    onClick={() =>
+                      setInstructions((v) => (v.trim() ? `${v.trim()}\n${chip}` : chip))
+                    }
+                    className="px-2.5 py-1 rounded-full text-xs bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-primary-100 dark:hover:bg-primary-900/40 transition-colors"
+                  >
+                    + {chip}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-4 rounded-2xl border border-amber-200 dark:border-amber-800/50 bg-gradient-to-br from-amber-50 to-white dark:from-amber-900/20 dark:to-slate-800/40 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <Lightbulb size={18} className="text-amber-500" />
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                      Best approach (AI suggestion)
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSuggest}
+                    disabled={planLoading}
+                    className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-semibold hover:bg-amber-600 disabled:opacity-60 transition-colors"
+                  >
+                    <Wand2 size={14} />
+                    {planLoading ? 'Soch raha hai…' : plan ? 'Dobara suggest karein' : 'Suggest karein'}
+                  </button>
+                </div>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  Generate karne se pehle dekhein AI is paper ko kaise banayega — chahein to ek click
+                  mein apply karein, warna aage barh jayein.
+                </p>
+                {planError && (
+                  <p className="mt-2 text-xs text-red-600 dark:text-red-400">{planError}</p>
+                )}
+                {plan && (
+                  <div className="mt-3 space-y-2 animate-fade-in-down">
+                    {plan.summary && (
+                      <p className="text-sm text-slate-700 dark:text-slate-200">{plan.summary}</p>
+                    )}
+                    {plan.sections.length > 0 && (
+                      <ul className="text-xs text-slate-600 dark:text-slate-300 space-y-1">
+                        {plan.sections.map((s) => (
+                          <li key={s}>• {s}</li>
+                        ))}
+                      </ul>
+                    )}
+                    {plan.recommendations.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
+                          Behtar banane ke mashware
+                        </p>
+                        <ul className="text-xs text-slate-600 dark:text-slate-300 space-y-1">
+                          {plan.recommendations.map((r) => (
+                            <li key={r}>✓ {r}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => applyPlan(plan)}
+                        className="px-3 py-1.5 rounded-xl bg-primary-500 text-white text-xs font-semibold hover:bg-primary-600 transition-colors"
+                      >
+                        Apply karein
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPlan(null)}
+                        className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs text-slate-600 dark:text-slate-200"
+                      >
+                        Aise hi aage barhein
+                      </button>
+                      {planApplied && (
+                        <span className="text-xs text-green-600 dark:text-green-400">
+                          Settings apply ho gayin
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </Card>
 
@@ -825,6 +1019,73 @@ export function GeneratePage() {
                   />
                   Split long questions into parts (a) and (b)
                 </label>
+                <label className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={statements}
+                    onChange={(e) => setStatements(e.target.checked)}
+                    className="w-4 h-4 accent-primary-500"
+                  />
+                  Print each question&apos;s statement / مفہوم
+                </label>
+              </div>
+
+              {/* Writing & composition items */}
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  Writing / Composition
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                  English aur Urdu papers ke liye — jo chunein ge wo paper mein zaroor aayega.
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { key: 'letter', label: 'Letter / خط' },
+                    { key: 'application', label: 'Application / درخواست' },
+                    { key: 'story', label: 'Story / کہانی' },
+                    { key: 'essay', label: 'Essay / مضمون' },
+                    { key: 'dialogue', label: 'Dialogue / مکالمہ' },
+                    { key: 'comprehension', label: 'Paragraph / پیراگراف' },
+                    { key: 'tashreeh', label: 'Nazm/Ghazal تشریح' },
+                    { key: 'khulasa', label: 'خلاصہ' },
+                    { key: 'markazi', label: 'مرکزی خیال' },
+                    { key: 'conceptual', label: 'Conceptual short' },
+                  ].map(({ key, label }) => {
+                    const on = effectiveComposition.includes(key);
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() =>
+                          setComposition((list) =>
+                            list.includes(key) ? list.filter((k) => k !== key) : [...list, key],
+                          )
+                        }
+                        className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
+                          on
+                            ? 'bg-primary-500 border-primary-500 text-white'
+                            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <label className="block text-xs text-slate-500 dark:text-slate-400 mt-4 mb-1">
+                  Translation question
+                </label>
+                <select
+                  value={translation}
+                  onChange={(e) => setTranslation(e.target.value)}
+                  className="input-field"
+                >
+                  <option value="">None</option>
+                  <option value="urdu-to-english">Urdu → English</option>
+                  <option value="english-to-urdu">English → Urdu</option>
+                  <option value="both">Both (student ki marzi)</option>
+                </select>
               </div>
 
               {/* Attempt any N */}

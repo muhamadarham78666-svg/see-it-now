@@ -38,6 +38,10 @@ const inputSchema = z.object({
       .object({ mcq: z.number(), short: z.number(), long: z.number() })
       .nullable()
       .optional(),
+    composition: z.array(z.string()).nullable().optional(),
+    translation: z.string().nullable().optional(),
+    statements: z.boolean().nullable().optional(),
+    forceUrdu: z.boolean().nullable().optional(),
   }),
 });
 

@@ -162,7 +162,7 @@ export function BoardChip() {
       </button>
       {open && (
         <div className="absolute right-0 z-40 mt-2 w-80 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-2xl p-4 animate-fade-in-down">
-          <BoardSelector compact />
+          <BoardSelector compact showClass={false} />
         </div>
       )}
     </div>

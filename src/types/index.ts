@@ -67,6 +67,10 @@ export interface Question {
   /** Inline SVG figure/diagram for the question. */
   diagram_svg?: string | null;
   diagram_note?: string | null;
+  /** One-line statement / مفہوم printed under the question. */
+  statement?: string | null;
+  /** Special item key: letter, essay, tashreeh, khulasa, translation... */
+  category?: string | null;
   chapter?: string | null;
   explanation: string | null;
   marks: number;
@@ -144,7 +148,14 @@ export interface GenerationSettings {
   longParts?: boolean;
   /** "Attempt any N" counts per section. */
   attempts?: QuestionTypeCounts | null;
-
+  /** Composition / writing items the paper must contain. */
+  composition?: string[] | null;
+  /** Translation direction for English papers. */
+  translation?: string | null;
+  /** Print a one-line statement / مفہوم under each question. */
+  statements?: boolean | null;
+  /** Force the whole paper into Urdu. */
+  forceUrdu?: boolean | null;
 }
 
 export interface PaperInfo {

@@ -39,6 +39,8 @@ export interface GeneratedQuestionData {
   parts?: { label: string; text: string; marks: number }[] | null;
   diagram_svg?: string | null;
   diagram_note?: string | null;
+  statement?: string | null;
+  category?: string | null;
   explanation?: string | null;
   difficulty: 'easy' | 'medium' | 'hard';
   topic?: string | null;
@@ -81,6 +83,10 @@ export class LovableAIProvider implements AIProvider {
           wantDiagrams: settings.wantDiagrams ?? null,
           longParts: settings.longParts ?? null,
           attempts: settings.attempts ?? null,
+          composition: settings.composition ?? null,
+          translation: settings.translation ?? null,
+          statements: settings.statements ?? null,
+          forceUrdu: settings.forceUrdu ?? null,
         },
       },
     });
@@ -162,6 +168,8 @@ export class QuestionGeneratorService {
       parts: q.parts ?? null,
       diagram_svg: q.diagram_svg ?? null,
       diagram_note: q.diagram_note ?? null,
+      statement: q.statement ?? null,
+      category: q.category ?? null,
       explanation: q.explanation ?? null,
 
       difficulty: q.difficulty,
@@ -209,7 +217,12 @@ export class QuestionGeneratorService {
 
     const { data, error } = await supabase.from('questions').insert(rows).select();
     if (error) throw error;
-    return data as unknown as Question[];
+    // Statement / category are presentation-only, so re-attach them to the saved rows.
+    return (data as unknown as Question[]).map((row, i) => ({
+      ...row,
+      statement: questions[i]?.statement ?? null,
+      category: questions[i]?.category ?? null,
+    }));
   }
 }
 
