@@ -93,6 +93,13 @@ export function GeneratePage() {
   const [wantDiagrams, setWantDiagrams] = useState(false);
   const [longParts, setLongParts] = useState(true);
   const [attempts, setAttempts] = useState({ mcq: 0, short: 0, long: 0 });
+  const [composition, setComposition] = useState<string[]>([]);
+  const [translation, setTranslation] = useState<string>('');
+  const [statements, setStatements] = useState(true);
+  const [plan, setPlan] = useState<PaperPlan | null>(null);
+  const [planLoading, setPlanLoading] = useState(false);
+  const [planError, setPlanError] = useState<string | null>(null);
+  const [planApplied, setPlanApplied] = useState(false);
 
 
   const [generating, setGenerating] = useState(false);
