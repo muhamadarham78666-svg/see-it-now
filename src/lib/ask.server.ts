@@ -21,7 +21,7 @@ const SYSTEM_PROMPT = [
   "Reply in the language of the question (Urdu, Roman Urdu or English). Keep answers short, friendly and practical; use short markdown lists when helpful.",
 ].join("\n");
 
-export async function askNsagpt(messages: AskMessage[]): Promise<string> {
+export async function askNsagpt(messages: AskMessage[], uiLanguage?: string | null): Promise<string> {
   const apiKey = process.env["LOVABLE_API_KEY"];
   if (!apiKey) throw new Error("NSAGPT AI is not configured for this project.");
 
@@ -31,7 +31,12 @@ export async function askNsagpt(messages: AskMessage[]): Promise<string> {
     body: JSON.stringify({
       model: MODEL,
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
+        {
+          role: "system",
+          content: uiLanguage
+            ? `${SYSTEM_PROMPT}\nThe user's chosen interface language is ${uiLanguage}. Answer in ${uiLanguage} by default. If the user's own message is written in a different language or script, answer in that language instead.`
+            : SYSTEM_PROMPT,
+        },
         ...messages.slice(-20).map((m) => ({ role: m.role, content: m.content })),
       ],
     }),

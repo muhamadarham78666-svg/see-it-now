@@ -34,6 +34,9 @@ import {
   adminCreateUserFn,
   adminDeleteContentFn,
   adminDeleteUserFn,
+  adminDeviceActionFn,
+  adminDevicesFn,
+  adminResetDevicesFn,
   adminOverviewFn,
   adminRequestActionFn,
   adminRequestsFn,
@@ -45,7 +48,7 @@ import {
   verifyAdminCodeFn,
 } from '@/lib/admin.functions';
 
-type Tab = 'overview' | 'users' | 'reviews' | 'requests' | 'boards' | 'content';
+type Tab = 'overview' | 'users' | 'reviews' | 'requests' | 'devices' | 'boards' | 'content';
 
 interface Stats {
   users: number;
@@ -79,6 +82,7 @@ export function AdminPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
+  const [devices, setDevices] = useState<any[]>([]);
   const [boards, setBoards] = useState<any[]>([]);
   const [content, setContent] = useState<{ papers: any[]; notes: any[] }>({ papers: [], notes: [] });
   const [newUser, setNewUser] = useState({ email: '', password: '', fullName: '', makeAdmin: false });
@@ -90,6 +94,9 @@ export function AdminPage() {
   const getUsers = useServerFn(adminUsersFn);
   const getReviews = useServerFn(adminReviewsFn);
   const getRequests = useServerFn(adminRequestsFn);
+  const getDevices = useServerFn(adminDevicesFn);
+  const deviceAction = useServerFn(adminDeviceActionFn);
+  const resetDevices = useServerFn(adminResetDevicesFn);
   const getBoards = useServerFn(adminBoardsFn);
   const getContent = useServerFn(adminContentFn);
   const createUser = useServerFn(adminCreateUserFn);
@@ -147,6 +154,8 @@ export function AdminPage() {
           setReviews((await getReviews({ data: { token: tk } })) as any[]);
         } else if (activeTab === 'requests') {
           setRequests((await getRequests({ data: { token: tk } })) as any[]);
+        } else if (activeTab === 'devices') {
+          setDevices((await getDevices({ data: { token: tk } })) as any[]);
         } else if (activeTab === 'boards') {
           setBoards((await getBoards({ data: { token: tk } })) as any[]);
         } else {
@@ -163,7 +172,7 @@ export function AdminPage() {
       }
       setLoading(false);
     },
-    [getOverview, getUsers, getReviews, getRequests, getBoards, getContent],
+    [getOverview, getUsers, getReviews, getRequests, getDevices, getBoards, getContent],
   );
 
   useEffect(() => {
@@ -250,6 +259,7 @@ export function AdminPage() {
     { key: 'users', label: 'Users', icon: Users, count: stats?.users },
     { key: 'reviews', label: 'Reviews', icon: MessageSquareQuote, count: stats?.pendingReviews },
     { key: 'requests', label: 'Access requests', icon: Inbox, count: stats?.pendingRequests },
+    { key: 'devices', label: 'Devices', icon: ShieldCheck, count: devices.filter((d) => d.status === 'pending').length || undefined },
     { key: 'boards', label: 'Boards', icon: Landmark },
     { key: 'content', label: 'Content', icon: FileText },
   ];
@@ -565,6 +575,62 @@ export function AdminPage() {
                 </button>
                 <button onClick={() => void act(`rd-${r.id}`, () => requestAction({ data: { token: tk, id: r.id, action: 'delete' } }), 'Deleted.')} className="p-2 rounded-lg bg-error-50 dark:bg-error-900/20 text-error-600 dark:text-error-400" title="Delete">
                   <Trash2 size={16} />
+                </button>
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : tab === 'devices' ? (
+        <div className="space-y-3">
+          <Card className="p-4 text-sm text-slate-600 dark:text-slate-300">
+            Each account can be used on one approved device. A new device is blocked at sign-in and appears
+            here for approval. Approving a device releases the previous one.
+          </Card>
+          {devices.length === 0 && (
+            <Card className="p-8 text-center text-sm text-slate-500">No devices recorded yet.</Card>
+          )}
+          {devices.map((d) => (
+            <Card key={d.id} className="p-5 flex items-start justify-between gap-4 flex-wrap">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-semibold text-slate-900 dark:text-white">{d.label}</p>
+                  <Badge variant={d.status === 'approved' ? 'success' : d.status === 'rejected' ? 'error' : 'warning'}>
+                    {d.status}
+                  </Badge>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{d.email || d.user_id}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  {[d.browser, d.os, d.ip].filter(Boolean).join(' · ')} ·{' '}
+                  {new Date(d.created_at).toLocaleString()}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => void act(`da-${d.id}`, () => deviceAction({ data: { token: tk, id: d.id, action: 'approve' } }), 'Device approved.')}
+                  className="p-2 rounded-lg bg-success-50 dark:bg-success-900/20 text-success-600 dark:text-success-400"
+                  title="Approve device"
+                >
+                  <Check size={16} />
+                </button>
+                <button
+                  onClick={() => void act(`dr-${d.id}`, () => deviceAction({ data: { token: tk, id: d.id, action: 'reject' } }), 'Device blocked.')}
+                  className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300"
+                  title="Block device"
+                >
+                  <X size={16} />
+                </button>
+                <button
+                  onClick={() => void act(`dd-${d.id}`, () => deviceAction({ data: { token: tk, id: d.id, action: 'delete' } }), 'Device removed.')}
+                  className="p-2 rounded-lg bg-error-50 dark:bg-error-900/20 text-error-600 dark:text-error-400"
+                  title="Remove device"
+                >
+                  <Trash2 size={16} />
+                </button>
+                <button
+                  onClick={() => void act(`dz-${d.id}`, () => resetDevices({ data: { token: tk, userId: d.user_id } }), 'All devices cleared for this user.')}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+                >
+                  Reset user
                 </button>
               </div>
             </Card>

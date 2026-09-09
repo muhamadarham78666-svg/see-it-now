@@ -281,6 +281,7 @@ export type Database = {
           full_name: string | null
           id: string
           preferences: Json
+          ui_language: string
           updated_at: string
         }
         Insert: {
@@ -291,6 +292,7 @@ export type Database = {
           full_name?: string | null
           id: string
           preferences?: Json
+          ui_language?: string
           updated_at?: string
         }
         Update: {
@@ -301,6 +303,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           preferences?: Json
+          ui_language?: string
           updated_at?: string
         }
         Relationships: []
@@ -421,6 +424,51 @@ export type Database = {
           rating?: number
           role?: string | null
           status?: string
+        }
+        Relationships: []
+      }
+      user_devices: {
+        Row: {
+          browser: string
+          created_at: string
+          email: string
+          fingerprint: string
+          id: string
+          ip: string
+          label: string
+          last_seen_at: string
+          os: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          browser?: string
+          created_at?: string
+          email?: string
+          fingerprint: string
+          id?: string
+          ip?: string
+          label?: string
+          last_seen_at?: string
+          os?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          browser?: string
+          created_at?: string
+          email?: string
+          fingerprint?: string
+          id?: string
+          ip?: string
+          label?: string
+          last_seen_at?: string
+          os?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

@@ -11,8 +11,9 @@ const inputSchema = z.object({
       }),
     )
     .min(1),
+  uiLanguage: z.string().max(60).nullable().optional(),
 });
 
 export const askNsagptFn = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => inputSchema.parse(data))
-  .handler(async ({ data }) => ({ reply: await askNsagpt(data.messages) }));
+  .handler(async ({ data }) => ({ reply: await askNsagpt(data.messages, data.uiLanguage ?? null) }));

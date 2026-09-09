@@ -45,6 +45,50 @@ import {
 } from '@/lib/curriculum';
 import { patternBrief, patternCounts, resolvePattern } from '@/lib/paperPatterns';
 import { suggestPaperPlanFn } from '@/lib/plan.functions';
+import { useLanguage } from '@/context/LanguageContext';
+
+/** Professional English by default; presets follow the interface language. */
+const INSTRUCTION_PRESETS: Record<string, { hint: string; placeholder: string; chips: string[] }> = {
+  en: {
+    hint: '(highest priority — the AI follows these literally)',
+    placeholder:
+      'Describe exactly what you need… e.g. Keep the whole paper in Urdu, add tashreeh of a poem, give long questions parts (a) and (b), include diagrams, and let students attempt any 5 short questions.',
+    chips: [
+      'Keep the entire paper in Urdu',
+      'Include diagrams',
+      'Long questions with parts (a) and (b)',
+      'Add letter, story and essay',
+      'Add an Urdu to English translation question',
+      'Print the statement / meaning with each question',
+    ],
+  },
+  ur: {
+    hint: '(سب سے زیادہ اہمیت — AI انہیں لفظ بلفظ فالو کرے گا)',
+    placeholder:
+      'اپنی ضرورت یہاں لکھیں… مثلاً پورا پیپر اردو میں ہو، نظم کی تشریح شامل ہو، تفصیلی سوالات کے حصے (الف) اور (ب) ہوں، ڈایاگرام شامل ہوں۔',
+    chips: [
+      'پورا پیپر اردو میں ہو',
+      'ڈایاگرام شامل کریں',
+      'تفصیلی سوالات کے حصے (الف) اور (ب)',
+      'خط، کہانی اور مضمون شامل کریں',
+      'اردو سے انگریزی ترجمہ کا سوال',
+      'ہر سوال کے ساتھ مفہوم لکھیں',
+    ],
+  },
+  roman: {
+    hint: '(highest priority — AI inko literally follow karega)',
+    placeholder:
+      'Apni requirement yahan likhein… e.g. Sara paper Urdu mein ho, nazm ki tashreeh add karein, long questions ke 2 parts hon, diagrams shamil karein.',
+    chips: [
+      'Sara paper Urdu mein ho',
+      'Diagrams shamil karein',
+      'Long questions ke part (a) aur (b)',
+      'Khat, kahani aur mazmoon add karein',
+      'Urdu → English translation ka question',
+      'Har question ke saath mafhoom likhein',
+    ],
+  },
+};
 import type { PaperPlan } from '@/types/plan';
 import type { QuestionType, Language, Difficulty, Question } from '@/types';
 import type { Json } from '@/integrations/supabase/types';
@@ -60,6 +104,8 @@ const processingSteps = [
 export function GeneratePage() {
   const { profile, session } = useAuth();
   const { board } = useBoard();
+  const { lang, langName } = useLanguage();
+  const presets = INSTRUCTION_PRESETS[lang] ?? INSTRUCTION_PRESETS['en']!;
   const [searchParams] = useSearchParams();
 
   // --- Curriculum selection (Class/Group -> Book -> Range) ---
@@ -191,6 +237,7 @@ export function GeneratePage() {
           chapters: rangeChapters.length ? rangeChapters : null,
           patternBrief: pattern ? patternBrief(pattern) : null,
           language,
+          uiLanguage: langName,
           counts: isMixed
             ? mixCounts
             : {
@@ -733,25 +780,18 @@ export function GeneratePage() {
                 <PenLine size={16} className="text-primary-500" />
                 Special Instructions
                 <span className="text-xs font-normal text-primary-600 dark:text-primary-400">
-                  (highest priority — AI inko literally follow karega)
+                  {presets.hint}
                 </span>
               </label>
               <textarea
                 value={instructions}
                 onChange={(e) => setInstructions(e.target.value)}
                 rows={6}
-                placeholder="Apni requirement yahan likhein… e.g. Sara paper Urdu mein ho, nazm ki tashreeh add karein, long questions ke 2 parts hon, diagrams shamil karein, short questions mein se koi 5 attempt karne hon."
+                placeholder={presets.placeholder}
                 className="input-field resize-y"
               />
               <div className="mt-2 flex flex-wrap gap-1.5">
-                {[
-                  'Sara paper Urdu mein ho',
-                  'Diagrams shamil karein',
-                  'Long questions ke part (a) aur (b)',
-                  'Khat, kahani aur mazmoon add karein',
-                  'Urdu → English translation ka question',
-                  'Har question ke saath mafhoom likhein',
-                ].map((chip) => (
+                {presets.chips.map((chip) => (
                   <button
                     key={chip}
                     type="button"

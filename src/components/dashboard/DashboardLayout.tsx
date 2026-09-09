@@ -21,28 +21,29 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
+import { LanguageChip } from '@/components/LanguageChip';
 import { useTheme } from '@/context/ThemeContext';
 import { Logo } from '@/components/Logo';
 import { BoardChip } from '@/components/boards/BoardSelector';
 
 
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/dashboard/generate', label: 'Generate Questions', icon: Sparkles, end: false },
-  
-  { to: '/dashboard/solver', label: 'Physics / Math Solver', icon: Calculator, end: false },
-  { to: '/dashboard/book-solver', label: 'Book Solver', icon: BookOpenCheck, end: false },
-  { to: '/dashboard/bank', label: 'Question Bank', icon: Archive, end: false },
-
-  { to: '/dashboard/papers', label: 'Question Papers', icon: Newspaper, end: false },
-  { to: '/dashboard/history', label: 'History', icon: History, end: false },
-  { to: '/dashboard/notes', label: 'Notes', icon: NotebookPen, end: false },
-  { to: '/dashboard/settings', label: 'Settings', icon: Settings, end: false },
-];
+  { to: '/dashboard', key: 'nav.dashboard', icon: LayoutDashboard, end: true },
+  { to: '/dashboard/generate', key: 'nav.generate', icon: Sparkles, end: false },
+  { to: '/dashboard/solver', key: 'nav.solver', icon: Calculator, end: false },
+  { to: '/dashboard/book-solver', key: 'nav.bookSolver', icon: BookOpenCheck, end: false },
+  { to: '/dashboard/bank', key: 'nav.bank', icon: Archive, end: false },
+  { to: '/dashboard/papers', key: 'nav.papers', icon: Newspaper, end: false },
+  { to: '/dashboard/history', key: 'nav.history', icon: History, end: false },
+  { to: '/dashboard/notes', key: 'nav.notes', icon: NotebookPen, end: false },
+  { to: '/dashboard/settings', key: 'nav.settings', icon: Settings, end: false },
+] as const;
 
 export function DashboardLayout() {
   const { profile, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { t, dir } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -52,14 +53,15 @@ export function DashboardLayout() {
     navigate('/');
   };
 
+  const baseItems = navItems.map((n) => ({ to: n.to, label: t(n.key), icon: n.icon, end: n.end as boolean }));
   const items = profile?.role === 'admin'
-    ? [...navItems, { to: '/admin', label: 'Admin Panel', icon: ShieldCheck, end: false }]
-    : navItems;
+    ? [...baseItems, { to: '/admin', label: t('nav.admin'), icon: ShieldCheck, end: false }]
+    : baseItems;
 
-  const currentLabel = items.find((n) => location.pathname === n.to)?.label ?? 'Dashboard';
+  const currentLabel = items.find((n) => location.pathname === n.to)?.label ?? t('nav.dashboard');
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
+    <div dir={dir} className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex w-64 flex-col fixed inset-y-0 left-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-30">
         <div className="p-5 border-b border-slate-200 dark:border-slate-800">
@@ -98,10 +100,10 @@ export function DashboardLayout() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">
-                {profile?.full_name ?? 'User'}
+                {profile?.full_name ?? t('common.user')}
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                {profile?.role === 'admin' ? 'Administrator' : 'User'}
+                {profile?.role === 'admin' ? t('common.admin') : t('common.user')}
               </p>
             </div>
           </div>
@@ -111,7 +113,7 @@ export function DashboardLayout() {
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mb-1"
           >
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+            {theme === 'dark' ? t('common.light') : t('common.dark')}
           </button>
 
           <button
@@ -119,7 +121,7 @@ export function DashboardLayout() {
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-error-600 dark:text-error-400 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors"
           >
             <LogOut size={18} />
-            Sign Out
+            {t('common.signOut')}
           </button>
         </div>
       </aside>
@@ -167,10 +169,10 @@ export function DashboardLayout() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">
-                    {profile?.full_name ?? 'User'}
+                    {profile?.full_name ?? t('common.user')}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                    {profile?.role === 'admin' ? 'Administrator' : 'User'}
+                    {profile?.role === 'admin' ? t('common.admin') : t('common.user')}
                   </p>
                 </div>
               </div>
@@ -179,14 +181,14 @@ export function DashboardLayout() {
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 mb-1"
               >
                 {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-                {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                {theme === 'dark' ? t('common.light') : t('common.dark')}
               </button>
               <button
                 onClick={handleSignOut}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-error-600 dark:text-error-400 hover:bg-error-50 dark:hover:bg-error-900/20"
               >
                 <LogOut size={18} />
-                Sign Out
+                {t('common.signOut')}
               </button>
             </div>
           </aside>
@@ -214,6 +216,7 @@ export function DashboardLayout() {
             <span className="font-medium text-slate-700 dark:text-slate-200">{currentLabel}</span>
           </div>
           <div className="flex items-center gap-3">
+            <LanguageChip />
             <BoardChip />
             <button onClick={toggleTheme} className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
@@ -222,7 +225,8 @@ export function DashboardLayout() {
         </header>
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
-          <div className="lg:hidden mb-4 flex justify-end">
+          <div className="lg:hidden mb-4 flex justify-end gap-2">
+            <LanguageChip />
             <BoardChip />
           </div>
           <Outlet />
