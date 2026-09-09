@@ -168,6 +168,8 @@ export class QuestionGeneratorService {
       parts: q.parts ?? null,
       diagram_svg: q.diagram_svg ?? null,
       diagram_note: q.diagram_note ?? null,
+      statement: q.statement ?? null,
+      category: q.category ?? null,
       explanation: q.explanation ?? null,
 
       difficulty: q.difficulty,
@@ -215,7 +217,12 @@ export class QuestionGeneratorService {
 
     const { data, error } = await supabase.from('questions').insert(rows).select();
     if (error) throw error;
-    return data as unknown as Question[];
+    // Statement / category are presentation-only, so re-attach them to the saved rows.
+    return (data as unknown as Question[]).map((row, i) => ({
+      ...row,
+      statement: questions[i]?.statement ?? null,
+      category: questions[i]?.category ?? null,
+    }));
   }
 }
 
