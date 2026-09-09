@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requestNote } from "./notes.server";
 
 const inputSchema = z.object({
@@ -20,5 +21,6 @@ const inputSchema = z.object({
 });
 
 export const generateNoteFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data }) => requestNote(data));
