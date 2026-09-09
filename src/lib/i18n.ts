@@ -98,7 +98,7 @@ const en: Dict = {
   'land.hero.title2': 'Smart Questions',
   'land.hero.sub': 'NSAGPT is an AI-powered educational platform that reads chapters, PDFs, documents and notes to automatically generate board-style MCQs, short and long questions.',
   'land.tag.time': 'Save Time',
-  'land.tag.langs': '10 Languages',
+  'land.tag.langs': 'Multi Languages',
   'land.tag.ai': 'AI-powered',
 };
 
@@ -158,7 +158,7 @@ const ur: Dict = {
   'land.hero.title2': 'ذہین سوالات',
   'land.hero.sub': 'NSAGPT ایک AI پلیٹ فارم ہے جو اسباق، PDF، دستاویزات اور نوٹس پڑھ کر بورڈ طرز کے MCQs، مختصر اور تفصیلی سوالات خود بنا دیتا ہے۔',
   'land.tag.time': 'وقت بچائیں',
-  'land.tag.langs': '10 زبانیں',
+  'land.tag.langs': 'Multi Languages',
   'land.tag.ai': 'AI سے چلنے والا',
 };
 
@@ -218,7 +218,7 @@ const roman: Dict = {
   'land.hero.title2': 'Smart Sawalat',
   'land.hero.sub': 'NSAGPT ek AI platform hai jo chapters, PDF, documents aur notes parh kar board style MCQs, short aur long sawalat khud bana deta hai.',
   'land.tag.time': 'Waqt bachayen',
-  'land.tag.langs': '10 Zabanein',
+  'land.tag.langs': 'Multi Languages',
   'land.tag.ai': 'AI-powered',
 };
 
@@ -278,7 +278,7 @@ const ar: Dict = {
   'land.hero.title2': 'أسئلة ذكية',
   'land.hero.sub': 'NSAGPT منصة تعليمية بالذكاء الاصطناعي تقرأ الفصول وملفات PDF والمستندات والملاحظات لتولّد أسئلة اختيار متعدد وقصيرة وطويلة بأسلوب الامتحانات.',
   'land.tag.time': 'وفّر وقتك',
-  'land.tag.langs': '10 لغات',
+  'land.tag.langs': 'Multi Languages',
   'land.tag.ai': 'مدعوم بالذكاء الاصطناعي',
 };
 
@@ -338,7 +338,7 @@ const hi: Dict = {
   'land.hero.title2': 'स्मार्ट प्रश्न',
   'land.hero.sub': 'NSAGPT एक AI शिक्षा प्लेटफ़ॉर्म है जो अध्याय, PDF, दस्तावेज़ और नोट्स पढ़कर बोर्ड-स्टाइल MCQ, लघु और दीर्घ प्रश्न स्वयं बनाता है।',
   'land.tag.time': 'समय बचाएं',
-  'land.tag.langs': '10 भाषाएं',
+  'land.tag.langs': 'Multi Languages',
   'land.tag.ai': 'AI-संचालित',
 };
 
@@ -398,7 +398,7 @@ const zh: Dict = {
   'land.hero.title2': '智能题目',
   'land.hero.sub': 'NSAGPT 是一个 AI 教育平台，可阅读章节、PDF、文档和笔记，自动生成考试风格的选择题、简答题和论述题。',
   'land.tag.time': '节省时间',
-  'land.tag.langs': '10 种语言',
+  'land.tag.langs': 'Multi Languages',
   'land.tag.ai': 'AI 驱动',
 };
 
@@ -458,7 +458,7 @@ const es: Dict = {
   'land.hero.title2': 'Preguntas inteligentes',
   'land.hero.sub': 'NSAGPT es una plataforma educativa con IA que lee capítulos, PDF, documentos y notas para generar automáticamente preguntas de opción múltiple, cortas y largas con formato de examen.',
   'land.tag.time': 'Ahorra tiempo',
-  'land.tag.langs': '10 idiomas',
+  'land.tag.langs': 'Multi Languages',
   'land.tag.ai': 'Impulsado por IA',
 };
 
@@ -518,7 +518,7 @@ const fr: Dict = {
   'land.hero.title2': 'Questions intelligentes',
   'land.hero.sub': 'NSAGPT est une plateforme éducative dotée d’IA qui lit chapitres, PDF, documents et notes pour générer automatiquement des QCM et des questions courtes et longues au format examen.',
   'land.tag.time': 'Gagnez du temps',
-  'land.tag.langs': '10 langues',
+  'land.tag.langs': 'Multi Languages',
   'land.tag.ai': 'Propulsé par l’IA',
 };
 
@@ -578,7 +578,7 @@ const ps: Dict = {
   'land.hero.title2': 'هوښیارې پوښتنې',
   'land.hero.sub': 'NSAGPT یو AI پلیټ فارم دی چې فصلونه، PDF، اسناد او یادښتونه لولي او په خپله د بورډ ډول MCQs، لنډې او اوږدې پوښتنې جوړوي.',
   'land.tag.time': 'وخت وسپموه',
-  'land.tag.langs': '10 ژبې',
+  'land.tag.langs': 'Multi Languages',
   'land.tag.ai': 'د AI ځواک',
 };
 
@@ -638,7 +638,7 @@ const bn: Dict = {
   'land.hero.title2': 'স্মার্ট প্রশ্ন',
   'land.hero.sub': 'NSAGPT একটি AI শিক্ষা প্ল্যাটফর্ম যা অধ্যায়, PDF, নথি ও নোট পড়ে স্বয়ংক্রিয়ভাবে বোর্ড-স্টাইল MCQ, ছোট ও বড় প্রশ্ন তৈরি করে।',
   'land.tag.time': 'সময় বাঁচান',
-  'land.tag.langs': '১০টি ভাষা',
+  'land.tag.langs': 'Multi Languages',
   'land.tag.ai': 'AI-চালিত',
 };
 
