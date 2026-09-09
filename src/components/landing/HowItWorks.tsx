@@ -10,13 +10,13 @@ const steps = [
   {
     number: '02',
     title: 'Customize',
-    description: 'Select language (English, Urdu, Mixed), question type (MCQ, Short, Long), count, difficulty, and MCQ options.',
+    description: 'Pick class, book and chapters, set MCQ / Short / Long counts, and write any special instruction in your own words.',
     icon: Settings2,
   },
   {
     number: '03',
     title: 'AI Generates',
-    description: 'NSAGPT analyzes the content, identifies important topics and generates relevant questions.',
+    description: 'NSAGPT first suggests the best approach, then builds a board-pattern paper with sections, choices, diagrams and Urdu support.',
     icon: Sparkles,
   },
   {
