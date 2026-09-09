@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from '@/lib/rr';
-import { Search, Filter, Archive, Plus, Trash2, Newspaper, X, Download } from 'lucide-react';
+import { Search, Filter, Archive, Plus, Trash2, Newspaper, X, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/nsa/Card';
 import { Button } from '@/components/nsa/Button';
 
@@ -28,6 +28,19 @@ export function QuestionBankPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
   const [editQuestion, setEditQuestion] = useState<Question | null>(null);
+  const [openChapter, setOpenChapter] = useState<string | null>(null);
+
+  const chapterGroups = (() => {
+    const map = new Map<string, Question[]>();
+    for (const q of questions) {
+      const key = q.chapter?.trim() || q.topic?.trim() || 'Other questions';
+      const list = map.get(key);
+      if (list) list.push(q);
+      else map.set(key, [q]);
+    }
+    return Array.from(map, ([chapter, items]) => ({ chapter, items }));
+  })();
+
 
   const loadQuestions = useCallback(async () => {
     if (!userId) {
