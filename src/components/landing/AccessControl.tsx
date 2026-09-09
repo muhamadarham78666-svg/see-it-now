@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Lock, LogIn, ShieldCheck, Send, CheckCircle, AlertCircle, Loader2, User, Mail, MessageSquare, PlayCircle } from 'lucide-react';
-import { GuideAnimation } from './GuideAnimation';
+import { AccessRequestAnimation } from './AccessRequestAnimation';
 import { supabase } from '@/lib/supabase';
 
 interface AccessControlProps {
@@ -303,8 +303,8 @@ function RequestGuide() {
         </div>
       </div>
 
-      <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 mb-6">
-        <GuideAnimation />
+      <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 mb-6 aspect-[4/5] sm:aspect-[4/4]">
+        <AccessRequestAnimation />
       </div>
 
       <ol className="space-y-4">
