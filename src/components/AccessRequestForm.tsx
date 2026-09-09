@@ -1,6 +1,9 @@
 import { useState } from 'react';
+import { useServerFn } from '@tanstack/react-start';
 import { ShieldCheck, Send, CheckCircle, AlertCircle, Loader2, User, Mail, Phone, MessageSquare } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { sendAccessRequestMailFn } from '@/lib/email.functions';
+
 
 interface FormData {
   firstName: string;
@@ -65,24 +68,19 @@ export function AccessRequestForm({ onClose }: { onClose?: () => void }) {
       if (error) throw error;
 
       try {
-        const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/access-request-email`;
-        await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({
-            first_name: form.firstName.trim(),
-            last_name: form.lastName.trim(),
+        await sendAccessRequestMail({
+          data: {
+            firstName: form.firstName.trim(),
+            lastName: form.lastName.trim(),
             email: form.email.trim(),
             phone: form.phone.trim(),
             note: form.note.trim(),
-          }),
+          },
         });
       } catch {
-        // DB insert succeeded; email is best-effort
+        // Request saved; the confirmation email is best-effort.
       }
+
 
       setStatus('success');
       setForm(EMPTY);
