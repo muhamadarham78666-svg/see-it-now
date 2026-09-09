@@ -223,11 +223,25 @@ export function buildPaperHtml(
   .parts { list-style: none; padding: 0 0 0 14px; margin: 0 0 8px; font-size: 13.5px; }
   .parts li { margin-bottom: 6px; }
   .parts .pmarks { color: #444; font-size: 12px; }
+  .lead { font-size: 13.5px; font-weight: bold; margin: 0 0 10px; }
+  .lead .marks { font-weight: normal; color: #444; }
+  .stmt { font-size: 12px; color: #444; font-style: italic; margin: -4px 0 8px; }
+  .q.sub { margin-bottom: 10px; padding-left: 16px; }
+  .q.sub .qhead { font-weight: bold; }
 
   .answer { font-size: 12.5px; color: #14532d; background: #f0fdf4; border-left: 3px solid #16a34a; padding: 6px 10px; }
   .rtl { direction: rtl; }
-  .rtl .qtext, .rtl .opts { font-family: 'Noto Nastaliq Urdu', serif; text-align: right; line-height: 2.2; }
+  .rtl .qtext, .rtl .opts, .rtl .lead, .rtl .stmt, .rtl .parts, .rtl .note { font-family: 'Noto Nastaliq Urdu', serif; text-align: right; line-height: 2.2; }
   .rtl .qhead { flex-direction: row-reverse; }
+  .rtl .q.sub { padding-left: 0; padding-right: 16px; }
+  ${
+    isUrduPaper
+      ? `body { direction: rtl; font-family: 'Noto Nastaliq Urdu', serif; line-height: 2.1; }
+  h2, .totals, .instructions, .idbox, footer { font-family: 'Noto Nastaliq Urdu', serif; }
+  h2 { text-transform: none; }
+  .qtext, .opts { text-align: right; }`
+      : ''
+  }
   @media print { body { padding: 18px 24px; } }
 </style>
 </head>
