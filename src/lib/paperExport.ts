@@ -121,9 +121,10 @@ export function buildPaperHtml(
                     : (q.answer_points ?? []).join(' • ') || '—',
               )}</div>`
             : '';
-          return `<div class="q ${rtl ? 'rtl' : ''}">
-            <div class="qhead"><span class="qno">Q${counter}.</span>${style.perQuestionMarks ? `<span class="marks">(${q.marks})</span>` : ''}</div>
+          return `<div class="q ${grouped ? 'sub' : ''} ${rtl ? 'rtl' : ''}">
+            <div class="qhead"><span class="qno">${itemNo}</span>${style.perQuestionMarks && !grouped ? `<span class="marks">(${q.marks})</span>` : ''}</div>
             <p class="qtext">${escapeHtml(q.question_text)}</p>
+            ${statement}
             ${diagram}
             ${parts}
             ${opts}
@@ -132,7 +133,12 @@ export function buildPaperHtml(
           </div>`;
         })
         .join('');
-      return `<section><h2>${escapeHtml(label)}</h2>${note}${rows}</section>`;
+      const lead = grouped
+        ? `<p class="lead"><span class="qno">${t.q}${sectionNo}.</span> ${escapeHtml(label)}${
+            style.perQuestionMarks ? ` <span class="marks">(${sectionMarks})</span>` : ''
+          }</p>`
+        : '';
+      return `<section class="${isUrduPaper ? 'rtl' : ''}"><h2>${escapeHtml(label)}</h2>${lead}${note}${rows}</section>`;
     })
     .join('');
 
