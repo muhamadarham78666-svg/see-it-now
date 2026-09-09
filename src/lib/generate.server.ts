@@ -313,6 +313,8 @@ export interface QuestionDraft {
   parts: { label: string; text: string; marks: number }[] | null;
   diagram_svg: string | null;
   diagram_note: string | null;
+  statement: string | null;
+  category: string | null;
   explanation: string | null;
   difficulty: "easy" | "medium" | "hard";
   topic: string | null;
