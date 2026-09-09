@@ -25,6 +25,49 @@ export interface PaperMeta {
 
 
 
+const ROMAN = [
+  'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x',
+  'xi', 'xii', 'xiii', 'xiv', 'xv', 'xvi', 'xvii', 'xviii', 'xix', 'xx',
+  'xxi', 'xxii', 'xxiii', 'xxiv', 'xxv', 'xxvi', 'xxvii', 'xxviii', 'xxix', 'xxx',
+];
+const roman = (n: number) => ROMAN[n - 1] ?? String(n);
+
+interface PaperLabels {
+  q: string;
+  marks: string;
+  totalMarks: string;
+  totalQuestions: string;
+  answer: string;
+  instructions: string;
+  rollNo: string;
+  name: string;
+  attemptAny: (pick: number, total: number) => string;
+}
+
+const EN_LABELS: PaperLabels = {
+  q: 'Q',
+  marks: 'marks',
+  totalMarks: 'Total Marks',
+  totalQuestions: 'Total Questions',
+  answer: 'Answer',
+  instructions: 'Instructions',
+  rollNo: 'Roll No',
+  name: 'Name',
+  attemptAny: (pick, total) => `Attempt any ${pick} of ${total} questions.`,
+};
+
+const URDU_LABELS: PaperLabels = {
+  q: 'سوال ',
+  marks: 'نمبر',
+  totalMarks: 'کل نمبر',
+  totalQuestions: 'کل سوالات',
+  answer: 'جواب',
+  instructions: 'ہدایات',
+  rollNo: 'رول نمبر',
+  name: 'نام',
+  attemptAny: (pick, total) => `کل ${total} سوالات میں سے کوئی سے ${pick} سوال حل کریں۔`,
+};
+
 const escapeHtml = (value: string) =>
   value
     .replace(/&/g, '&amp;')
