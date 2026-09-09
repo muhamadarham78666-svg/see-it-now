@@ -109,8 +109,11 @@ export function buildPaperHtml(
                   )
                   .join('')}</ol>`
               : '';
+          const statement = q.statement
+            ? `<p class="stmt">${escapeHtml(q.statement)}</p>`
+            : '';
           const answer = options.withAnswers
-            ? `<div class="answer"><strong>Answer:</strong> ${escapeHtml(
+            ? `<div class="answer"><strong>${t.answer}:</strong> ${escapeHtml(
                 q.question_type === 'mcq'
                   ? (q.correct_answer ?? '—')
                   : q.question_type === 'short'
