@@ -80,6 +80,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
+      { name: "google-site-verification", content: "iKpUoVnYUOQl-8IQjiQMZJjBMTy91gPRT2plu6SOvoM" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "NSAGPT — AI Question & Paper Generator" },
       { name: "description", content: "NSAGPT — AI-powered question generation, paper building, and physics/math solver for teachers and students. Generate papers from any file in seconds." },
