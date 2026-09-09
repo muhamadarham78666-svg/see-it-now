@@ -19,6 +19,8 @@ const EMPTY: FormData = { firstName: '', lastName: '', email: '', phone: '', not
 
 export function AccessRequestForm({ onClose }: { onClose?: () => void }) {
   const [form, setForm] = useState<FormData>(EMPTY);
+  const sendAccessRequestMail = useServerFn(sendAccessRequestMailFn);
+
   const [status, setStatus] = useState<Status>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
