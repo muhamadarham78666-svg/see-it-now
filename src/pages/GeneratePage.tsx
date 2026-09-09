@@ -129,6 +129,85 @@ export function GeneratePage() {
 
   const hasMaterial = content.trim().length > 0 || attachments.length > 0;
 
+  // Special instructions are read for intent too, so typing "diagrams add karo"
+  // or "sab urdu me" works without touching any toggle.
+  const intent = useMemo(() => {
+    const text = instructions.toLowerCase();
+    const has = (...words: string[]) => words.some((w) => text.includes(w));
+    return {
+      diagrams: has('diagram', 'figure', 'shakal', 'naqsha', 'خاکہ', 'ڈایاگرام'),
+      urdu: has('urdu me', 'urdu mein', 'sab urdu', 'اردو میں', 'urdu paper'),
+      statements: has('statement', 'mafhoom', 'مفہوم'),
+      parts: has('part a', 'parts', 'حصہ'),
+      composition: [
+        ['letter', ['letter', 'khat', 'خط']],
+        ['application', ['application', 'darkhwast', 'درخواست']],
+        ['story', ['story', 'kahani', 'کہانی']],
+        ['essay', ['essay', 'mazmoon', 'مضمون']],
+        ['dialogue', ['dialogue', 'mukalma', 'مکالمہ']],
+        ['translation', ['translation', 'tarjuma', 'ترجمہ']],
+        ['tashreeh', ['tashreeh', 'tashree', 'تشریح']],
+        ['khulasa', ['khulasa', 'خلاصہ']],
+        ['markazi', ['markazi', 'مرکزی خیال']],
+        ['comprehension', ['comprehension', 'paragraph', 'پیراگراف']],
+        ['conceptual', ['conceptual', 'concept']],
+      ].filter(([, words]) => has(...(words as string[]))).map(([key]) => key as string),
+    };
+  }, [instructions]);
+
+  const effectiveComposition = useMemo(
+    () => Array.from(new Set([...composition, ...intent.composition])),
+    [composition, intent.composition],
+  );
+  const effectiveUrdu = language === 'urdu' || Boolean(bookObj?.urdu) || intent.urdu;
+
+  const applyPlan = (p: PaperPlan) => {
+    const patch = p.patch;
+    if (patch.counts && patch.counts.mcq + patch.counts.short + patch.counts.long > 0) {
+      setQuestionType('mixed');
+      setMixCounts(patch.counts);
+    }
+    if (patch.attempts) setAttempts(patch.attempts);
+    if (patch.language) setLanguage(patch.language as typeof language);
+    if (typeof patch.wantDiagrams === 'boolean') setWantDiagrams(patch.wantDiagrams);
+    if (typeof patch.longParts === 'boolean') setLongParts(patch.longParts);
+    if (typeof patch.statements === 'boolean') setStatements(patch.statements);
+    if (patch.composition?.length) setComposition(patch.composition);
+    if (patch.translation) setTranslation(patch.translation);
+    setPlanApplied(true);
+  };
+
+  const handleSuggest = async () => {
+    setPlanLoading(true);
+    setPlanError(null);
+    setPlanApplied(false);
+    try {
+      const result = await suggestPaperPlanFn({
+        data: {
+          instructions: instructions.trim(),
+          classGroup: group?.label ?? null,
+          bookName: bookObj?.name ?? null,
+          rangeLabel: bookObj ? RANGE_LABELS[range] : null,
+          chapters: rangeChapters.length ? rangeChapters : null,
+          patternBrief: pattern ? patternBrief(pattern) : null,
+          language,
+          counts: isMixed
+            ? mixCounts
+            : {
+                mcq: questionType === 'mcq' ? effectiveCount : 0,
+                short: questionType === 'short' ? effectiveCount : 0,
+                long: questionType === 'long' ? effectiveCount : 0,
+              },
+        },
+      });
+      setPlan(result);
+    } catch (e) {
+      setPlanError(e instanceof Error ? e.message : 'Could not prepare the suggestion.');
+    } finally {
+      setPlanLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (profile?.preferences) {
       const p = profile.preferences;
