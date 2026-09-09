@@ -44,6 +44,18 @@ export function AskAiPage() {
     }
   };
 
+  const sendRef = useRef(send);
+  sendRef.current = send;
+  const bootstrapped = useRef(false);
+
+  useEffect(() => {
+    if (bootstrapped.current) return;
+    bootstrapped.current = true;
+    const q = new URLSearchParams(window.location.search).get('q');
+    if (q) sendRef.current(q);
+  }, []);
+
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
