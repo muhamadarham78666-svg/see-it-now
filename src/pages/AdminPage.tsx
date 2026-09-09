@@ -309,6 +309,7 @@ export function AdminPage() {
     try {
       const res = await fn();
       if (res && res.ok === false) flash(res.message ?? 'Action failed.');
+      else if (res?.message) flash(res.message);
       else if (done) flash(done);
       if (token) await load(tab, token);
     } catch (e) {

@@ -80,7 +80,7 @@ export const adminOverviewFn = createServerFn({ method: "POST" })
         count("reviews"),
         count("reviews", { status: "pending" }),
         count("access_requests"),
-        count("access_requests", { status: "pending" }),
+        count("access_requests", { status: "new" }),
         count("generations"),
         count("boards", {}),
       ]);
@@ -368,21 +368,30 @@ export const adminRequestActionFn = createServerFn({ method: "POST" })
       .select("email, first_name, last_name")
       .eq("id", data.id)
       .maybeSingle();
-    await db
+    const { error: updateError } = await db
       .from("access_requests")
       .update({ status: data.action === "approve" ? "approved" : "rejected" })
       .eq("id", data.id);
+    if (updateError) return { ok: false as const, message: updateError.message };
     if (row?.email) {
       const { sendMail, requestApprovedEmail, requestRejectedEmail } = await import("./email.server");
       const name = [row.first_name, row.last_name].filter(Boolean).join(" ");
-      await sendMail({
+      const mail = await sendMail({
         to: row.email,
         toName: name || undefined,
         subject: data.action === "approve" ? "Your NSAGPT access request is approved" : "About your NSAGPT access request",
         html: data.action === "approve" ? requestApprovedEmail(name, "https://nsagpt.org/login") : requestRejectedEmail(name),
       });
+      return {
+        ok: true as const,
+        message: mail.ok
+          ? data.action === "approve"
+            ? "Request approved and confirmation emailed."
+            : "Request rejected and confirmation emailed."
+          : `${data.action === "approve" ? "Request approved" : "Request rejected"}, but the email could not be sent.`,
+      };
     }
-    return { ok: true as const };
+    return { ok: true as const, message: "Request updated." };
   });
 
 
