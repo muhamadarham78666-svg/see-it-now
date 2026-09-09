@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requestPaperPlan } from "./plan.server";
 
 const inputSchema = z.object({
@@ -15,5 +16,6 @@ const inputSchema = z.object({
 });
 
 export const suggestPaperPlanFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data }) => requestPaperPlan(data));
