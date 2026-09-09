@@ -50,6 +50,23 @@ import {
 
 type Tab = 'overview' | 'users' | 'reviews' | 'requests' | 'devices' | 'boards' | 'content';
 
+interface RequestAccountForm {
+  id: string;
+  fullName: string;
+  email: string;
+  password: string;
+  makeAdmin: boolean;
+}
+
+/** Suggests a readable, strong starter password for a new account. */
+function randomPassword(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+  let out = '';
+  for (let i = 0; i < 10; i += 1) out += chars[Math.floor(Math.random() * chars.length)];
+  return `${out}#7`;
+}
+
+
 interface Stats {
   users: number;
   papers: number;
@@ -87,6 +104,8 @@ export function AdminPage() {
   const [content, setContent] = useState<{ papers: any[]; notes: any[] }>({ papers: [], notes: [] });
   const [newUser, setNewUser] = useState({ email: '', password: '', fullName: '', makeAdmin: false });
   const [showNewUser, setShowNewUser] = useState(false);
+  const [reqForm, setReqForm] = useState<RequestAccountForm | null>(null);
+
 
   const checkSession = useServerFn(checkAdminSessionFn);
   const verify = useServerFn(verifyAdminCodeFn);
@@ -555,33 +574,104 @@ export function AdminPage() {
         <div className="space-y-3">
           {requests.length === 0 && <Card className="p-8 text-center text-sm text-slate-500">No access requests yet.</Card>}
           {requests.map((r) => (
-            <Card key={r.id} className="p-5 flex items-start justify-between gap-4 flex-wrap">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-semibold text-slate-900 dark:text-white">
-                    {[r.first_name, r.last_name].filter(Boolean).join(' ') || r.name || r.email}
+            <Card key={r.id} className="p-5 space-y-3">
+              <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-semibold text-slate-900 dark:text-white">
+                      {[r.first_name, r.last_name].filter(Boolean).join(' ') || r.name || r.email}
+                    </p>
+                    <Badge variant={r.status === 'approved' ? 'success' : r.status === 'rejected' ? 'error' : 'warning'}>{r.status}</Badge>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    {r.email}
+                    {r.phone ? ` · ${r.phone}` : ''}
                   </p>
-                  <Badge variant={r.status === 'approved' ? 'success' : r.status === 'rejected' ? 'error' : 'warning'}>{r.status}</Badge>
+                  <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 whitespace-pre-wrap">{r.note ?? ''}</p>
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  {r.email}
-                  {r.phone ? ` · ${r.phone}` : ''}
-                </p>
-                <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 whitespace-pre-wrap">{r.note ?? ''}</p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() =>
+                      setReqForm((cur) =>
+                        cur?.id === r.id
+                          ? null
+                          : {
+                              id: r.id,
+                              fullName: [r.first_name, r.last_name].filter(Boolean).join(' '),
+                              email: r.email ?? '',
+                              password: randomPassword(),
+                              makeAdmin: false,
+                            },
+                      )
+                    }
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-primary-600 text-white hover:bg-primary-700 inline-flex items-center gap-1"
+                  >
+                    <UserPlus size={14} /> Create account
+                  </button>
+                  <button onClick={() => void act(`ra-${r.id}`, () => requestAction({ data: { token: tk, id: r.id, action: 'approve' } }), 'Marked approved.')} className="p-2 rounded-lg bg-success-50 dark:bg-success-900/20 text-success-600 dark:text-success-400" title="Approve">
+                    <Check size={16} />
+                  </button>
+                  <button onClick={() => void act(`rr-${r.id}`, () => requestAction({ data: { token: tk, id: r.id, action: 'reject' } }), 'Marked rejected.')} className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300" title="Reject">
+                    <X size={16} />
+                  </button>
+                  <button onClick={() => void act(`rd-${r.id}`, () => requestAction({ data: { token: tk, id: r.id, action: 'delete' } }), 'Deleted.')} className="p-2 rounded-lg bg-error-50 dark:bg-error-900/20 text-error-600 dark:text-error-400" title="Delete">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => void act(`ra-${r.id}`, () => requestAction({ data: { token: tk, id: r.id, action: 'approve' } }), 'Marked approved.')} className="p-2 rounded-lg bg-success-50 dark:bg-success-900/20 text-success-600 dark:text-success-400" title="Approve">
-                  <Check size={16} />
-                </button>
-                <button onClick={() => void act(`rr-${r.id}`, () => requestAction({ data: { token: tk, id: r.id, action: 'reject' } }), 'Marked rejected.')} className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300" title="Reject">
-                  <X size={16} />
-                </button>
-                <button onClick={() => void act(`rd-${r.id}`, () => requestAction({ data: { token: tk, id: r.id, action: 'delete' } }), 'Deleted.')} className="p-2 rounded-lg bg-error-50 dark:bg-error-900/20 text-error-600 dark:text-error-400" title="Delete">
-                  <Trash2 size={16} />
-                </button>
-              </div>
+
+              {reqForm?.id === r.id && (
+                <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">Create account for this request</p>
+                  <div className="grid sm:grid-cols-3 gap-2">
+                    <input placeholder="Full name" value={reqForm?.fullName ?? ""} onChange={(e) => setReqForm((f) => (f ? { ...f, fullName: e.target.value } : f))} className="input-field" />
+                    <input placeholder="Email" value={reqForm?.email ?? ""} onChange={(e) => setReqForm((f) => (f ? { ...f, email: e.target.value } : f))} className="input-field" />
+                    <div className="flex gap-2">
+                      <input placeholder="Password (min 8)" value={reqForm?.password ?? ""} onChange={(e) => setReqForm((f) => (f ? { ...f, password: e.target.value } : f))} className="input-field flex-1" />
+                      <button type="button" onClick={() => setReqForm((f) => (f ? { ...f, password: randomPassword() } : f))} className="px-3 rounded-lg text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300" title="New password">
+                        <RefreshCw size={14} />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                      <input type="checkbox" checked={reqForm?.makeAdmin ?? false} onChange={(e) => setReqForm((f) => (f ? { ...f, makeAdmin: e.target.checked } : f))} className="w-4 h-4 rounded" />
+
+                      Give administrator access
+                    </label>
+                    <button
+                      disabled={busy === `rc-${r.id}`}
+                      onClick={() =>
+                        void act(
+                          `rc-${r.id}`,
+                          async () => {
+                            const form = reqForm;
+                            if (!form) return { ok: false, message: 'Form closed.' };
+                            if (form.password.length < 8) return { ok: false, message: 'Password must be at least 8 characters.' };
+                            const res = await createUser({
+                              data: { token: tk, email: form.email, password: form.password, fullName: form.fullName, makeAdmin: form.makeAdmin },
+                            });
+                            if (!res.ok) return res;
+                            await requestAction({ data: { token: tk, id: r.id, action: 'approve' } });
+                            setReqForm(null);
+                            return res;
+                          },
+                          'Account created and request approved.',
+                        )
+                      }
+                      className="btn-primary text-sm"
+                    >
+                      {busy === `rc-${r.id}` ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />} Create & approve
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Share this email and password with the person — they can sign in right away.
+                  </p>
+                </div>
+              )}
             </Card>
           ))}
+
         </div>
       ) : tab === 'devices' ? (
         <div className="space-y-3">
