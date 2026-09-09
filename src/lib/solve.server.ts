@@ -178,6 +178,9 @@ export function normalizeSolutions(raw: Record<string, unknown>[]): SolvedProble
         units: p["units"] != null ? String(p["units"]) : null,
         concept: p["concept"] != null ? String(p["concept"]) : null,
         topic: p["topic"] != null ? String(p["topic"]) : null,
+        diagram_svg: sanitizeSvg(p["diagram_svg"]),
+        diagram_note: p["diagram_note"] != null ? String(p["diagram_note"]) : null,
+
         difficulty: (difficultyRaw === "easy" || difficultyRaw === "hard"
           ? difficultyRaw
           : "medium") as SolvedProblem["difficulty"],
