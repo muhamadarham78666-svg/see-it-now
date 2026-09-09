@@ -96,7 +96,7 @@ export function GuideAnimation() {
       </div>
 
       {/* Scene content */}
-      <div className="relative h-full flex flex-col items-center justify-center p-6 sm:p-10 pt-8 text-center">
+      <div className="relative h-full min-h-0 flex flex-col items-center justify-center p-6 sm:p-10 pt-8 text-center overflow-y-auto">
         <div className="mb-4 transition-all duration-500" key={sceneIndex}>
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white shadow-xl shadow-primary-500/30 mx-auto mb-3 animate-fade-in-up">
             <currentScene.icon size={30} />
@@ -111,7 +111,7 @@ export function GuideAnimation() {
         </p>
 
         {/* Scene-specific visual */}
-        <div className="mt-5 w-full max-w-sm">
+        <div className="mt-5 w-full max-w-sm shrink-0">
           <SceneVisual sceneIndex={sceneIndex} progress={sceneProgress} />
         </div>
       </div>
