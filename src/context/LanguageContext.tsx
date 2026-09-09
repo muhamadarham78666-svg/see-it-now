@@ -82,8 +82,18 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 
+const fallbackValue: LanguageContextValue = (() => {
+  const def = languageDef('en');
+  return {
+    lang: def.code,
+    langName: def.english,
+    dir: def.dir,
+    rtl: def.dir === 'rtl',
+    setLang: () => {},
+    t: (key: TransKey) => translate(def.code, key),
+  };
+})();
+
 export function useLanguage() {
-  const ctx = useContext(LanguageContext);
-  if (!ctx) throw new Error('useLanguage must be used within LanguageProvider');
-  return ctx;
+  return useContext(LanguageContext) ?? fallbackValue;
 }
