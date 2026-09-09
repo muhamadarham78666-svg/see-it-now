@@ -375,8 +375,27 @@ export function buildPaperText(meta: PaperMeta, questions: Question[], withAnswe
   );
   if (meta.instructions) lines.push(`Instructions: ${meta.instructions}`, '');
 
-  questions.forEach((q, i) => {
-    lines.push(`Q${i + 1}. (${q.marks}) ${q.question_text}`);
+  let qNo = 0;
+  let lastType: Question['question_type'] | null = null;
+  let subNo = 0;
+  questions.forEach((q) => {
+    const grouped = q.question_type !== 'long';
+    if (q.question_type !== lastType) {
+      lastType = q.question_type;
+      subNo = 0;
+      if (grouped) {
+        qNo += 1;
+        lines.push(`Q${qNo}.`);
+      }
+    }
+    if (grouped) {
+      subNo += 1;
+      lines.push(`  (${roman(subNo)}) ${q.question_text}`);
+    } else {
+      qNo += 1;
+      lines.push(`Q${qNo}. (${q.marks}) ${q.question_text}`);
+    }
+    if (q.statement) lines.push(`   → ${q.statement}`);
     if (q.diagram_note) lines.push(`   [Figure: ${q.diagram_note}]`);
     if (q.parts) q.parts.forEach((p) => lines.push(`   (${p.label}) ${p.text}${p.marks ? ` (${p.marks})` : ''}`));
     if (q.options) q.options.forEach((o) => lines.push(`   ${o.label}. ${o.text}`));
