@@ -2,6 +2,12 @@
 
 const BREVO_URL = "https://api.brevo.com/v3/smtp/email";
 
+/** Verified sender in Brevo, and the inbox that receives admin alerts. */
+export const FROM_EMAIL = "zainmuhamad7000@gmail.com";
+export const FROM_NAME = "NSAGPT";
+export const ADMIN_EMAIL = "zainmuhamad7000@gmail.com";
+
+
 type MailInput = { to: string; toName?: string; subject: string; html: string };
 
 function wrap(title: string, body: string): string {
@@ -21,8 +27,8 @@ function wrap(title: string, body: string): string {
 export async function sendMail(input: MailInput): Promise<{ ok: boolean; message?: string }> {
   const key = process.env["BREVO_API_KEY_DIRECT"];
   if (!key) return { ok: false, message: "Email is not configured." };
-  const fromEmail = process.env["MAIL_FROM_EMAIL"] || "noreply@nsagpt.org";
-  const fromName = process.env["MAIL_FROM_NAME"] || "NSAGPT";
+  const fromEmail = FROM_EMAIL;
+  const fromName = FROM_NAME;
   try {
     const res = await fetch(BREVO_URL, {
       method: "POST",
