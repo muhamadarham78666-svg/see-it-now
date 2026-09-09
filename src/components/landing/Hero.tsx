@@ -64,7 +64,7 @@ export function Hero({ onGetStarted, onWatchGuide }: HeroProps) {
           </div>
 
           {/* Visual */}
-          <div className="relative hidden lg:block animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          <div className="relative mx-auto max-w-md w-full animate-fade-in" style={{ animationDelay: '0.3s' }}>
             <HeroVisual />
           </div>
         </div>
