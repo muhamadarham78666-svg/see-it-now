@@ -179,7 +179,12 @@ export function GeneratePage() {
       rangeLabel: bookObj ? RANGE_LABELS[range] : undefined,
       chapters: rangeChapters.length ? rangeChapters : undefined,
       patternBrief: pattern ? patternBrief(pattern) : undefined,
+      wantDiagrams,
+      longParts,
+      attempts:
+        attempts.mcq || attempts.short || attempts.long ? attempts : null,
     };
+
 
     try {
       const result = await questionGenerator.generate(
