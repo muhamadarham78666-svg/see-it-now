@@ -126,7 +126,27 @@ export function buildInstruction(settings: GenSettings) {
     settings.wantDiagrams
       ? 'Where a diagram, figure, circuit, graph or geometric shape genuinely helps, add "diagram_svg": a small self-contained inline SVG string (root <svg viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg">, only path/line/circle/rect/polygon/text/ellipse elements, stroke="#111" fill="none", no scripts, no external images, no CSS) plus "diagram_note": a one-line caption. Otherwise use null for both.'
       : 'Set "diagram_svg":null and "diagram_note":null.',
-    'Return ONLY JSON in this shape: {"questions":[{"question_text":string,"question_type":"mcq"|"short"|"long","options":[{"label":"A","text":string}]|null,"correct_answer":string|null,"expected_answer":string|null,"answer_points":string[]|null,"parts":[{"label":"a","text":string,"marks":number}]|null,"diagram_svg":string|null,"diagram_note":string|null,"explanation":string,"difficulty":"easy"|"medium"|"hard","topic":string,"marks":number}]}',
+    settings.composition && settings.composition.length
+      ? `The paper MUST also contain these writing / composition items (put each one as a "long" question unless it is clearly a short item, and set "category" to the key given in brackets):\n${settings.composition
+          .map((key) => `- [${key}] ${COMPOSITION_RULES[key] ?? key}`)
+          .join("\n")}`
+      : "",
+    settings.translation
+      ? settings.translation === "urdu-to-english"
+        ? "Translation question: give an Urdu paragraph/sentences and ask the student to translate them into English."
+        : settings.translation === "english-to-urdu"
+          ? "Translation question: give an English paragraph/sentences and ask the student to translate them into Urdu."
+          : "Translation question: give BOTH an Urdu → English part and an English → Urdu part, and let the student choose which one to attempt."
+      : "",
+    settings.statements
+      ? 'For every question add "statement": one short line (same language as the question) explaining in simple words what the student has to do / the sense (مفہوم) of the question. Keep it under 18 words.'
+      : 'Set "statement":null.',
+    settings.forceUrdu
+      ? "This is an Urdu-medium paper: EVERY question, option, part, statement, topic and answer must be written in Urdu script only. Do not use a single English sentence."
+      : "",
+    'NEVER write question numbers, "Q1", "Question 3", "(i)", "1." or section headings inside question_text, parts or options — numbering is added by the app for each section separately.',
+    'Set "category" to a short key when the question is a special item (letter, application, story, essay, dialogue, precis, comprehension, translation, tashreeh, khulasa, markazi, kahani, khat, mukalma, mazmoon, numerical, conceptual); otherwise null.',
+    'Return ONLY JSON in this shape: {"questions":[{"question_text":string,"question_type":"mcq"|"short"|"long","options":[{"label":"A","text":string}]|null,"correct_answer":string|null,"expected_answer":string|null,"answer_points":string[]|null,"parts":[{"label":"a","text":string,"marks":number}]|null,"diagram_svg":string|null,"diagram_note":string|null,"statement":string|null,"category":string|null,"explanation":string,"difficulty":"easy"|"medium"|"hard","topic":string,"marks":number}]}',
     "If the material is an image or scan, first read (OCR) all visible text, then build the questions from it.",
   ]
 
