@@ -47,19 +47,28 @@ export const checkDeviceFn = createServerFn({ method: "POST" })
 
     const { data: rows } = await db
       .from("user_devices")
-      .select("id, fingerprint, status")
+      .select("id, fingerprint, status, ip")
       .eq("user_id", userId);
 
-    const list: { id: string; fingerprint: string; status: string }[] = rows ?? [];
+    const list: { id: string; fingerprint: string; status: string; ip: string }[] = rows ?? [];
     const mine = list.find((d) => d.fingerprint === data.fingerprint);
 
     if (mine) {
+      if (mine.status === "rejected") return { status: "rejected" };
+
+      // A changed network / IP also needs a fresh approval.
+      const ipChanged = mine.status === "approved" && ip && mine.ip && mine.ip !== ip;
       await db
         .from("user_devices")
-        .update({ last_seen_at: new Date().toISOString(), ip })
+        .update({
+          last_seen_at: new Date().toISOString(),
+          ip: ip || mine.ip,
+          ...(ipChanged ? { status: "pending" } : {}),
+        })
         .eq("id", mine.id);
-      if (mine.status === "approved") return { status: "approved" };
-      return { status: mine.status === "rejected" ? "rejected" : "pending" };
+
+      if (ipChanged) return { status: "pending" };
+      return { status: mine.status === "approved" ? "approved" : "pending" };
     }
 
     const hasApproved = list.some((d) => d.status === "approved");

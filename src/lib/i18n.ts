@@ -35,7 +35,10 @@ export type TransKey =
   | 'dash.quickActions' | 'dash.recent' | 'dash.noneTitle' | 'dash.noneDesc' | 'dash.completed'
   | 'stats.questions' | 'stats.papers' | 'stats.recent' | 'stats.saved' | 'stats.notes'
   | 'qa.mcq' | 'qa.short' | 'qa.long' | 'qa.mixed' | 'qa.solver' | 'qa.upload'
-  | 'qa.bank' | 'qa.paper' | 'qa.notes';
+  | 'qa.bank' | 'qa.paper' | 'qa.notes'
+  | 'land.nav.how' | 'land.nav.guide' | 'land.nav.features' | 'land.nav.why'
+  | 'land.getStarted' | 'land.watchGuide' | 'land.hero.badge' | 'land.hero.title1'
+  | 'land.hero.title2' | 'land.hero.sub' | 'land.tag.time' | 'land.tag.langs' | 'land.tag.ai';
 
 type Dict = Record<TransKey, string>;
 
@@ -84,6 +87,19 @@ const en: Dict = {
   'qa.bank': 'Question Bank',
   'qa.paper': 'Create Paper',
   'qa.notes': 'My Notes',
+  'land.nav.how': 'How It Works',
+  'land.nav.guide': 'Guide',
+  'land.nav.features': 'Features',
+  'land.nav.why': 'Why NSAGPT',
+  'land.getStarted': 'Get Started',
+  'land.watchGuide': 'Watch Guide',
+  'land.hero.badge': 'AI Question & Paper Generator',
+  'land.hero.title1': 'Turn Your Study Material Into',
+  'land.hero.title2': 'Smart Questions',
+  'land.hero.sub': 'NSAGPT is an AI-powered educational platform that reads chapters, PDFs, documents and notes to automatically generate board-style MCQs, short and long questions.',
+  'land.tag.time': 'Save Time',
+  'land.tag.langs': '10 Languages',
+  'land.tag.ai': 'AI-powered',
 };
 
 const ur: Dict = {
@@ -131,6 +147,19 @@ const ur: Dict = {
   'qa.bank': 'سوالات کا بینک',
   'qa.paper': 'پیپر بنائیں',
   'qa.notes': 'میرے نوٹس',
+  'land.nav.how': 'یہ کیسے کام کرتا ہے',
+  'land.nav.guide': 'گائیڈ',
+  'land.nav.features': 'خصوصیات',
+  'land.nav.why': 'NSAGPT کیوں',
+  'land.getStarted': 'شروع کریں',
+  'land.watchGuide': 'گائیڈ دیکھیں',
+  'land.hero.badge': 'AI سوالات و پیپر جنریٹر',
+  'land.hero.title1': 'اپنے مطالعے کے مواد کو بنائیں',
+  'land.hero.title2': 'ذہین سوالات',
+  'land.hero.sub': 'NSAGPT ایک AI پلیٹ فارم ہے جو اسباق، PDF، دستاویزات اور نوٹس پڑھ کر بورڈ طرز کے MCQs، مختصر اور تفصیلی سوالات خود بنا دیتا ہے۔',
+  'land.tag.time': 'وقت بچائیں',
+  'land.tag.langs': '10 زبانیں',
+  'land.tag.ai': 'AI سے چلنے والا',
 };
 
 const roman: Dict = {
@@ -178,6 +207,19 @@ const roman: Dict = {
   'qa.bank': 'Question Bank',
   'qa.paper': 'Paper banayen',
   'qa.notes': 'Mere notes',
+  'land.nav.how': 'Ye Kaise Kaam Karta Hai',
+  'land.nav.guide': 'Guide',
+  'land.nav.features': 'Features',
+  'land.nav.why': 'Kyun NSAGPT',
+  'land.getStarted': 'Shuru Karein',
+  'land.watchGuide': 'Guide Dekhein',
+  'land.hero.badge': 'AI Sawalat aur Paper Generator',
+  'land.hero.title1': 'Apne study material ko banayen',
+  'land.hero.title2': 'Smart Sawalat',
+  'land.hero.sub': 'NSAGPT ek AI platform hai jo chapters, PDF, documents aur notes parh kar board style MCQs, short aur long sawalat khud bana deta hai.',
+  'land.tag.time': 'Waqt bachayen',
+  'land.tag.langs': '10 Zabanein',
+  'land.tag.ai': 'AI-powered',
 };
 
 const ar: Dict = {
@@ -225,6 +267,19 @@ const ar: Dict = {
   'qa.bank': 'بنك الأسئلة',
   'qa.paper': 'إنشاء ورقة',
   'qa.notes': 'ملاحظاتي',
+  'land.nav.how': 'كيف يعمل',
+  'land.nav.guide': 'الدليل',
+  'land.nav.features': 'الميزات',
+  'land.nav.why': 'لماذا NSAGPT',
+  'land.getStarted': 'ابدأ الآن',
+  'land.watchGuide': 'شاهد الدليل',
+  'land.hero.badge': 'مولّد الأسئلة والأوراق بالذكاء الاصطناعي',
+  'land.hero.title1': 'حوّل موادك الدراسية إلى',
+  'land.hero.title2': 'أسئلة ذكية',
+  'land.hero.sub': 'NSAGPT منصة تعليمية بالذكاء الاصطناعي تقرأ الفصول وملفات PDF والمستندات والملاحظات لتولّد أسئلة اختيار متعدد وقصيرة وطويلة بأسلوب الامتحانات.',
+  'land.tag.time': 'وفّر وقتك',
+  'land.tag.langs': '10 لغات',
+  'land.tag.ai': 'مدعوم بالذكاء الاصطناعي',
 };
 
 const hi: Dict = {
@@ -272,6 +327,19 @@ const hi: Dict = {
   'qa.bank': 'प्रश्न बैंक',
   'qa.paper': 'पेपर बनाएं',
   'qa.notes': 'मेरे नोट्स',
+  'land.nav.how': 'यह कैसे काम करता है',
+  'land.nav.guide': 'गाइड',
+  'land.nav.features': 'विशेषताएं',
+  'land.nav.why': 'NSAGPT क्यों',
+  'land.getStarted': 'शुरू करें',
+  'land.watchGuide': 'गाइड देखें',
+  'land.hero.badge': 'AI प्रश्न और पेपर जनरेटर',
+  'land.hero.title1': 'अपनी अध्ययन सामग्री को बनाएं',
+  'land.hero.title2': 'स्मार्ट प्रश्न',
+  'land.hero.sub': 'NSAGPT एक AI शिक्षा प्लेटफ़ॉर्म है जो अध्याय, PDF, दस्तावेज़ और नोट्स पढ़कर बोर्ड-स्टाइल MCQ, लघु और दीर्घ प्रश्न स्वयं बनाता है।',
+  'land.tag.time': 'समय बचाएं',
+  'land.tag.langs': '10 भाषाएं',
+  'land.tag.ai': 'AI-संचालित',
 };
 
 const zh: Dict = {
@@ -319,6 +387,19 @@ const zh: Dict = {
   'qa.bank': '题库',
   'qa.paper': '创建试卷',
   'qa.notes': '我的笔记',
+  'land.nav.how': '工作原理',
+  'land.nav.guide': '使用指南',
+  'land.nav.features': '功能',
+  'land.nav.why': '为何选择 NSAGPT',
+  'land.getStarted': '开始使用',
+  'land.watchGuide': '观看指南',
+  'land.hero.badge': 'AI 题目与试卷生成器',
+  'land.hero.title1': '把你的学习资料变成',
+  'land.hero.title2': '智能题目',
+  'land.hero.sub': 'NSAGPT 是一个 AI 教育平台，可阅读章节、PDF、文档和笔记，自动生成考试风格的选择题、简答题和论述题。',
+  'land.tag.time': '节省时间',
+  'land.tag.langs': '10 种语言',
+  'land.tag.ai': 'AI 驱动',
 };
 
 const es: Dict = {
@@ -366,6 +447,19 @@ const es: Dict = {
   'qa.bank': 'Banco de preguntas',
   'qa.paper': 'Crear examen',
   'qa.notes': 'Mis notas',
+  'land.nav.how': 'Cómo funciona',
+  'land.nav.guide': 'Guía',
+  'land.nav.features': 'Funciones',
+  'land.nav.why': 'Por qué NSAGPT',
+  'land.getStarted': 'Empezar',
+  'land.watchGuide': 'Ver la guía',
+  'land.hero.badge': 'Generador de preguntas y exámenes con IA',
+  'land.hero.title1': 'Convierte tu material de estudio en',
+  'land.hero.title2': 'Preguntas inteligentes',
+  'land.hero.sub': 'NSAGPT es una plataforma educativa con IA que lee capítulos, PDF, documentos y notas para generar automáticamente preguntas de opción múltiple, cortas y largas con formato de examen.',
+  'land.tag.time': 'Ahorra tiempo',
+  'land.tag.langs': '10 idiomas',
+  'land.tag.ai': 'Impulsado por IA',
 };
 
 const fr: Dict = {
@@ -413,6 +507,19 @@ const fr: Dict = {
   'qa.bank': 'Banque de questions',
   'qa.paper': 'Créer un sujet',
   'qa.notes': 'Mes notes',
+  'land.nav.how': 'Comment ça marche',
+  'land.nav.guide': 'Guide',
+  'land.nav.features': 'Fonctionnalités',
+  'land.nav.why': 'Pourquoi NSAGPT',
+  'land.getStarted': 'Commencer',
+  'land.watchGuide': 'Voir le guide',
+  'land.hero.badge': 'Générateur de questions et de sujets par IA',
+  'land.hero.title1': 'Transformez vos supports en',
+  'land.hero.title2': 'Questions intelligentes',
+  'land.hero.sub': 'NSAGPT est une plateforme éducative dotée d’IA qui lit chapitres, PDF, documents et notes pour générer automatiquement des QCM et des questions courtes et longues au format examen.',
+  'land.tag.time': 'Gagnez du temps',
+  'land.tag.langs': '10 langues',
+  'land.tag.ai': 'Propulsé par l’IA',
 };
 
 const ps: Dict = {
@@ -460,6 +567,19 @@ const ps: Dict = {
   'qa.bank': 'د پوښتنو بانک',
   'qa.paper': 'پرچه جوړ کړه',
   'qa.notes': 'زما یادښتونه',
+  'land.nav.how': 'څنګه کار کوي',
+  'land.nav.guide': 'لارښود',
+  'land.nav.features': 'ځانګړتیاوې',
+  'land.nav.why': 'ولې NSAGPT',
+  'land.getStarted': 'پیل وکړه',
+  'land.watchGuide': 'لارښود وګوره',
+  'land.hero.badge': 'د AI پوښتنو او پرچو جوړونکی',
+  'land.hero.title1': 'خپل زده کړې مواد بدل کړه په',
+  'land.hero.title2': 'هوښیارې پوښتنې',
+  'land.hero.sub': 'NSAGPT یو AI پلیټ فارم دی چې فصلونه، PDF، اسناد او یادښتونه لولي او په خپله د بورډ ډول MCQs، لنډې او اوږدې پوښتنې جوړوي.',
+  'land.tag.time': 'وخت وسپموه',
+  'land.tag.langs': '10 ژبې',
+  'land.tag.ai': 'د AI ځواک',
 };
 
 const bn: Dict = {
@@ -507,6 +627,19 @@ const bn: Dict = {
   'qa.bank': 'প্রশ্ন ব্যাংক',
   'qa.paper': 'প্রশ্নপত্র তৈরি করুন',
   'qa.notes': 'আমার নোট',
+  'land.nav.how': 'কীভাবে কাজ করে',
+  'land.nav.guide': 'গাইড',
+  'land.nav.features': 'বৈশিষ্ট্য',
+  'land.nav.why': 'কেন NSAGPT',
+  'land.getStarted': 'শুরু করুন',
+  'land.watchGuide': 'গাইড দেখুন',
+  'land.hero.badge': 'AI প্রশ্ন ও প্রশ্নপত্র জেনারেটর',
+  'land.hero.title1': 'আপনার পড়ার উপকরণকে বানান',
+  'land.hero.title2': 'স্মার্ট প্রশ্ন',
+  'land.hero.sub': 'NSAGPT একটি AI শিক্ষা প্ল্যাটফর্ম যা অধ্যায়, PDF, নথি ও নোট পড়ে স্বয়ংক্রিয়ভাবে বোর্ড-স্টাইল MCQ, ছোট ও বড় প্রশ্ন তৈরি করে।',
+  'land.tag.time': 'সময় বাঁচান',
+  'land.tag.langs': '১০টি ভাষা',
+  'land.tag.ai': 'AI-চালিত',
 };
 
 export const DICTIONARIES: Record<string, Dict> = { en, ur, roman, ar, hi, zh, es, fr, ps, bn };

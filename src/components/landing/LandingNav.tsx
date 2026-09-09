@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Logo } from '@/components/Logo';
+import { LanguageChip } from '@/components/LanguageChip';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface LandingNavProps {
   onGetStarted: () => void;
@@ -9,6 +11,7 @@ interface LandingNavProps {
 export function LandingNav({ onGetStarted }: LandingNavProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { t, dir } = useLanguage();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -17,14 +20,15 @@ export function LandingNav({ onGetStarted }: LandingNavProps) {
   }, []);
 
   const navLinks = [
-    { label: 'How It Works', href: '#how-it-works' },
-    { label: 'Guide', href: '#guide' },
-    { label: 'Features', href: '#features' },
-    { label: 'Why NSAGPT', href: '#why' },
+    { label: t('land.nav.how'), href: '#how-it-works' },
+    { label: t('land.nav.guide'), href: '#guide' },
+    { label: t('land.nav.features'), href: '#features' },
+    { label: t('land.nav.why'), href: '#why' },
   ];
 
   return (
     <nav
+      dir={dir}
       className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
         scrolled
           ? 'glass shadow-sm py-3'
@@ -44,17 +48,21 @@ export function LandingNav({ onGetStarted }: LandingNavProps) {
               {link.label}
             </a>
           ))}
+          <LanguageChip />
           <button onClick={onGetStarted} className="btn-primary text-sm py-2 px-5">
-            Get Started
+            {t('land.getStarted')}
           </button>
         </div>
 
+        <div className="md:hidden flex items-center gap-2">
+          <LanguageChip />
         <button
-          className="md:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+          className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
           onClick={() => setMobileOpen(!mobileOpen)}
         >
           {mobileOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
+        </div>
       </div>
 
       {mobileOpen && (
@@ -77,7 +85,7 @@ export function LandingNav({ onGetStarted }: LandingNavProps) {
               }}
               className="btn-primary w-full text-sm py-2.5"
             >
-              Get Started
+              {t('land.getStarted')}
             </button>
           </div>
         </div>
