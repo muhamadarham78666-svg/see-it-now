@@ -27,7 +27,7 @@ export const sendAccessRequestMailFn = createServerFn({ method: "POST" })
       subject: "We received your NSAGPT access request",
       html: accessRequestEmail(name),
     });
-    const adminTo = process.env["ADMIN_NOTIFY_EMAIL"];
+    const adminTo = ADMIN_EMAIL;
     if (adminTo) {
       await sendMail({
         to: adminTo,

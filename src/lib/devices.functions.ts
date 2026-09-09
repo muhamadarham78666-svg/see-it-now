@@ -96,7 +96,7 @@ export const checkDeviceFn = createServerFn({ method: "POST" })
         subject: "New device sign-in needs approval",
         html: deviceRequestEmail(""),
       });
-      const adminTo = process.env["ADMIN_NOTIFY_EMAIL"];
+      const adminTo = ADMIN_EMAIL;
       if (adminTo) {
         await sendMail({
           to: adminTo,
