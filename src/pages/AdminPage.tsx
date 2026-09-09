@@ -104,6 +104,8 @@ export function AdminPage() {
   const [content, setContent] = useState<{ papers: any[]; notes: any[] }>({ papers: [], notes: [] });
   const [newUser, setNewUser] = useState({ email: '', password: '', fullName: '', makeAdmin: false });
   const [showNewUser, setShowNewUser] = useState(false);
+  const [reqForm, setReqForm] = useState<RequestAccountForm | null>(null);
+
 
   const checkSession = useServerFn(checkAdminSessionFn);
   const verify = useServerFn(verifyAdminCodeFn);
