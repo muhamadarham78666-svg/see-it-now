@@ -39,6 +39,8 @@ export interface GeneratedQuestionData {
   parts?: { label: string; text: string; marks: number }[] | null;
   diagram_svg?: string | null;
   diagram_note?: string | null;
+  statement?: string | null;
+  category?: string | null;
   explanation?: string | null;
   difficulty: 'easy' | 'medium' | 'hard';
   topic?: string | null;
@@ -81,6 +83,10 @@ export class LovableAIProvider implements AIProvider {
           wantDiagrams: settings.wantDiagrams ?? null,
           longParts: settings.longParts ?? null,
           attempts: settings.attempts ?? null,
+          composition: settings.composition ?? null,
+          translation: settings.translation ?? null,
+          statements: settings.statements ?? null,
+          forceUrdu: settings.forceUrdu ?? null,
         },
       },
     });
