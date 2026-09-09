@@ -21,6 +21,8 @@ export interface SolveSettings {
 
 
 import type { SolvedProblem } from "@/types/solve";
+import { sanitizeSvg } from "./generate.server";
+
 
 export type { SolvedProblem };
 
