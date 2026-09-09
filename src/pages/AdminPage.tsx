@@ -624,10 +624,10 @@ export function AdminPage() {
                 <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
                   <p className="text-sm font-semibold text-slate-900 dark:text-white">Create account for this request</p>
                   <div className="grid sm:grid-cols-3 gap-2">
-                    <input placeholder="Full name" value={reqForm.fullName} onChange={(e) => setReqForm((f) => (f ? { ...f, fullName: e.target.value } : f))} className="input-field" />
-                    <input placeholder="Email" value={reqForm.email} onChange={(e) => setReqForm((f) => (f ? { ...f, email: e.target.value } : f))} className="input-field" />
+                    <input placeholder="Full name" value={reqForm?.fullName ?? ""} onChange={(e) => setReqForm((f) => (f ? { ...f, fullName: e.target.value } : f))} className="input-field" />
+                    <input placeholder="Email" value={reqForm?.email ?? ""} onChange={(e) => setReqForm((f) => (f ? { ...f, email: e.target.value } : f))} className="input-field" />
                     <div className="flex gap-2">
-                      <input placeholder="Password (min 8)" value={reqForm.password} onChange={(e) => setReqForm((f) => (f ? { ...f, password: e.target.value } : f))} className="input-field flex-1" />
+                      <input placeholder="Password (min 8)" value={reqForm?.password ?? ""} onChange={(e) => setReqForm((f) => (f ? { ...f, password: e.target.value } : f))} className="input-field flex-1" />
                       <button type="button" onClick={() => setReqForm((f) => (f ? { ...f, password: randomPassword() } : f))} className="px-3 rounded-lg text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300" title="New password">
                         <RefreshCw size={14} />
                       </button>
@@ -635,7 +635,7 @@ export function AdminPage() {
                   </div>
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                      <input type="checkbox" checked={reqForm.makeAdmin} onChange={(e) => setReqForm((f) => (f ? { ...f, makeAdmin: e.target.checked } : f))} className="w-4 h-4 rounded" />
+                      <input type="checkbox" checked={reqForm?.makeAdmin ?? false} onChange={(e) => setReqForm((f) => (f ? { ...f, makeAdmin: e.target.checked } : f))} className="w-4 h-4 rounded" />
 
                       Give administrator access
                     </label>
