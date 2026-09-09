@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from '@/lib/rr';
-import { Eye, EyeOff, Lock, Mail, ArrowLeft, AlertCircle, Loader2, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, ArrowLeft, AlertCircle, Loader2, ShieldCheck, KeyRound } from 'lucide-react';
+import { useServerFn } from '@tanstack/react-start';
+import { verifyAdminCodeFn } from '@/lib/admin.functions';
+import { ADMIN_TOKEN_KEY } from '@/lib/adminSession';
 import { useAuth } from '@/context/AuthContext';
 import { Logo } from '@/components/Logo';
 import { supabase } from '@/lib/supabase';
@@ -13,6 +16,9 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
   const [mode, setMode] = useState<'user' | 'admin'>('user');
+  const [step, setStep] = useState<'credentials' | 'code'>('credentials');
+  const [code, setCode] = useState('');
+  const verifyCode = useServerFn(verifyAdminCodeFn);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -41,11 +47,32 @@ export function LoginPage() {
         setLoading(false);
         return;
       }
-      navigate('/admin');
+      setStep('code');
+      setLoading(false);
       return;
     }
 
     navigate('/dashboard');
+  };
+
+  const handleCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await verifyCode({ data: { code } });
+      if (!res.ok || !res.token) {
+        setError('Incorrect verification code.');
+        setCode('');
+        setLoading(false);
+        return;
+      }
+      sessionStorage.setItem(ADMIN_TOKEN_KEY, res.token);
+      navigate('/admin');
+    } catch {
+      setError('Verification failed. Please try again.');
+      setLoading(false);
+    }
   };
 
   return (
@@ -102,6 +129,7 @@ export function LoginPage() {
                 : 'Sign in to your NSAGPT account to continue.'}
             </p>
 
+            {step === 'credentials' && (
             <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800">
               {([
                 { value: 'user' as const, label: 'User Login' },
@@ -124,8 +152,51 @@ export function LoginPage() {
                 </button>
               ))}
             </div>
+            )}
           </div>
 
+          {step === 'code' ? (
+          <form onSubmit={handleCode} className="space-y-5">
+            {error && (
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800/50 text-error-700 dark:text-error-400 animate-fade-in">
+                <AlertCircle size={20} className="flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium">Verification failed</p>
+                  <p className="text-xs mt-0.5">{error}</p>
+                </div>
+              </div>
+            )}
+            <div className="p-5 rounded-2xl border border-primary-200 dark:border-primary-800/50 bg-primary-50/60 dark:bg-primary-900/10">
+              <div className="flex items-center gap-2 text-primary-700 dark:text-primary-300 mb-1">
+                <KeyRound size={16} />
+                <span className="text-sm font-semibold">Two-step admin verification</span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Enter your private 4-digit access code to unlock the admin panel.
+              </p>
+              <input
+                autoFocus
+                inputMode="numeric"
+                maxLength={8}
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                placeholder="••••"
+                className="input-field mt-4 text-center tracking-[0.6em] text-xl font-semibold"
+                autoComplete="one-time-code"
+              />
+            </div>
+            <button type="submit" disabled={loading || code.length < 4} className="btn-primary w-full py-3 disabled:opacity-50">
+              {loading ? (<><Loader2 size={18} className="animate-spin" /> Verifying...</>) : 'Verify & Open Admin Panel'}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setStep('credentials'); setCode(''); setError(null); }}
+              className="w-full text-xs text-slate-500 dark:text-slate-400 hover:text-primary-600"
+            >
+              Use a different account
+            </button>
+          </form>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <div className="flex items-start gap-3 p-4 rounded-xl bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800/50 text-error-700 dark:text-error-400 animate-fade-in">
@@ -209,6 +280,7 @@ export function LoginPage() {
               )}
             </button>
           </form>
+          )}
 
           <div className="mt-8 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 text-center">
             <div className="flex items-center justify-center gap-2 text-slate-700 dark:text-slate-200 mb-1">
