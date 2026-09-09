@@ -32,7 +32,37 @@ export interface GenSettings {
   longParts?: boolean | null;
   /** "Attempt any N" rules per section. */
   attempts?: { mcq: number; short: number; long: number } | null;
+  /** Composition / writing items the paper must contain (letter, essay, tashreeh...). */
+  composition?: string[] | null;
+  /** Translation direction for English papers. */
+  translation?: string | null;
+  /** Print a one-line statement / mafhoom under each question. */
+  statements?: boolean | null;
+  /** Force the whole paper into Urdu (Urdu, Islamiat, Mutalia Pakistan books). */
+  forceUrdu?: boolean | null;
 }
+
+/** Human labels for the composition keys, used in the AI brief. */
+export const COMPOSITION_RULES: Record<string, string> = {
+  letter: 'a letter-writing question (formal or informal letter to be written by the student)',
+  application: 'an application-writing question (e.g. application to the principal)',
+  story: 'a story-writing question (write a story on a given moral / outline)',
+  essay: 'an essay question with a choice of at least three topics',
+  dialogue: 'a dialogue / conversation writing question',
+  precis: 'a precis / summary writing question with a given passage',
+  comprehension: 'an unseen-passage comprehension question with sub-questions',
+  conceptual:
+    'extra SHORT conceptual questions that test understanding (why / how / explain briefly), not just recall',
+  translation:
+    'a translation question: give sentences/paragraph for Urdu → English and English → Urdu translation',
+  tashreeh: 'نظم یا غزل کے اشعار کی تشریح کا سوال (اشعار دیں اور تشریح طلب کریں)',
+  khulasa: 'سبق کا خلاصہ لکھنے کا سوال',
+  markazi: 'نظم/سبق کا مرکزی خیال لکھنے کا سوال',
+  kahani: 'کہانی نویسی کا سوال',
+  khat: 'خط نویسی کا سوال',
+  mukalma: 'مکالمہ نگاری کا سوال',
+  mazmoon: 'مضمون نویسی کا سوال (کم از کم تین عنوانات کا انتخاب دیں)',
+};
 
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
