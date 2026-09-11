@@ -11,6 +11,7 @@ import { OtherProducts } from '@/components/landing/OtherProducts';
 import { ReviewsSection } from '@/components/landing/ReviewsSection';
 import { Footer } from '@/components/landing/Footer';
 import { Reveal } from '@/components/landing/Reveal';
+import { PricingSection } from '@/components/landing/PricingSection';
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -59,6 +60,10 @@ export function LandingPage() {
 
       <Reveal delay={80}>
         <ReviewsSection />
+      </Reveal>
+
+      <Reveal>
+        <PricingSection />
       </Reveal>
 
       <Reveal>

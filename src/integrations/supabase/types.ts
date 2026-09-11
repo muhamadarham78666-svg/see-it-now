@@ -430,6 +430,92 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_requests: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          linked_user_id: string | null
+          message: string
+          phone: string
+          plan_key: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          linked_user_id?: string | null
+          message?: string
+          phone: string
+          plan_key: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          linked_user_id?: string | null
+          message?: string
+          phone?: string
+          plan_key?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          ends_at: string
+          id: string
+          plan_key: string
+          request_id: string | null
+          starts_at: string
+          status: string
+          updated_at: string
+          user_id: string
+          user_limit: number
+        }
+        Insert: {
+          created_at?: string
+          ends_at: string
+          id?: string
+          plan_key: string
+          request_id?: string | null
+          starts_at: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          user_limit: number
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string
+          id?: string
+          plan_key?: string
+          request_id?: string | null
+          starts_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          user_limit?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: true
+            referencedRelation: "subscription_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_devices: {
         Row: {
           browser: string
