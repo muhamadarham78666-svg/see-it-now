@@ -16,6 +16,7 @@ import {
   NotebookPen,
   Bot,
   Send,
+  Crown,
 } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
@@ -27,6 +28,9 @@ import { supabase } from '@/lib/supabase';
 import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { formatDateTime } from '@/lib/utils';
 import type { Generation } from '@/types';
+import { useServerFn } from '@tanstack/react-start';
+import { getMySubscriptionFn } from '@/lib/subscription.functions';
+import { getSubscriptionPlan } from '@/lib/subscriptions';
 
 const AI_SUGGESTIONS: Record<string, string[]> = {
   en: ['What is NSAGPT and how does it work?', 'How do I build a board-pattern paper?', '9th Physics half book test'],
@@ -50,6 +54,8 @@ export function DashboardPage() {
     notes: 0,
   });
   const [recentGens, setRecentGens] = useState<Generation[]>([]);
+  const [subscription, setSubscription] = useState<any>(null);
+  const getMySubscription = useServerFn(getMySubscriptionFn);
 
   const userId = session?.user.id ?? null;
 
@@ -100,8 +106,9 @@ export function DashboardPage() {
       notes: noteCount ?? 0,
     });
     setRecentGens((gens as Generation[]) ?? []);
+    try { setSubscription(await getMySubscription()); } catch { setSubscription(null); }
     setLoading(false);
-  }, [userId]);
+  }, [userId, getMySubscription]);
 
   useEffect(() => {
     loadDashboardData();
@@ -148,6 +155,17 @@ export function DashboardPage() {
           {t('dash.subtitle')}
         </p>
       </div>
+
+      {subscription && (() => {
+        const plan = getSubscriptionPlan(subscription.plan_key);
+        const remaining = Math.max(0, Math.ceil((new Date(subscription.ends_at).getTime() - Date.now()) / 86400000));
+        return (
+          <Card className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-primary-200 dark:border-primary-800">
+            <div className="flex items-center gap-3"><div className="w-11 h-11 rounded-xl bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex items-center justify-center"><Crown size={21} /></div><div><p className="font-semibold text-slate-900 dark:text-white">{plan?.name ?? subscription.plan_key} subscription</p><p className="text-xs text-slate-500 dark:text-slate-400">{new Date(subscription.starts_at).toLocaleDateString()} — {new Date(subscription.ends_at).toLocaleDateString()} · {subscription.user_limit} users</p></div></div>
+            <Badge variant={subscription.status === 'active' ? 'success' : 'error'}>{subscription.status === 'active' ? `${remaining} days remaining` : 'Subscription ended'}</Badge>
+          </Card>
+        );
+      })()}
 
       {/* NSAGPT AI quick ask card */}
       <div className="animate-fade-in-up relative overflow-hidden rounded-2xl border border-primary-200/60 dark:border-primary-800/50 bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-primary-950/40 dark:via-slate-900 dark:to-accent-950/30 p-5 sm:p-6">
