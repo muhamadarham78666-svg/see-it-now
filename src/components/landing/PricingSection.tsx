@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useServerFn } from '@tanstack/react-start';
 import { Check, CheckCircle, Loader2, Mail, Phone, Send, User, X } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
-import { sendSubscriptionRequestMailFn } from '@/lib/subscription.functions';
+import { submitSubscriptionRequestFn } from '@/lib/subscription.functions';
 import { SUBSCRIPTION_PLANS, type SubscriptionPlanKey } from '@/lib/subscriptions';
 
 export function PricingSection() {
@@ -36,7 +35,7 @@ export function PricingSection() {
 
 function SubscriptionRequestModal({ planKey, onClose }: { planKey: SubscriptionPlanKey; onClose: () => void }) {
   const plan = SUBSCRIPTION_PLANS.find((item) => item.key === planKey);
-  const sendMail = useServerFn(sendSubscriptionRequestMailFn);
+  const submitRequest = useServerFn(submitSubscriptionRequestFn);
   const [form, setForm] = useState({ fullName: '', email: '', phone: '', message: '' });
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [error, setError] = useState('');
@@ -53,21 +52,12 @@ function SubscriptionRequestModal({ planKey, onClose }: { planKey: SubscriptionP
     setStatus('submitting');
     setError('');
     const normalizedEmail = form.email.trim().toLowerCase();
-    const { data: existing } = await supabase.from('subscription_requests').select('id').eq('email', normalizedEmail).eq('plan_key', planKey).eq('status', 'new').maybeSingle();
-    if (existing) {
+    const result = await submitRequest({ data: { fullName: form.fullName.trim(), email: normalizedEmail, phone: form.phone.trim(), plan: planKey, message: form.message.trim() } });
+    if (!result.ok) {
       setStatus('error');
-      setError('Your request is already pending. Our team will contact you soon.');
+      setError(result.message);
       return;
     }
-    const { error: insertError } = await supabase.from('subscription_requests').insert({
-      full_name: form.fullName.trim(), email: normalizedEmail, phone: form.phone.trim(), plan_key: planKey, message: form.message.trim(), status: 'new',
-    });
-    if (insertError) {
-      setStatus('error');
-      setError('Request could not be submitted. Please try again.');
-      return;
-    }
-    try { await sendMail({ data: { ...form, email: normalizedEmail, plan: planKey } }); } catch { /* request is safely stored */ }
     setStatus('success');
   };
 
