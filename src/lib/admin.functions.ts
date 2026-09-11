@@ -71,7 +71,7 @@ export const adminOverviewFn = createServerFn({ method: "POST" })
       const { count: c } = await q;
       return c ?? 0;
     };
-    const [users, papers, questions, notes, reviews, pendingReviews, requests, pendingRequests, generations, boards] =
+    const [users, papers, questions, notes, reviews, pendingReviews, requests, pendingRequests, subscriptionRequests, pendingSubscriptionRequests, generations, boards] =
       await Promise.all([
         count("profiles"),
         count("papers"),
@@ -81,6 +81,8 @@ export const adminOverviewFn = createServerFn({ method: "POST" })
         count("reviews", { status: "pending" }),
         count("access_requests"),
         count("access_requests", { status: "new" }),
+        count("subscription_requests"),
+        count("subscription_requests", { status: "new" }),
         count("generations"),
         count("boards", {}),
       ]);
@@ -90,7 +92,7 @@ export const adminOverviewFn = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false })
       .limit(6);
     return {
-      stats: { users, papers, questions, notes, reviews, pendingReviews, requests, pendingRequests, generations, boards },
+      stats: { users, papers, questions, notes, reviews, pendingReviews, requests, pendingRequests, subscriptionRequests, pendingSubscriptionRequests, generations, boards },
       recentUsers: recent ?? [],
     };
   });
@@ -392,6 +394,110 @@ export const adminRequestActionFn = createServerFn({ method: "POST" })
       };
     }
     return { ok: true as const, message: "Request updated." };
+  });
+
+export const adminSubscriptionsFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => tokenInput.parse(data))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as Ctx, data.token);
+    const db = await admin();
+    const [{ data: requests, error: requestError }, { data: subscriptions, error: subscriptionError }, { data: profiles }] = await Promise.all([
+      db.from("subscription_requests").select("*").order("created_at", { ascending: false }),
+      db.from("subscriptions").select("*").order("created_at", { ascending: false }),
+      db.from("profiles").select("id, email, full_name"),
+    ]);
+    if (requestError) throw new Error(requestError.message);
+    if (subscriptionError) throw new Error(subscriptionError.message);
+    const profileMap = new Map((profiles ?? []).map((profile: any) => [profile.id, profile]));
+    return {
+      requests: requests ?? [],
+      subscriptions: (subscriptions ?? []).map((subscription: any) => ({
+        ...subscription,
+        profile: profileMap.get(subscription.user_id) ?? null,
+      })),
+    };
+  });
+
+export const adminSubscriptionRequestActionFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => tokenInput.extend({
+    id: z.string().uuid(),
+    action: z.enum(["contacted", "reject", "delete"]),
+  }).parse(data))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as Ctx, data.token);
+    const db = await admin();
+    if (data.action === "delete") {
+      const { error } = await db.from("subscription_requests").delete().eq("id", data.id);
+      return error ? { ok: false as const, message: error.message } : { ok: true as const, message: "Request deleted." };
+    }
+    const { error } = await db.from("subscription_requests").update({ status: data.action === "reject" ? "rejected" : "contacted" }).eq("id", data.id);
+    return error ? { ok: false as const, message: error.message } : { ok: true as const, message: data.action === "reject" ? "Request rejected." : "Request marked as contacted." };
+  });
+
+export const adminActivateSubscriptionFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => tokenInput.extend({
+    requestId: z.string().uuid(),
+    password: z.string().min(8).nullable().default(null),
+    startsAt: z.string().datetime().nullable().default(null),
+  }).parse(data))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as Ctx, data.token);
+    const db = await admin();
+    const { data: request, error: requestError } = await db.from("subscription_requests").select("*").eq("id", data.requestId).maybeSingle();
+    if (requestError || !request) return { ok: false as const, message: "Subscription request was not found." };
+    if (request.status === "approved") return { ok: false as const, message: "This request is already approved." };
+
+    const authList = await db.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    let user = (authList.data?.users ?? []).find((item: any) => item.email?.toLowerCase() === request.email.toLowerCase()) ?? null;
+    let createdUser = false;
+    if (!user) {
+      if (!data.password) return { ok: false as const, message: "Enter a password to create this customer's account." };
+      const created = await db.auth.admin.createUser({ email: request.email, password: data.password, email_confirm: true, user_metadata: { full_name: request.full_name } });
+      if (created.error || !created.data.user) return { ok: false as const, message: created.error?.message ?? "Could not create account." };
+      user = created.data.user;
+      createdUser = true;
+      const { error: profileError } = await db.from("profiles").upsert({ id: user.id, email: request.email, full_name: request.full_name }, { onConflict: "id" });
+      if (profileError) {
+        await db.auth.admin.deleteUser(user.id);
+        return { ok: false as const, message: profileError.message };
+      }
+      const { error: roleError } = await db.from("user_roles").upsert({ user_id: user.id, role: "user" });
+      if (roleError) {
+        await db.auth.admin.deleteUser(user.id);
+        return { ok: false as const, message: roleError.message };
+      }
+    }
+
+    const { getSubscriptionPlan } = await import("./subscriptions");
+    const { subscriptionEndDate } = await import("./subscription.server");
+    const plan = getSubscriptionPlan(request.plan_key);
+    if (!plan) return { ok: false as const, message: "Invalid subscription plan." };
+    const startsAt = data.startsAt ? new Date(data.startsAt) : new Date();
+    const endsAt = subscriptionEndDate(plan.key, startsAt);
+    const { error: subscriptionError } = await db.from("subscriptions").upsert({
+      user_id: user.id,
+      request_id: request.id,
+      plan_key: plan.key,
+      status: "active",
+      starts_at: startsAt.toISOString(),
+      ends_at: endsAt.toISOString(),
+      user_limit: plan.userLimit,
+    }, { onConflict: "user_id" });
+    if (subscriptionError) {
+      if (createdUser) await db.auth.admin.deleteUser(user.id);
+      return { ok: false as const, message: subscriptionError.message };
+    }
+    const { error: approvalError } = await db.from("subscription_requests").update({ status: "approved", linked_user_id: user.id }).eq("id", request.id);
+    if (approvalError) return { ok: false as const, message: approvalError.message };
+
+    const { sendMail, subscriptionActivatedEmail, accountCreatedEmail } = await import("./email.server");
+    const activated = subscriptionActivatedEmail({ name: request.full_name, plan: plan.key, startsAt: startsAt.toLocaleDateString("en-GB"), endsAt: endsAt.toLocaleDateString("en-GB"), userLimit: plan.userLimit, loginUrl: "https://nsagpt.org/login" });
+    const credentials = createdUser && data.password ? accountCreatedEmail({ name: request.full_name, email: request.email, password: data.password, loginUrl: "https://nsagpt.org/login" }) : "";
+    const mail = await sendMail({ to: request.email, toName: request.full_name, subject: `Your ${plan.name} subscription is active`, html: `${credentials}${activated}` });
+    return { ok: true as const, message: `${createdUser ? "Account created and subscription activated" : "Subscription activated"}${mail.ok ? "; confirmation emailed." : ", but email could not be sent."}` };
   });
 
 
