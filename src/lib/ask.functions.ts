@@ -18,4 +18,8 @@ const inputSchema = z.object({
 export const askNsagptFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => inputSchema.parse(data))
-  .handler(async ({ data }) => ({ reply: await askNsagpt(data.messages, data.uiLanguage ?? null) }));
+  .handler(async ({ data, context }) => {
+    const { requireActiveSubscription } = await import('./subscription.server');
+    await requireActiveSubscription(context);
+    return { reply: await askNsagpt(data.messages, data.uiLanguage ?? null) };
+  });

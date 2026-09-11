@@ -18,4 +18,8 @@ const inputSchema = z.object({
 export const suggestPaperPlanFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => inputSchema.parse(data))
-  .handler(async ({ data }) => requestPaperPlan(data));
+  .handler(async ({ data, context }) => {
+    const { requireActiveSubscription } = await import('./subscription.server');
+    await requireActiveSubscription(context);
+    return requestPaperPlan(data);
+  });

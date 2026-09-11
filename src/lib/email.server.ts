@@ -96,3 +96,37 @@ export function deviceRequestEmail(name: string): string {
   <p>A sign-in attempt was made from a new device or network on your NSAGPT account. For security, the administrator must approve it first.</p>
   <p>You will receive a confirmation once your new device is approved.</p>`;
 }
+
+const PLAN_LABELS: Record<string, string> = {
+  silver: 'Silver — Weekly (Rs. 399, 1 user)',
+  gold: 'Gold — 3 Months (Rs. 4,999, 3 users)',
+  diamond: 'Diamond — 1 Year (Rs. 10,500, 5 users)',
+};
+
+export function subscriptionRequestEmail(name: string, plan: string): string {
+  return `<p>Hello ${name || 'there'},</p>
+  <p>We received your request for the <strong>${PLAN_LABELS[plan] ?? plan}</strong> subscription.</p>
+  <p>The NSAGPT team will contact you on the details you provided and activate your subscription after confirmation.</p>
+  <p>No online payment has been taken.</p>`;
+}
+
+export function adminSubscriptionRequestEmail(input: { fullName: string; email: string; phone: string; plan: string; message: string }): string {
+  return adminAlertEmail({
+    Name: input.fullName,
+    Email: input.email,
+    'Phone / WhatsApp': input.phone,
+    Plan: PLAN_LABELS[input.plan] ?? input.plan,
+    Message: input.message,
+  });
+}
+
+export function subscriptionActivatedEmail(input: { name: string; plan: string; startsAt: string; endsAt: string; userLimit: number; loginUrl: string }): string {
+  return `<p>Hello ${input.name || 'there'},</p>
+  <p>Your <strong>${PLAN_LABELS[input.plan] ?? input.plan}</strong> subscription is now active.</p>
+  <table style="border-collapse:collapse;font-size:14px;margin:8px 0 16px;">
+    <tr><td style="padding:6px 10px;color:#64748b;">Starts</td><td style="padding:6px 10px;font-weight:600;">${input.startsAt}</td></tr>
+    <tr><td style="padding:6px 10px;color:#64748b;">Ends</td><td style="padding:6px 10px;font-weight:600;">${input.endsAt}</td></tr>
+    <tr><td style="padding:6px 10px;color:#64748b;">Users</td><td style="padding:6px 10px;font-weight:600;">${input.userLimit}</td></tr>
+  </table>
+  <p><a href="${input.loginUrl}" style="background:#0f172a;color:#fff;padding:10px 18px;border-radius:10px;text-decoration:none;">Open NSAGPT</a></p>`;
+}

@@ -50,7 +50,9 @@ const inputSchema = z.object({
 export const generateQuestionsFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => inputSchema.parse(data))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { requireActiveSubscription } = await import('./subscription.server');
+    await requireActiveSubscription(context);
     const raw = await requestQuestions(data.text, data.attachments, data.settings);
     return { questions: normalizeQuestions(raw) };
   });
