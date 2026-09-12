@@ -21,6 +21,8 @@ import {
   UserPlus,
   Users,
   X,
+  Crown,
+  Phone,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -45,11 +47,15 @@ import {
   adminReviewsFn,
   adminUpdateUserFn,
   adminUsersFn,
+  adminActivateSubscriptionFn,
+  adminSubscriptionRequestActionFn,
+  adminSubscriptionsFn,
+  adminRenewSubscriptionFn,
   checkAdminSessionFn,
   verifyAdminCodeFn,
 } from '@/lib/admin.functions';
 
-type Tab = 'overview' | 'users' | 'reviews' | 'requests' | 'devices' | 'boards' | 'content';
+type Tab = 'overview' | 'users' | 'reviews' | 'requests' | 'subscriptions' | 'devices' | 'boards' | 'content';
 
 interface RequestAccountForm {
   id: string;
@@ -77,6 +83,8 @@ interface Stats {
   pendingReviews: number;
   requests: number;
   pendingRequests: number;
+  subscriptionRequests: number;
+  pendingSubscriptionRequests: number;
   generations: number;
   boards: number;
 }
@@ -100,6 +108,9 @@ export function AdminPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
+  const [subscriptionRequests, setSubscriptionRequests] = useState<any[]>([]);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [subscriptionForm, setSubscriptionForm] = useState<{ id: string; password: string } | null>(null);
   const [devices, setDevices] = useState<any[]>([]);
   const [boards, setBoards] = useState<any[]>([]);
   const [content, setContent] = useState<{ papers: any[]; notes: any[] }>({ papers: [], notes: [] });
@@ -124,6 +135,10 @@ export function AdminPage() {
   const deleteUser = useServerFn(adminDeleteUserFn);
   const reviewAction = useServerFn(adminReviewActionFn);
   const requestAction = useServerFn(adminRequestActionFn);
+  const getSubscriptions = useServerFn(adminSubscriptionsFn);
+  const subscriptionRequestAction = useServerFn(adminSubscriptionRequestActionFn);
+  const activateSubscription = useServerFn(adminActivateSubscriptionFn);
+  const renewSubscription = useServerFn(adminRenewSubscriptionFn);
   const boardUpdate = useServerFn(adminBoardUpdateFn);
   const deleteContent = useServerFn(adminDeleteContentFn);
 
@@ -174,6 +189,10 @@ export function AdminPage() {
           setReviews((await getReviews({ data: { token: tk } })) as any[]);
         } else if (activeTab === 'requests') {
           setRequests((await getRequests({ data: { token: tk } })) as any[]);
+        } else if (activeTab === 'subscriptions') {
+          const result = await getSubscriptions({ data: { token: tk } });
+          setSubscriptionRequests(result.requests as any[]);
+          setSubscriptions(result.subscriptions as any[]);
         } else if (activeTab === 'devices') {
           setDevices((await getDevices({ data: { token: tk } })) as any[]);
         } else if (activeTab === 'boards') {
@@ -192,7 +211,7 @@ export function AdminPage() {
       }
       setLoading(false);
     },
-    [getOverview, getUsers, getReviews, getRequests, getDevices, getBoards, getContent],
+    [getOverview, getUsers, getReviews, getRequests, getSubscriptions, getDevices, getBoards, getContent],
   );
 
   useEffect(() => {
@@ -205,6 +224,8 @@ export function AdminPage() {
     const channel = supabase
       .channel(`admin-live-${tab}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'access_requests' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'subscription_requests' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'subscriptions' }, refresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, refresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'reviews' }, refresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'user_devices' }, refresh)
@@ -294,6 +315,7 @@ export function AdminPage() {
     { key: 'users', label: 'Users', icon: Users, count: stats?.users },
     { key: 'reviews', label: 'Reviews', icon: MessageSquareQuote, count: stats?.pendingReviews },
     { key: 'requests', label: 'Access requests', icon: Inbox, count: stats?.pendingRequests },
+    { key: 'subscriptions', label: 'Subscriptions', icon: Crown, count: stats?.pendingSubscriptionRequests },
     { key: 'devices', label: 'Devices', icon: ShieldCheck, count: devices.filter((d) => d.status === 'pending').length || undefined },
     { key: 'boards', label: 'Boards', icon: Landmark },
     { key: 'content', label: 'Content', icon: FileText },
@@ -410,6 +432,10 @@ export function AdminPage() {
               <button onClick={() => setTab('requests')} className="w-full flex items-center justify-between py-2 text-sm text-slate-600 dark:text-slate-300 hover:text-primary-600">
                 <span>Pending access requests</span>
                 <Badge variant={stats?.pendingRequests ? 'warning' : 'success'}>{stats?.pendingRequests ?? 0}</Badge>
+              </button>
+              <button onClick={() => setTab('subscriptions')} className="w-full flex items-center justify-between py-2 text-sm text-slate-600 dark:text-slate-300 hover:text-primary-600">
+                <span>Pending subscriptions</span>
+                <Badge variant={stats?.pendingSubscriptionRequests ? 'warning' : 'success'}>{stats?.pendingSubscriptionRequests ?? 0}</Badge>
               </button>
             </Card>
             <Card className="p-5">
@@ -695,6 +721,44 @@ export function AdminPage() {
             </Card>
           ))}
 
+        </div>
+      ) : tab === 'subscriptions' ? (
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {(['new', 'contacted', 'approved', 'rejected'] as const).map((status) => (
+              <Card key={status} className="p-4"><p className="text-xl font-bold text-slate-900 dark:text-white">{subscriptionRequests.filter((request) => request.status === status).length}</p><p className="text-xs capitalize text-slate-500 dark:text-slate-400">{status}</p></Card>
+            ))}
+          </div>
+          {subscriptionRequests.length === 0 && <Card className="p-8 text-center text-sm text-slate-500">No subscription requests yet.</Card>}
+          {subscriptionRequests.map((request) => {
+            const isOpen = subscriptionForm?.id === request.id;
+            return (
+              <Card key={request.id} className="p-5 space-y-4">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap"><p className="font-semibold text-slate-900 dark:text-white">{request.full_name}</p><Badge variant={request.status === 'approved' ? 'success' : request.status === 'rejected' ? 'error' : 'warning'}>{request.status}</Badge><Badge>{String(request.plan_key).toUpperCase()}</Badge></div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{request.email} · <Phone size={12} className="inline" /> {request.phone}</p>
+                    {request.message && <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 whitespace-pre-wrap">{request.message}</p>}
+                    <p className="text-xs text-slate-400 mt-2">Received {new Date(request.created_at).toLocaleString()}</p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {request.status !== 'approved' && <button onClick={() => setSubscriptionForm(isOpen ? null : { id: request.id, password: randomPassword() })} className="btn-primary text-xs"><Crown size={14} /> Activate</button>}
+                    {request.status === 'new' && <button onClick={() => void act(`sc-${request.id}`, () => subscriptionRequestAction({ data: { token: tk, id: request.id, action: 'contacted' } }))} className="px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-xs text-slate-700 dark:text-slate-200">Contacted</button>}
+                    {request.status !== 'rejected' && request.status !== 'approved' && <button onClick={() => void act(`sr-${request.id}`, () => subscriptionRequestAction({ data: { token: tk, id: request.id, action: 'reject' } }))} className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500" title="Reject"><X size={16} /></button>}
+                    <button onClick={() => void act(`sd-${request.id}`, () => subscriptionRequestAction({ data: { token: tk, id: request.id, action: 'delete' } }))} className="p-2 rounded-lg bg-error-50 dark:bg-error-900/20 text-error-600 dark:text-error-400" title="Delete"><Trash2 size={16} /></button>
+                  </div>
+                </div>
+                {isOpen && (
+                  <div className="border-t border-slate-200 dark:border-slate-700 pt-4 space-y-3">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">Activate for this customer</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">If their email already has an account, it will be linked automatically. Otherwise this password creates a confirmed account.</p>
+                    <div className="flex gap-2 flex-wrap"><input value={subscriptionForm?.password ?? ''} onChange={(event) => setSubscriptionForm({ id: request.id, password: event.target.value })} placeholder="New account password" className="input-field flex-1 min-w-[220px]" /><button type="button" onClick={() => setSubscriptionForm({ id: request.id, password: randomPassword() })} className="px-3 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300" title="Generate password"><RefreshCw size={15} /></button><button disabled={busy === `sa-${request.id}`} onClick={() => void act(`sa-${request.id}`, async () => { const currentForm = subscriptionForm; const password = currentForm && currentForm.id === request.id ? currentForm.password : ''; const result = await activateSubscription({ data: { token: tk, requestId: request.id, password: password || null, startsAt: null } }); if (result.ok) setSubscriptionForm(null); return result; })} className="btn-primary text-sm">{busy === `sa-${request.id}` ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} Create/link & activate</button></div>
+                  </div>
+                )}
+              </Card>
+            );
+          })}
+          {subscriptions.length > 0 && <Card className="p-0 overflow-hidden"><p className="px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-700">Active subscription records</p><div className="divide-y divide-slate-100 dark:divide-slate-700">{subscriptions.map((item) => <div key={item.id} className="p-4 flex items-center justify-between gap-3 flex-wrap"><div><p className="text-sm font-medium text-slate-900 dark:text-white">{item.profile?.full_name || item.profile?.email || item.user_id}</p><p className="text-xs text-slate-500 dark:text-slate-400">{String(item.plan_key).toUpperCase()} · ends {new Date(item.ends_at).toLocaleDateString()} · {item.user_limit} users</p></div><div className="flex items-center gap-2"><Badge variant={item.status === 'active' && new Date(item.ends_at).getTime() > Date.now() ? 'success' : 'error'}>{item.status === 'active' && new Date(item.ends_at).getTime() <= Date.now() ? 'expired' : item.status}</Badge><button disabled={busy === `sn-${item.id}`} onClick={() => void act(`sn-${item.id}`, () => renewSubscription({ data: { token: tk, id: item.id } }))} className="px-3 py-1.5 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs font-medium">Renew plan</button></div></div>)}</div></Card>}
         </div>
       ) : tab === 'devices' ? (
         <div className="space-y-3">

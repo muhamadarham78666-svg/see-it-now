@@ -500,6 +500,34 @@ export const adminActivateSubscriptionFn = createServerFn({ method: "POST" })
     return { ok: true as const, message: `${createdUser ? "Account created and subscription activated" : "Subscription activated"}${mail.ok ? "; confirmation emailed." : ", but email could not be sent."}` };
   });
 
+export const adminRenewSubscriptionFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => tokenInput.extend({ id: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as Ctx, data.token);
+    const db = await admin();
+    const { data: subscription, error } = await db.from("subscriptions").select("*").eq("id", data.id).maybeSingle();
+    if (error || !subscription) return { ok: false as const, message: "Subscription was not found." };
+    const { getSubscriptionPlan } = await import("./subscriptions");
+    const { subscriptionEndDate } = await import("./subscription.server");
+    const plan = getSubscriptionPlan(subscription.plan_key);
+    if (!plan) return { ok: false as const, message: "Invalid subscription plan." };
+    const currentEnd = new Date(subscription.ends_at);
+    const startsAt = currentEnd.getTime() > Date.now() ? currentEnd : new Date();
+    const endsAt = subscriptionEndDate(plan.key, startsAt);
+    const { error: updateError } = await db.from("subscriptions").update({ status: "active", ends_at: endsAt.toISOString(), user_limit: plan.userLimit }).eq("id", data.id);
+    if (updateError) return { ok: false as const, message: updateError.message };
+    if (subscription.request_id) await db.from("subscription_requests").update({ status: "approved" }).eq("id", subscription.request_id);
+    const { data: profile } = await db.from("profiles").select("email, full_name").eq("id", subscription.user_id).maybeSingle();
+    let emailed = false;
+    if (profile?.email) {
+      const { sendMail, subscriptionActivatedEmail } = await import("./email.server");
+      const mail = await sendMail({ to: profile.email, toName: profile.full_name ?? undefined, subject: `Your ${plan.name} subscription was renewed`, html: subscriptionActivatedEmail({ name: profile.full_name ?? "", plan: plan.key, startsAt: new Date(subscription.starts_at).toLocaleDateString("en-GB"), endsAt: endsAt.toLocaleDateString("en-GB"), userLimit: plan.userLimit, loginUrl: "https://nsagpt.org/login" }) });
+      emailed = mail.ok;
+    }
+    return { ok: true as const, message: `Subscription renewed until ${endsAt.toLocaleDateString("en-GB")}${emailed ? "; confirmation emailed." : "."}` };
+  });
+
 
 export const adminContentFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
