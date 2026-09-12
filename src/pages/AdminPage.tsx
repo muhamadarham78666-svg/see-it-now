@@ -50,6 +50,7 @@ import {
   adminActivateSubscriptionFn,
   adminSubscriptionRequestActionFn,
   adminSubscriptionsFn,
+  adminRenewSubscriptionFn,
   checkAdminSessionFn,
   verifyAdminCodeFn,
 } from '@/lib/admin.functions';
@@ -137,6 +138,7 @@ export function AdminPage() {
   const getSubscriptions = useServerFn(adminSubscriptionsFn);
   const subscriptionRequestAction = useServerFn(adminSubscriptionRequestActionFn);
   const activateSubscription = useServerFn(adminActivateSubscriptionFn);
+  const renewSubscription = useServerFn(adminRenewSubscriptionFn);
   const boardUpdate = useServerFn(adminBoardUpdateFn);
   const deleteContent = useServerFn(adminDeleteContentFn);
 
@@ -756,7 +758,7 @@ export function AdminPage() {
               </Card>
             );
           })}
-          {subscriptions.length > 0 && <Card className="p-0 overflow-hidden"><p className="px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-700">Active subscription records</p><div className="divide-y divide-slate-100 dark:divide-slate-700">{subscriptions.map((item) => <div key={item.id} className="p-4 flex items-center justify-between gap-3 flex-wrap"><div><p className="text-sm font-medium text-slate-900 dark:text-white">{item.profile?.full_name || item.profile?.email || item.user_id}</p><p className="text-xs text-slate-500 dark:text-slate-400">{String(item.plan_key).toUpperCase()} · ends {new Date(item.ends_at).toLocaleDateString()} · {item.user_limit} users</p></div><Badge variant={item.status === 'active' && new Date(item.ends_at).getTime() > Date.now() ? 'success' : 'error'}>{item.status === 'active' && new Date(item.ends_at).getTime() <= Date.now() ? 'expired' : item.status}</Badge></div>)}</div></Card>}
+          {subscriptions.length > 0 && <Card className="p-0 overflow-hidden"><p className="px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-700">Active subscription records</p><div className="divide-y divide-slate-100 dark:divide-slate-700">{subscriptions.map((item) => <div key={item.id} className="p-4 flex items-center justify-between gap-3 flex-wrap"><div><p className="text-sm font-medium text-slate-900 dark:text-white">{item.profile?.full_name || item.profile?.email || item.user_id}</p><p className="text-xs text-slate-500 dark:text-slate-400">{String(item.plan_key).toUpperCase()} · ends {new Date(item.ends_at).toLocaleDateString()} · {item.user_limit} users</p></div><div className="flex items-center gap-2"><Badge variant={item.status === 'active' && new Date(item.ends_at).getTime() > Date.now() ? 'success' : 'error'}>{item.status === 'active' && new Date(item.ends_at).getTime() <= Date.now() ? 'expired' : item.status}</Badge><button disabled={busy === `sn-${item.id}`} onClick={() => void act(`sn-${item.id}`, () => renewSubscription({ data: { token: tk, id: item.id } }))} className="px-3 py-1.5 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs font-medium">Renew plan</button></div></div>)}</div></Card>}
         </div>
       ) : tab === 'devices' ? (
         <div className="space-y-3">
