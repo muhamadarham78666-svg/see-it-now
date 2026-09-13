@@ -244,6 +244,10 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta }: Pap
               />
             </div>
             {field('Footer note', 'footerNote', 'Best of luck!')}
+            {field('Watermark text', 'watermarkText', 'NSA School System')}
+            <p className="text-[11px] text-slate-400 -mt-1">
+              Printed faintly behind the paper. Leave empty for no watermark.
+            </p>
 
             <button
               onClick={() => setWithAnswers((v) => !v)}
