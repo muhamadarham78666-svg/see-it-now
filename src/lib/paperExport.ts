@@ -1,3 +1,4 @@
+import { cleanPaperText } from './paperText';
 import type { Question } from '@/types';
 import { getBoardStyle } from '@/lib/boardStyles';
 
