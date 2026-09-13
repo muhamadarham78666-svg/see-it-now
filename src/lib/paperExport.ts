@@ -48,10 +48,12 @@ export interface PaperPrintSettings {
 
 export const PDF_STYLE_OPTIONS: { value: PdfStyleKey; label: string; hint: string }[] = [
   { value: 'academic', label: 'Test Series (Academy)', hint: 'Boxed detail grid, MCQ bubble sheet and Objective / Subjective parts' },
+  { value: 'modern', label: 'Modern Professional', hint: 'Clean sans typography with boxed section dividers' },
   { value: 'classic', label: 'Classic Board', hint: 'Traditional serif board-paper presentation' },
   { value: 'compact', label: 'Compact Exam', hint: 'Maximum questions per page with restrained spacing' },
   { value: 'formal', label: 'Formal Institutional', hint: 'Prominent institute identity and double rules' },
 ];
+
 
 export const PAPER_PRINT_PRESETS: Record<PdfStyleKey, PaperPrintSettings> = {
   academic: { accentColor: '#17365d', headingFont: 'sans', bodyFont: 'serif', fontSize: 13, density: 'compact', divider: 'single', logoSize: 72, logoAlignment: 'left' },
