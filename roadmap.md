@@ -29,7 +29,7 @@
 - [ ] Regenerate single question (wire onRegenerate)
 - [ ] Duplicate prevention (fingerprint + history check)
 - [x] Marks validation before PDF; impossible config explanation
-- [ ] Custom long question (Advanced -> Writing/Composition)
+- [x] Custom long question (Advanced -> Writing/Composition)
 - [ ] Autosave paper config/drafts
 - [ ] Notes export: PDF / Word / copy text
 - [x] Print redesign: inline roman numbering, compact pagination, section choice lines, prominent logo/institute, hidden chapter/topic labels, and customizable Modern Professional templates
