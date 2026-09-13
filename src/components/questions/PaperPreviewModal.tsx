@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { X, Printer, Download, FileText, Eye, EyeOff, ImagePlus, Trash2, Building2, CalendarDays, ListChecks } from 'lucide-react';
-import { buildPaperHtml, buildPaperText, downloadFile, printHtml, type PaperMeta } from '@/lib/paperExport';
+import { X, Printer, Download, FileText, Eye, EyeOff, ImagePlus, Trash2, Building2, CalendarDays, ListChecks, AlertTriangle } from 'lucide-react';
+import {
+  buildPaperHtml,
+  buildPaperText,
+  downloadFile,
+  printHtml,
+  validateMarks,
+  PDF_STYLE_OPTIONS,
+  type PaperMeta,
+} from '@/lib/paperExport';
 import { BOARD_STYLE_OPTIONS } from '@/lib/boardStyles';
 import type { Question } from '@/types';
 
@@ -46,6 +54,8 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta }: Pap
     () => buildPaperHtml(meta, questions, { withAnswers }),
     [meta, questions, withAnswers],
   );
+
+  const check = useMemo(() => validateMarks(questions, meta.attempts), [questions, meta.attempts]);
 
 
   if (!open) return null;
@@ -196,7 +206,25 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta }: Pap
               </select>
             </div>
 
-
+            <div>
+              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+                PDF Template
+              </label>
+              <select
+                value={meta.pdfStyle ?? 'classic'}
+                onChange={(e) => setMeta((m) => ({ ...m, pdfStyle: e.target.value as PaperMeta['pdfStyle'] }))}
+                className="input-field text-sm !py-2"
+              >
+                {PDF_STYLE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-[11px] text-slate-400 mt-1">
+                {PDF_STYLE_OPTIONS.find((o) => o.value === (meta.pdfStyle ?? 'classic'))?.hint}
+              </p>
+            </div>
 
             {groupTitle(<CalendarDays size={13} />, 'Schedule')}
             <div className="grid grid-cols-2 gap-3">
@@ -216,6 +244,10 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta }: Pap
               />
             </div>
             {field('Footer note', 'footerNote', 'Best of luck!')}
+            {field('Watermark text', 'watermarkText', 'NSA School System')}
+            <p className="text-[11px] text-slate-400 -mt-1">
+              Printed faintly behind the paper. Leave empty for no watermark.
+            </p>
 
             <button
               onClick={() => setWithAnswers((v) => !v)}
@@ -282,6 +314,12 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta }: Pap
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2 px-5 py-4 border-t border-slate-200 dark:border-slate-700">
+          {!check.ok && (
+            <div className="w-full sm:flex-1 min-w-0 flex items-start gap-2 text-[11px] text-amber-600 dark:text-amber-400">
+              <AlertTriangle size={14} className="flex-shrink-0 mt-px" />
+              <span>{check.issues.join(' ')}</span>
+            </div>
+          )}
           <button
             onClick={() => downloadFile(`${fileBase}.txt`, buildPaperText(meta, questions, withAnswers), 'text/plain;charset=utf-8')}
             className="btn-secondary text-sm"
