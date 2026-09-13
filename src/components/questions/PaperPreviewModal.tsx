@@ -203,7 +203,7 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta, onMet
               Preview &amp; Download
             </h2>
             <span className="hidden sm:inline text-xs text-slate-400 ml-2">
-              {questions.length} questions · {questions.reduce((s, q) => s + (q.marks || 0), 0)} marks
+              {items.length} questions · {check.total} marks
             </span>
           </div>
           <button
