@@ -258,6 +258,15 @@ interface PaperLabels {
   instructions: string;
   rollNo: string;
   name: string;
+  className: string;
+  subject: string;
+  timeAllowed: string;
+  examDate: string;
+  exam: string;
+  printed: string;
+  objectivePart: string;
+  subjectivePart: string;
+  sectionNames: Record<Question['question_type'], string>;
   attemptAny: (pick: number, total: number) => string;
 }
 
@@ -270,6 +279,15 @@ const EN_LABELS: PaperLabels = {
   instructions: 'Instructions',
   rollNo: 'Roll No',
   name: 'Name',
+  className: 'Class',
+  subject: 'Subject',
+  timeAllowed: 'Time Allowed',
+  examDate: 'Exam Date',
+  exam: 'Exam',
+  printed: 'Printed',
+  objectivePart: 'Objective Part',
+  subjectivePart: 'Subjective Part',
+  sectionNames: { mcq: 'Multiple Choice Questions', short: 'Short Questions', long: 'Detailed Questions' },
   attemptAny: (pick, total) => `Attempt any ${pick} of ${total} questions.`,
 };
 
@@ -282,8 +300,40 @@ const URDU_LABELS: PaperLabels = {
   instructions: 'ہدایات',
   rollNo: 'رول نمبر',
   name: 'نام',
+  className: 'جماعت',
+  subject: 'مضمون',
+  timeAllowed: 'مقررہ وقت',
+  examDate: 'تاریخ امتحان',
+  exam: 'امتحان',
+  printed: 'طباعت',
+  objectivePart: 'حصہ معروضی',
+  subjectivePart: 'حصہ انشائیہ',
+  sectionNames: { mcq: 'کثیر الانتخابی سوالات', short: 'مختصر سوالات', long: 'تفصیلی سوالات' },
   attemptAny: (pick, total) => `کل ${total} سوالات میں سے کوئی سے ${pick} سوال حل کریں۔`,
 };
+
+const urduNumber = (value: number) => value.toLocaleString('ur-PK', { useGrouping: false });
+const URDU_ITEM_LABELS = ['ا', 'ب', 'ج', 'د', 'ہ', 'و', 'ز', 'ح', 'ط', 'ی', 'ک', 'ل', 'م', 'ن', 'س', 'ع', 'ف', 'ص', 'ق', 'ر'];
+const urduItemLabel = (index: number) => URDU_ITEM_LABELS[index] ?? urduNumber(index + 1);
+
+function localizeUrduMeta(value: string | undefined, kind: 'instructions' | 'exam'): string {
+  if (!value) return '';
+  if (kind === 'instructions' && /^Attempt all questions\. Write neatly and clearly\.?$/i.test(value.trim())) {
+    return 'تمام سوالات حل کریں۔ صاف اور واضح لکھیں۔';
+  }
+  if (kind === 'exam') {
+    const normalized = value.trim().toLowerCase();
+    const names: Record<string, string> = {
+      'question paper': 'سوالیہ پرچہ',
+      'annual examination': 'سالانہ امتحان',
+      'annual / model examination': 'سالانہ / نمونہ امتحان',
+      'examination paper': 'امتحانی پرچہ',
+      'assessment paper': 'جائزہ پرچہ',
+    };
+    return names[normalized] ?? value;
+  }
+  return value;
+}
 
 const escapeHtml = (value: string) =>
   value
@@ -379,7 +429,7 @@ export function buildPaperHtml(
         .map((q, i) => {
           const labels = (q.options ?? []).map((o) => o.label);
           const set = labels.length ? labels : ['A', 'B', 'C', 'D'];
-          return `<div class="bubble-row"><span class="bn">${i + 1}.</span>${set
+          return `<div class="bubble-row"><span class="bn">${isUrduPaper ? urduNumber(i + 1) : i + 1}.</span>${set
             .map((l) => `<span class="bub">${escapeHtml(l)}</span>`)
             .join('')}</div>`;
         })
@@ -395,22 +445,22 @@ export function buildPaperHtml(
       const plan = sectionMarkPlan(items, meta.attempts?.[key]);
       const choice =
         plan.attempted < plan.available
-          ? `<span class="choice">(${isUrduPaper ? `کوئی سے ${plan.attempted}` : `Any ${plan.attempted}`})</span>`
+          ? `<span class="choice">(${isUrduPaper ? `کوئی سے ${urduNumber(plan.attempted)}` : `Any ${plan.attempted}`})</span>`
           : '';
       const formula = plan.uniform
-        ? `(${plan.perQuestion} x ${plan.attempted} = ${plan.total})`
-        : `(${t.totalMarks}: ${plan.total})`;
+        ? `(${isUrduPaper ? urduNumber(plan.perQuestion) : plan.perQuestion} × ${isUrduPaper ? urduNumber(plan.attempted) : plan.attempted} = ${isUrduPaper ? urduNumber(plan.total) : plan.total})`
+        : `(${t.totalMarks}: ${isUrduPaper ? urduNumber(plan.total) : plan.total})`;
       const sectionNo = ++qNumber;
       const rows = items
         .map((q, index) => {
-          const itemNo = `(${roman(index + 1)})`;
+           const itemNo = `(${isUrduPaper ? urduItemLabel(index) : roman(index + 1)})`;
           const rtl = q.language === 'urdu' || isUrduPaper;
           const opts =
             q.question_type === 'mcq' && q.options
               ? `<ol class="opts">${q.options
                   .map(
                     (o, oi) =>
-                      `<li><span class="lbl">(${escapeHtml(o.label)})</span> <span${ed(q.id, 'option', oi)}>${escapeHtml(o.text)}</span></li>`,
+                       `<li><span class="lbl">(${escapeHtml(isUrduPaper ? urduItemLabel(oi) : o.label)})</span> <span${ed(q.id, 'option', oi)}>${escapeHtml(o.text)}</span></li>`,
                   )
                   .join('')}</ol>`
               : '';
@@ -424,8 +474,8 @@ export function buildPaperHtml(
               ? `<ol class="parts">${q.parts
                   .map(
                     (p, pi) =>
-                      `<li><span class="lbl">(${escapeHtml(p.label)})</span> <span${ed(q.id, 'part', pi)}>${escapeHtml(p.text)}</span>${
-                        p.marks ? ` <span class="pmarks">(${p.marks})</span>` : ''
+                       `<li><span class="lbl">(${escapeHtml(isUrduPaper ? urduItemLabel(pi) : p.label)})</span> <span${ed(q.id, 'part', pi)}>${escapeHtml(p.text)}</span>${
+                         p.marks ? ` <span class="pmarks">(${isUrduPaper ? urduNumber(p.marks) : p.marks})</span>` : ''
                       }</li>`,
                   )
                   .join('')}</ol>`
@@ -455,20 +505,20 @@ export function buildPaperHtml(
         .join('');
       const banner =
         key === 'mcq'
-          ? `<div class="part-banner">${isUrduPaper ? 'حصہ معروضی' : 'Objective Part'}</div>${bubbleSheet}`
+          ? `<div class="part-banner">${t.objectivePart}</div>${bubbleSheet}`
           : !subjectiveBannerDone
             ? ((subjectiveBannerDone = true),
-              `<div class="part-banner">${isUrduPaper ? 'حصہ انشائیہ' : 'Subjective Part'}</div>`)
+              `<div class="part-banner">${t.subjectivePart}</div>`)
             : '';
 
-      const lead = `<div class="section-title"><span class="mainq">${t.q}${sectionNo}.</span><span>${escapeHtml(
-        cleanSectionLabel(label),
+      const lead = `<div class="section-title"><span class="mainq">${t.q}${isUrduPaper ? urduNumber(sectionNo) : sectionNo}.</span><span>${escapeHtml(
+        isUrduPaper ? t.sectionNames[key] : cleanSectionLabel(label),
       )}</span>${choice}<span class="section-marks">${formula}</span></div>`;
       return `${banner}<section class="${isUrduPaper ? 'rtl' : ''}">${lead}${rows}</section>`;
     })
     .join('');
 
-  const printedOn = new Date().toLocaleString('en-GB', {
+  const printedOn = new Date().toLocaleString(isUrduPaper ? 'ur-PK' : 'en-GB', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -563,27 +613,27 @@ export function buildPaperHtml(
   ${meta.watermarkText ? `<div class="watermark" aria-hidden="true"><span>${escapeHtml(meta.watermarkText)}</span></div>` : ''}
   <header>
     <div class="brand logo-${print.logoAlignment}${meta.logoUrl ? '' : ' no-logo'}">
-      ${meta.logoUrl ? `<img src="${escapeHtml(meta.logoUrl)}" alt="Logo" />` : ''}
+      ${meta.logoUrl ? `<img src="${escapeHtml(meta.logoUrl)}" alt="${isUrduPaper ? 'ادارے کا نشان' : 'Logo'}" />` : ''}
       <div class="brand-copy">
         ${meta.institutionName ? `<h1>${escapeHtml(meta.institutionName)}</h1>` : ''}
         ${meta.boardName ? `<div class="board">${escapeHtml(meta.boardName)}</div>` : ''}
-        <div class="exam">${escapeHtml(meta.examName || boardStyle.examHeading)}</div>
+         <div class="exam">${escapeHtml(isUrduPaper ? localizeUrduMeta(meta.examName || boardStyle.examHeading, 'exam') : meta.examName || boardStyle.examHeading)}</div>
       </div>
     </div>
   </header>
   <div class="info">
     ${infoCell(t.name, '')}
     ${infoCell(t.rollNo, '')}
-    ${infoCell('Class', meta.className ?? '')}
-    ${infoCell('Subject', meta.subject ?? '')}
-    ${infoCell('Time Allowed', meta.examTime ?? '')}
-    ${infoCell(t.totalMarks, String(totalMarks))}
-    ${infoCell('Exam Date', meta.examDate ?? '')}
-    ${infoCell('Exam', meta.title ?? '')}
+    ${infoCell(t.className, meta.className ?? '')}
+    ${infoCell(t.subject, meta.subject ?? '')}
+    ${infoCell(t.timeAllowed, meta.examTime ?? '')}
+    ${infoCell(t.totalMarks, isUrduPaper ? urduNumber(totalMarks) : String(totalMarks))}
+    ${infoCell(t.examDate, meta.examDate ?? '')}
+    ${infoCell(t.exam, meta.title ?? '')}
   </div>
-  ${meta.instructions ? `<div class="instructions"><strong>${t.instructions}:</strong>\n${escapeHtml(meta.instructions)}</div>` : ''}
+   ${meta.instructions ? `<div class="instructions"><strong>${t.instructions}:</strong>\n${escapeHtml(isUrduPaper ? localizeUrduMeta(meta.instructions, 'instructions') : meta.instructions)}</div>` : ''}
   ${sections}
-  <footer><span>Printed: ${escapeHtml(printedOn)}</span>${
+  <footer><span>${t.printed}: ${escapeHtml(printedOn)}</span>${
     meta.footerNote ? `<span class="note">${escapeHtml(meta.footerNote)}</span>` : ''
   }<span>${escapeHtml(meta.institutionName ?? '')}</span></footer>
   ${
@@ -711,15 +761,17 @@ export function printHtml(html: string) {
 
 export function buildPaperText(meta: PaperMeta, questions: Question[], withAnswers: boolean) {
   const lines: string[] = [];
+  const isUrdu = questions.length > 0 && questions.every((q) => q.language === 'urdu');
+  const t = isUrdu ? URDU_LABELS : EN_LABELS;
   if (meta.institutionName) lines.push(meta.institutionName);
   lines.push(meta.examName || meta.title);
   const info = [meta.subject, meta.className, meta.examDate].filter(Boolean);
   if (info.length) lines.push(info.join(' | '));
   lines.push(
-    `Total Marks: ${questions.reduce((s, q) => s + (q.marks || 0), 0)}`,
+    `${t.totalMarks}: ${isUrdu ? urduNumber(computePaperMarks(questions, meta.attempts)) : computePaperMarks(questions, meta.attempts)}`,
     '',
   );
-  if (meta.instructions) lines.push(`Instructions: ${meta.instructions}`, '');
+  if (meta.instructions) lines.push(`${t.instructions}: ${meta.instructions}`, '');
 
   let qNo = 0;
   let lastType: Question['question_type'] | null = null;
@@ -731,18 +783,21 @@ export function buildPaperText(meta: PaperMeta, questions: Question[], withAnswe
       qNo += 1;
       const sameType = questions.filter((item) => item.question_type === q.question_type);
       const attempt = meta.attempts?.[q.question_type];
-      lines.push(`Q${qNo}.`, attempt && attempt < sameType.length ? `Attempt any ${attempt} of ${sameType.length} questions.` : '');
+      lines.push(
+        isUrdu ? `${t.q}${urduNumber(qNo)}۔ ${t.sectionNames[q.question_type]}` : `Q${qNo}.`,
+        attempt && attempt < sameType.length ? t.attemptAny(attempt, sameType.length) : '',
+      );
     }
     subNo += 1;
     lines.push(`  (${roman(subNo)}) ${q.question_text} [${q.marks}]`);
     if (q.statement) lines.push(`   → ${q.statement}`);
-    if (q.diagram_note) lines.push(`   [Figure: ${q.diagram_note}]`);
+    if (q.diagram_note) lines.push(`   [${isUrdu ? 'شکل' : 'Figure'}: ${q.diagram_note}]`);
     if (q.parts) q.parts.forEach((p) => lines.push(`   (${p.label}) ${p.text}${p.marks ? ` (${p.marks})` : ''}`));
     if (q.options) q.options.forEach((o) => lines.push(`   ${o.label}. ${o.text}`));
 
     if (withAnswers) {
-      if (q.question_type === 'mcq') lines.push(`   Answer: ${q.correct_answer ?? '—'}`);
-      else if (q.question_type === 'short') lines.push(`   Answer: ${q.expected_answer ?? '—'}`);
+      if (q.question_type === 'mcq') lines.push(`   ${t.answer}: ${q.correct_answer ?? '—'}`);
+      else if (q.question_type === 'short') lines.push(`   ${t.answer}: ${q.expected_answer ?? '—'}`);
       else if (q.answer_points) q.answer_points.forEach((p) => lines.push(`   - ${p}`));
     }
     lines.push('');
