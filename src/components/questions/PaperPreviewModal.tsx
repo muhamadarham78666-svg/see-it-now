@@ -20,6 +20,7 @@ interface PaperPreviewModalProps {
   questions: Question[];
   defaultMeta: PaperMeta;
   onMetaChange?: (meta: PaperMeta) => void;
+  onQuestionsChange?: (questions: Question[]) => void;
 }
 
 const LOGO_KEY = 'nsagpt.paper.logo';
