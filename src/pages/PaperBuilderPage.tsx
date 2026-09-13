@@ -417,22 +417,57 @@ export function PaperBuilderPage() {
         </div>
       </div>
 
-      {/* Paper selector */}
+      {/* My Papers */}
       {papers.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {papers.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => { setActivePaper(p); loadPaperQuestions(p.id); }}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                activePaper?.id === p.id
-                  ? 'bg-gradient-to-r from-primary-600 to-accent-500 text-white shadow-md shadow-primary-500/25'
-                  : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-primary-300'
-              }`}
-            >
-              {p.title}
-            </button>
-          ))}
+        <div>
+          <h3 className="font-display text-sm font-semibold text-slate-900 dark:text-white mb-2">
+            My Papers ({papers.length})
+          </h3>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {papers.map((p) => {
+              const active = activePaper?.id === p.id;
+              return (
+                <div
+                  key={p.id}
+                  className={`card p-3 transition-all ${
+                    active ? 'ring-2 ring-primary-500/60 border-primary-300' : 'hover:border-primary-300'
+                  }`}
+                >
+                  <button
+                    onClick={() => { setActivePaper(p); loadPaperQuestions(p.id); }}
+                    className="w-full text-left"
+                  >
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{p.title}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                      {[p.subject, p.class_name, p.exam_name].filter(Boolean).join(' • ') || 'No details yet'}
+                    </p>
+                  </button>
+                  <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700/50 flex items-center gap-1">
+                    <IconAction label="Edit details" onClick={() => openEditPaper(p)}>
+                      <Pencil size={14} />
+                    </IconAction>
+                    <IconAction label="Duplicate" onClick={() => handleDuplicatePaper(p)}>
+                      <Copy size={14} />
+                    </IconAction>
+                    <IconAction
+                      label="Download"
+                      onClick={() => { setActivePaper(p); loadPaperQuestions(p.id); setShowPreview(true); }}
+                    >
+                      <Download size={14} />
+                    </IconAction>
+                    <button
+                      onClick={() => setDeleteTarget(p)}
+                      title="Delete"
+                      aria-label="Delete paper"
+                      className="ml-auto p-1.5 rounded-lg text-error-500 hover:bg-error-50 dark:hover:bg-error-900/20"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
