@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { X, Printer, Download, FileText, Eye, EyeOff, ImagePlus, Trash2, Building2, CalendarDays, ListChecks } from 'lucide-react';
-import { buildPaperHtml, buildPaperText, downloadFile, printHtml, type PaperMeta } from '@/lib/paperExport';
+import {
+  buildPaperHtml,
+  buildPaperText,
+  downloadFile,
+  printHtml,
+  validateMarks,
+  PDF_STYLE_OPTIONS,
+  type PaperMeta,
+} from '@/lib/paperExport';
 import { BOARD_STYLE_OPTIONS } from '@/lib/boardStyles';
 import type { Question } from '@/types';
 
