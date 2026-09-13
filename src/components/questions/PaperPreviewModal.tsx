@@ -314,6 +314,12 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta }: Pap
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2 px-5 py-4 border-t border-slate-200 dark:border-slate-700">
+          {!check.ok && (
+            <div className="w-full sm:flex-1 min-w-0 flex items-start gap-2 text-[11px] text-amber-600 dark:text-amber-400">
+              <AlertTriangle size={14} className="flex-shrink-0 mt-px" />
+              <span>{check.issues.join(' ')}</span>
+            </div>
+          )}
           <button
             onClick={() => downloadFile(`${fileBase}.txt`, buildPaperText(meta, questions, withAnswers), 'text/plain;charset=utf-8')}
             className="btn-secondary text-sm"
