@@ -1246,6 +1246,7 @@ export function GeneratePage() {
                   <option value="both">Both (student ki marzi)</option>
                 </select>
               </div>
+              </div>
 
               {/* Attempt any N */}
               <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4">

@@ -43,6 +43,10 @@ const inputSchema = z.object({
     translation: z.string().nullable().optional(),
     statements: z.boolean().nullable().optional(),
     forceUrdu: z.boolean().nullable().optional(),
+    customLongQuestions: z
+      .array(z.object({ text: z.string().min(1), marks: z.number().int().positive().max(100) }))
+      .nullable()
+      .optional(),
   }),
 });
 
