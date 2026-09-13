@@ -125,30 +125,148 @@ export function PaperBuilderPage() {
     setAvailableQuestions((data as Question[]) ?? []);
   };
 
-  const handleCreatePaper = async () => {
-    if (!userId || !form.title) return;
-    const { data, error } = await supabase
-      .from('papers')
-      .insert({
-        user_id: userId,
-        ...form,
-        exam_date: form.exam_date || null,
-        status: 'draft',
-      })
-      .select()
-      .single();
+  const resetForm = () => {
+    setForm({
+      title: '', institution_name: '', subject: '', class_name: '', chapter: '',
+      exam_name: '', exam_date: '', exam_time: '', total_marks: 100,
+      instructions: 'Attempt all questions. Write neatly and clearly.',
+    });
+  };
 
-    if (!error && data) {
-      const newPaper = data as Paper;
-      setPapers((prev) => [newPaper, ...prev]);
-      setActivePaper(newPaper);
-      setPaperQuestions([]);
-      setShowNewModal(false);
-      setForm({
-        title: '', institution_name: '', subject: '', class_name: '', chapter: '',
-        exam_name: '', exam_date: '', exam_time: '', total_marks: 100,
-        instructions: 'Attempt all questions. Write neatly and clearly.',
-      });
+  const openNewPaper = () => {
+    setEditingId(null);
+    resetForm();
+    setShowNewModal(true);
+  };
+
+  const openEditPaper = (p: Paper) => {
+    setEditingId(p.id);
+    setForm({
+      title: p.title ?? '',
+      institution_name: p.institution_name ?? '',
+      subject: p.subject ?? '',
+      class_name: p.class_name ?? '',
+      chapter: p.chapter ?? '',
+      exam_name: p.exam_name ?? '',
+      exam_date: p.exam_date ?? '',
+      exam_time: p.exam_time ?? '',
+      total_marks: p.total_marks ?? 100,
+      instructions: p.instructions ?? '',
+    });
+    setShowNewModal(true);
+  };
+
+  const handleSavePaper = async () => {
+    if (!userId || !form.title) return;
+    setBusy(true);
+    try {
+      const payload = { ...form, exam_date: form.exam_date || null };
+
+      if (editingId) {
+        const { data, error } = await supabase
+          .from('papers')
+          .update(payload)
+          .eq('id', editingId)
+          .select()
+          .single();
+        if (!error && data) {
+          const updated = data as Paper;
+          setPapers((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+          setActivePaper((prev) => (prev?.id === updated.id ? updated : prev));
+          setShowNewModal(false);
+          setEditingId(null);
+        }
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('papers')
+        .insert({ user_id: userId, ...payload, status: 'draft' })
+        .select()
+        .single();
+
+      if (!error && data) {
+        const newPaper = data as Paper;
+        setPapers((prev) => [newPaper, ...prev]);
+        setActivePaper(newPaper);
+        setPaperQuestions([]);
+        setShowNewModal(false);
+        resetForm();
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleDuplicatePaper = async (p: Paper) => {
+    if (!userId) return;
+    setBusy(true);
+    try {
+      const { data: created, error } = await supabase
+        .from('papers')
+        .insert({
+          user_id: userId,
+          title: `${p.title} (Copy)`,
+          institution_name: p.institution_name,
+          subject: p.subject,
+          class_name: p.class_name,
+          chapter: p.chapter,
+          exam_name: p.exam_name,
+          exam_date: p.exam_date,
+          exam_time: p.exam_time,
+          total_marks: p.total_marks,
+          instructions: p.instructions,
+          status: 'draft',
+        })
+        .select()
+        .single();
+      if (error || !created) return;
+
+      const copy = created as Paper;
+      const { data: rows } = await supabase
+        .from('paper_questions')
+        .select('question_id, sort_order, marks')
+        .eq('paper_id', p.id)
+        .order('sort_order', { ascending: true });
+
+      if (rows && rows.length > 0) {
+        await supabase.from('paper_questions').insert(
+          rows.map((r) => ({
+            paper_id: copy.id,
+            question_id: r.question_id,
+            user_id: userId,
+            sort_order: r.sort_order,
+            marks: r.marks,
+          })),
+        );
+      }
+
+      setPapers((prev) => [copy, ...prev]);
+      setActivePaper(copy);
+      loadPaperQuestions(copy.id);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleDeletePaper = async () => {
+    if (!deleteTarget) return;
+    setBusy(true);
+    try {
+      const id = deleteTarget.id;
+      await supabase.from('paper_questions').delete().eq('paper_id', id);
+      await supabase.from('papers').delete().eq('id', id);
+      const remaining = papers.filter((p) => p.id !== id);
+      setPapers(remaining);
+      setDeleteTarget(null);
+      if (activePaper?.id === id) {
+        const next = remaining[0] ?? null;
+        setActivePaper(next);
+        if (next) loadPaperQuestions(next.id);
+        else setPaperQuestions([]);
+      }
+    } finally {
+      setBusy(false);
     }
   };
 
