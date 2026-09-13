@@ -342,6 +342,7 @@ export function buildPaperHtml(
 
   const boardStyle = getBoardStyle(meta.boardStyle);
   const print = resolvePrintSettings(meta);
+  const templateStyle = meta.pdfStyle && meta.pdfStyle in PAPER_PRINT_PRESETS ? meta.pdfStyle : DEFAULT_PDF_STYLE;
   const accent = /^#[0-9a-f]{6}$/i.test(print.accentColor) ? print.accentColor : PAPER_PRINT_PRESETS.academic.accentColor;
   const fontMap: Record<PaperFontKey, string> = {
     serif: "Georgia, 'Times New Roman', serif",
@@ -541,6 +542,7 @@ export function buildPaperHtml(
   .watermark { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 0; pointer-events: none; }
   .watermark span { transform: rotate(-32deg); font-size: 70px; font-weight: bold; color: #000; opacity: .055; white-space: nowrap; text-transform: uppercase; }
   body > header, body > section, body > footer, body > div { position: relative; z-index: 1; }
+  ${additionalTemplateCss(templateStyle, accent, print.fontSize)}
   ${
     isUrduPaper
       ? `body { direction: rtl; font-family: 'Noto Nastaliq Urdu', serif; line-height: 2.1; }
@@ -557,7 +559,7 @@ export function buildPaperHtml(
   }
 </style>
 </head>
-<body>
+<body class="style-${templateStyle}">
   ${meta.watermarkText ? `<div class="watermark" aria-hidden="true"><span>${escapeHtml(meta.watermarkText)}</span></div>` : ''}
   <header>
     <div class="brand logo-${print.logoAlignment}${meta.logoUrl ? '' : ' no-logo'}">
