@@ -312,6 +312,7 @@ export function buildPaperHtml(
 </style>
 </head>
 <body>
+  ${meta.watermarkText ? `<div class="watermark" aria-hidden="true"><span>${escapeHtml(meta.watermarkText)}</span></div>` : ''}
   <header>
     <div class="brand">
       ${meta.logoUrl ? `<img src="${escapeHtml(meta.logoUrl)}" alt="Logo" />` : ''}
