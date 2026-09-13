@@ -50,6 +50,9 @@ export function PaperBuilderPage() {
   const [showNewModal, setShowNewModal] = useState(false);
   const [template, setTemplate] = useState<Template>('classic');
   const [autoSectioned, setAutoSectioned] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Paper | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const [form, setForm] = useState({
     title: '',
