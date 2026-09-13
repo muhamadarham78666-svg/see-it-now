@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { X, Printer, Download, FileText, Eye, EyeOff, ImagePlus, Trash2, Building2, CalendarDays, ListChecks, AlertTriangle } from 'lucide-react';
+import { X, Printer, Download, FileText, Eye, EyeOff, ImagePlus, Trash2, Building2, CalendarDays, ListChecks, AlertTriangle, Palette, RotateCcw } from 'lucide-react';
 import {
   buildPaperHtml,
   buildPaperText,
@@ -7,6 +7,8 @@ import {
   printHtml,
   validateMarks,
   PDF_STYLE_OPTIONS,
+  PAPER_PRINT_PRESETS,
+  resolvePrintSettings,
   type PaperMeta,
 } from '@/lib/paperExport';
 import { BOARD_STYLE_OPTIONS } from '@/lib/boardStyles';
@@ -36,6 +38,16 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta }: Pap
   const paneRef = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(1);
   const [docHeight, setDocHeight] = useState(1123);
+
+  const updatePrint = <K extends keyof NonNullable<PaperMeta['printSettings']>>(
+    key: K,
+    value: NonNullable<PaperMeta['printSettings']>[K],
+  ) => setMeta((m) => ({ ...m, printSettings: { ...resolvePrintSettings(m), [key]: value } }));
+
+  const applyTemplate = (value: PaperMeta['pdfStyle']) => {
+    if (!value) return;
+    setMeta((m) => ({ ...m, pdfStyle: value, printSettings: { ...PAPER_PRINT_PRESETS[value] } }));
+  };
 
   const fitZoom = useCallback(() => {
     const width = paneRef.current?.clientWidth;
@@ -187,7 +199,6 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta }: Pap
               {field('Subject', 'subject', 'Biology')}
               {field('Class', 'className', '10th')}
             </div>
-            {field('Chapter', 'chapter', 'Chapter 1')}
             {field('Board / Authority', 'boardName', 'Punjab Board (BISE Lahore)')}
             <div>
               <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
@@ -211,8 +222,8 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta }: Pap
                 PDF Template
               </label>
               <select
-                value={meta.pdfStyle ?? 'classic'}
-                onChange={(e) => setMeta((m) => ({ ...m, pdfStyle: e.target.value as PaperMeta['pdfStyle'] }))}
+                value={meta.pdfStyle ?? 'academic'}
+                onChange={(e) => applyTemplate(e.target.value as PaperMeta['pdfStyle'])}
                 className="input-field text-sm !py-2"
               >
                 {PDF_STYLE_OPTIONS.map((o) => (
@@ -222,9 +233,56 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta }: Pap
                 ))}
               </select>
               <p className="text-[11px] text-slate-400 mt-1">
-                {PDF_STYLE_OPTIONS.find((o) => o.value === (meta.pdfStyle ?? 'classic'))?.hint}
+                {PDF_STYLE_OPTIONS.find((o) => o.value === (meta.pdfStyle ?? 'academic'))?.hint}
               </p>
             </div>
+
+            {groupTitle(<Palette size={13} />, 'Customize Template')}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Accent color</label>
+                <input
+                  type="color"
+                  value={resolvePrintSettings(meta).accentColor}
+                  onChange={(e) => updatePrint('accentColor', e.target.value)}
+                  className="h-9 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent p-1"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Text size</label>
+                <input
+                  type="number"
+                  min={11}
+                  max={16}
+                  step={0.5}
+                  value={resolvePrintSettings(meta).fontSize}
+                  onChange={(e) => updatePrint('fontSize', Number(e.target.value))}
+                  className="input-field text-sm !py-2"
+                />
+              </div>
+              <PrintSelect label="Heading font" value={resolvePrintSettings(meta).headingFont} options={[['sans', 'Sans'], ['serif', 'Serif'], ['book', 'Book']]} onChange={(v) => updatePrint('headingFont', v as 'sans' | 'serif' | 'book')} />
+              <PrintSelect label="Question font" value={resolvePrintSettings(meta).bodyFont} options={[['serif', 'Serif'], ['sans', 'Sans'], ['book', 'Book']]} onChange={(v) => updatePrint('bodyFont', v as 'sans' | 'serif' | 'book')} />
+              <PrintSelect label="Density" value={resolvePrintSettings(meta).density} options={[['compact', 'Compact'], ['balanced', 'Balanced'], ['spacious', 'Spacious']]} onChange={(v) => updatePrint('density', v as 'compact' | 'balanced' | 'spacious')} />
+              <PrintSelect label="Section divider" value={resolvePrintSettings(meta).divider} options={[['single', 'Single rule'], ['double', 'Double rule'], ['boxed', 'Boxed']]} onChange={(v) => updatePrint('divider', v as 'single' | 'double' | 'boxed')} />
+              <PrintSelect label="Logo position" value={resolvePrintSettings(meta).logoAlignment} options={[['left', 'Left'], ['center', 'Center'], ['right', 'Right']]} onChange={(v) => updatePrint('logoAlignment', v as 'left' | 'center' | 'right')} />
+              <div>
+                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Logo size</label>
+                <input
+                  type="range"
+                  min={48}
+                  max={100}
+                  value={resolvePrintSettings(meta).logoSize}
+                  onChange={(e) => updatePrint('logoSize', Number(e.target.value))}
+                  className="w-full accent-primary-600"
+                />
+              </div>
+            </div>
+            <button
+              onClick={() => applyTemplate(meta.pdfStyle ?? 'academic')}
+              className="btn-secondary w-full justify-center text-xs"
+            >
+              <RotateCcw size={14} /> Reset template style
+            </button>
 
             {groupTitle(<CalendarDays size={13} />, 'Schedule')}
             <div className="grid grid-cols-2 gap-3">
