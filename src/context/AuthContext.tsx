@@ -13,7 +13,14 @@ interface AuthContextValue {
   refreshProfile: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+// Keep one context instance across hot reloads, otherwise a refreshed module
+// creates a second context and consumers rendered by the old one throw.
+const globalStore = globalThis as typeof globalThis & {
+  __nsagptAuthContext?: React.Context<AuthContextValue | undefined>;
+};
+const AuthContext =
+  globalStore.__nsagptAuthContext ??
+  (globalStore.__nsagptAuthContext = createContext<AuthContextValue | undefined>(undefined));
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
