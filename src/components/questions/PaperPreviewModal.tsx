@@ -19,6 +19,7 @@ interface PaperPreviewModalProps {
   onClose: () => void;
   questions: Question[];
   defaultMeta: PaperMeta;
+  onMetaChange?: (meta: PaperMeta) => void;
 }
 
 const LOGO_KEY = 'nsagpt.paper.logo';
@@ -48,7 +49,7 @@ function PrintSelect({
 }
 
 
-export function PaperPreviewModal({ open, onClose, questions, defaultMeta }: PaperPreviewModalProps) {
+export function PaperPreviewModal({ open, onClose, questions, defaultMeta, onMetaChange }: PaperPreviewModalProps) {
   const [meta, setMeta] = useState<PaperMeta>(() => ({
     ...defaultMeta,
     logoUrl:
@@ -80,10 +81,15 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta }: Pap
 
   useEffect(() => {
     if (!open) return;
+    setMeta((current) => ({ ...current, ...defaultMeta, logoUrl: defaultMeta.logoUrl ?? current.logoUrl }));
     fitZoom();
     window.addEventListener('resize', fitZoom);
     return () => window.removeEventListener('resize', fitZoom);
-  }, [open, fitZoom]);
+  }, [open, fitZoom, defaultMeta]);
+
+  useEffect(() => {
+    if (open) onMetaChange?.(meta);
+  }, [meta, onMetaChange, open]);
 
   const html = useMemo(
     () => buildPaperHtml(meta, questions, { withAnswers }),

@@ -98,6 +98,11 @@ export interface Paper {
   total_marks: number;
   instructions: string | null;
   logo_url: string | null;
+  footer_note: string | null;
+  watermark_text: string | null;
+  pdf_style: string;
+  print_settings: Record<string, unknown>;
+  attempts: Partial<QuestionTypeCounts>;
   status: PaperStatus;
   created_at: string;
   updated_at: string;
