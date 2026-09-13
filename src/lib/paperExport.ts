@@ -21,6 +21,59 @@ export interface PaperMeta {
   boardStyle?: string;
   /** "Attempt any N" counts per section (0 / undefined = attempt all). */
   attempts?: { mcq?: number; short?: number; long?: number };
+  /** Faint diagonal watermark text printed behind the paper. */
+  watermarkText?: string;
+  /** PDF template / print style. */
+  pdfStyle?: PdfStyleKey;
+}
+
+export type PdfStyleKey = 'classic' | 'modern' | 'compact' | 'elegant' | 'bw';
+
+export const PDF_STYLE_OPTIONS: { value: PdfStyleKey; label: string; hint: string }[] = [
+  { value: 'classic', label: 'Classic (Board style)', hint: 'Serif, coloured headings' },
+  { value: 'modern', label: 'Modern', hint: 'Clean sans-serif, boxed sections' },
+  { value: 'compact', label: 'Compact (save paper)', hint: 'Tighter spacing, smaller text' },
+  { value: 'elegant', label: 'Elegant', hint: 'Wide margins, refined typography' },
+  { value: 'bw', label: 'Black & White', hint: 'Ink friendly, no colours' },
+];
+
+interface PdfStyleTokens {
+  bodyFont: string | null;
+  baseSize: number;
+  lineHeight: number;
+  pagePad: string;
+  headingCase: string;
+  mono: boolean;
+  sectionBox: boolean;
+  gap: number;
+}
+
+const PDF_STYLE_TOKENS: Record<PdfStyleKey, PdfStyleTokens> = {
+  classic: { bodyFont: null, baseSize: 14, lineHeight: 1.6, pagePad: '36px 44px', headingCase: 'uppercase', mono: false, sectionBox: false, gap: 26 },
+  modern: { bodyFont: "'Helvetica Neue', Arial, sans-serif", baseSize: 13.5, lineHeight: 1.55, pagePad: '34px 40px', headingCase: 'none', mono: false, sectionBox: true, gap: 22 },
+  compact: { bodyFont: "'Helvetica Neue', Arial, sans-serif", baseSize: 12.5, lineHeight: 1.35, pagePad: '24px 30px', headingCase: 'uppercase', mono: false, sectionBox: false, gap: 14 },
+  elegant: { bodyFont: "Georgia, 'Times New Roman', serif", baseSize: 14.5, lineHeight: 1.75, pagePad: '48px 60px', headingCase: 'none', mono: false, sectionBox: false, gap: 30 },
+  bw: { bodyFont: "Georgia, 'Times New Roman', serif", baseSize: 14, lineHeight: 1.6, pagePad: '36px 44px', headingCase: 'uppercase', mono: true, sectionBox: false, gap: 24 },
+};
+
+/** Marks total per section vs. expected paper total; used to warn before export. */
+export function validateMarks(
+  questions: Question[],
+  attempts?: PaperMeta['attempts'],
+): { ok: boolean; total: number; issues: string[] } {
+  const issues: string[] = [];
+  const zero = questions.filter((q) => !q.marks || q.marks <= 0);
+  if (zero.length) issues.push(`${zero.length} question(s) have no marks assigned.`);
+  (['mcq', 'short', 'long'] as const).forEach((key) => {
+    const items = questions.filter((q) => q.question_type === key);
+    const pick = attempts?.[key];
+    if (pick && pick > items.length) {
+      issues.push(`"Attempt any ${pick}" is more than the ${items.length} ${key} question(s) available.`);
+    }
+  });
+  const total = questions.reduce((s, q) => s + (q.marks || 0), 0);
+  if (!questions.length) issues.push('The paper has no questions yet.');
+  return { ok: issues.length === 0, total, issues };
 }
 
 
