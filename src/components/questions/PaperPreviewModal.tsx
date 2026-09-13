@@ -24,6 +24,29 @@ interface PaperPreviewModalProps {
 const LOGO_KEY = 'nsagpt.paper.logo';
 const A4_WIDTH = 794;
 
+function PrintSelect({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: Array<[string, string]>;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div>
+      <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{label}</label>
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="input-field text-sm !py-2">
+        {options.map(([optionValue, optionLabel]) => (
+          <option key={optionValue} value={optionValue}>{optionLabel}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 
 export function PaperPreviewModal({ open, onClose, questions, defaultMeta }: PaperPreviewModalProps) {
   const [meta, setMeta] = useState<PaperMeta>(() => ({
