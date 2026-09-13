@@ -146,7 +146,10 @@ export function buildPaperHtml(
     .filter(Boolean)
     .join(' &nbsp;•&nbsp; ');
 
-  const style = getBoardStyle(meta.boardStyle);
+  const boardStyle = getBoardStyle(meta.boardStyle);
+  const tpl = PDF_STYLE_TOKENS[meta.pdfStyle ?? 'classic'] ?? PDF_STYLE_TOKENS.classic;
+  const style = tpl.mono ? { ...boardStyle, accent: '#111111' } : boardStyle;
+  const muted = tpl.mono ? '#333' : '#444';
 
   const groups: { key: Question['question_type']; label: string }[] = [
     { key: 'mcq', label: style.sections.mcq },
