@@ -7,6 +7,7 @@ import { Modal } from '@/components/nsa/Modal';
 import { FileUpload } from '@/components/generator/FileUpload';
 import { useAuth } from '@/context/AuthContext';
 import { useRealtimeSync } from '@/hooks/useRealtimeSync';
+import { CLASS_GROUPS, findBook, findGroup } from '@/lib/curriculum';
 import { supabase } from '@/lib/supabase';
 import { generateNoteFn } from '@/lib/notes.functions';
 import { NotePreviewModal } from '@/components/notes/NotePreviewModal';
@@ -32,6 +33,9 @@ export function NotesPage() {
   const [aiOpen, setAiOpen] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiSubject, setAiSubject] = useState('');
+  const [aiGroupKey, setAiGroupKey] = useState('');
+  const [aiBookId, setAiBookId] = useState('');
+  const [aiChapter, setAiChapter] = useState('');
   const [aiLanguage, setAiLanguage] = useState('english');
   const [aiStyle, setAiStyle] = useState('structured');
   const [aiAttachments, setAiAttachments] = useState<GenAttachment[]>([]);
@@ -94,6 +98,10 @@ export function NotesPage() {
     setActive(remaining[0] ?? null);
   };
 
+  const aiGroup = findGroup(aiGroupKey);
+  const aiBook = findBook(aiGroupKey, aiBookId);
+  const aiChapters = aiBook?.chapters ?? [];
+
   const generateAiNote = async () => {
     if (!userId) return;
     if (!aiPrompt.trim() && aiAttachments.length === 0) {
@@ -108,7 +116,10 @@ export function NotesPage() {
           prompt: aiPrompt,
           language: aiLanguage,
           style: aiStyle,
-          subject: aiSubject.trim() || null,
+          subject: aiSubject.trim() || aiBook?.name || null,
+          classGroup: aiGroup?.label ?? null,
+          bookName: aiBook?.name ?? null,
+          chapter: aiChapter || null,
           attachments: aiAttachments.map((a) => ({
             name: a.name,
             mime: a.mime,
@@ -124,7 +135,7 @@ export function NotesPage() {
           user_id: userId,
           title: result.title,
           content: result.content,
-          subject: aiSubject.trim() || null,
+          subject: aiSubject.trim() || aiBook?.name || null,
         })
         .select('*')
         .single();
@@ -176,6 +187,50 @@ export function NotesPage() {
               className="input-field min-h-[120px] resize-y"
               placeholder="e.g. Class 10 Physics — make short notes on Newton's laws with formulas and examples"
             />
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Class / Group</label>
+              <select
+                value={aiGroupKey}
+                onChange={(event) => { setAiGroupKey(event.target.value); setAiBookId(''); setAiChapter(''); }}
+                className="input-field"
+              >
+                <option value="">Any</option>
+                {CLASS_GROUPS.map((g) => (
+                  <option key={g.key} value={g.key}>{g.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Book</label>
+              <select
+                value={aiBookId}
+                onChange={(event) => { setAiBookId(event.target.value); setAiChapter(''); }}
+                className="input-field"
+                disabled={!aiGroup}
+              >
+                <option value="">Any book</option>
+                {(aiGroup?.books ?? []).map((b) => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Chapter</label>
+              <select
+                value={aiChapter}
+                onChange={(event) => setAiChapter(event.target.value)}
+                className="input-field"
+                disabled={!aiChapters.length}
+              >
+                <option value="">Whole book</option>
+                {aiChapters.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="grid sm:grid-cols-3 gap-3">
