@@ -313,6 +313,27 @@ const URDU_LABELS: PaperLabels = {
 };
 
 const urduNumber = (value: number) => value.toLocaleString('ur-PK', { useGrouping: false });
+const URDU_ITEM_LABELS = ['ا', 'ب', 'ج', 'د', 'ہ', 'و', 'ز', 'ح', 'ط', 'ی', 'ک', 'ل', 'م', 'ن', 'س', 'ع', 'ف', 'ص', 'ق', 'ر'];
+const urduItemLabel = (index: number) => URDU_ITEM_LABELS[index] ?? urduNumber(index + 1);
+
+function localizeUrduMeta(value: string | undefined, kind: 'instructions' | 'exam'): string {
+  if (!value) return '';
+  if (kind === 'instructions' && /^Attempt all questions\. Write neatly and clearly\.?$/i.test(value.trim())) {
+    return 'تمام سوالات حل کریں۔ صاف اور واضح لکھیں۔';
+  }
+  if (kind === 'exam') {
+    const normalized = value.trim().toLowerCase();
+    const names: Record<string, string> = {
+      'question paper': 'سوالیہ پرچہ',
+      'annual examination': 'سالانہ امتحان',
+      'annual / model examination': 'سالانہ / نمونہ امتحان',
+      'examination paper': 'امتحانی پرچہ',
+      'assessment paper': 'جائزہ پرچہ',
+    };
+    return names[normalized] ?? value;
+  }
+  return value;
+}
 
 const escapeHtml = (value: string) =>
   value
@@ -432,14 +453,14 @@ export function buildPaperHtml(
       const sectionNo = ++qNumber;
       const rows = items
         .map((q, index) => {
-          const itemNo = `(${roman(index + 1)})`;
+           const itemNo = `(${isUrduPaper ? urduItemLabel(index) : roman(index + 1)})`;
           const rtl = q.language === 'urdu' || isUrduPaper;
           const opts =
             q.question_type === 'mcq' && q.options
               ? `<ol class="opts">${q.options
                   .map(
                     (o, oi) =>
-                      `<li><span class="lbl">(${escapeHtml(o.label)})</span> <span${ed(q.id, 'option', oi)}>${escapeHtml(o.text)}</span></li>`,
+                       `<li><span class="lbl">(${escapeHtml(isUrduPaper ? urduItemLabel(oi) : o.label)})</span> <span${ed(q.id, 'option', oi)}>${escapeHtml(o.text)}</span></li>`,
                   )
                   .join('')}</ol>`
               : '';
@@ -453,8 +474,8 @@ export function buildPaperHtml(
               ? `<ol class="parts">${q.parts
                   .map(
                     (p, pi) =>
-                      `<li><span class="lbl">(${escapeHtml(p.label)})</span> <span${ed(q.id, 'part', pi)}>${escapeHtml(p.text)}</span>${
-                        p.marks ? ` <span class="pmarks">(${p.marks})</span>` : ''
+                       `<li><span class="lbl">(${escapeHtml(isUrduPaper ? urduItemLabel(pi) : p.label)})</span> <span${ed(q.id, 'part', pi)}>${escapeHtml(p.text)}</span>${
+                         p.marks ? ` <span class="pmarks">(${isUrduPaper ? urduNumber(p.marks) : p.marks})</span>` : ''
                       }</li>`,
                   )
                   .join('')}</ol>`
@@ -596,7 +617,7 @@ export function buildPaperHtml(
       <div class="brand-copy">
         ${meta.institutionName ? `<h1>${escapeHtml(meta.institutionName)}</h1>` : ''}
         ${meta.boardName ? `<div class="board">${escapeHtml(meta.boardName)}</div>` : ''}
-        <div class="exam">${escapeHtml(meta.examName || boardStyle.examHeading)}</div>
+         <div class="exam">${escapeHtml(isUrduPaper ? localizeUrduMeta(meta.examName || boardStyle.examHeading, 'exam') : meta.examName || boardStyle.examHeading)}</div>
       </div>
     </div>
   </header>
@@ -610,7 +631,7 @@ export function buildPaperHtml(
     ${infoCell(t.examDate, meta.examDate ?? '')}
     ${infoCell(t.exam, meta.title ?? '')}
   </div>
-  ${meta.instructions ? `<div class="instructions"><strong>${t.instructions}:</strong>\n${escapeHtml(meta.instructions)}</div>` : ''}
+   ${meta.instructions ? `<div class="instructions"><strong>${t.instructions}:</strong>\n${escapeHtml(isUrduPaper ? localizeUrduMeta(meta.instructions, 'instructions') : meta.instructions)}</div>` : ''}
   ${sections}
   <footer><span>${t.printed}: ${escapeHtml(printedOn)}</span>${
     meta.footerNote ? `<span class="note">${escapeHtml(meta.footerNote)}</span>` : ''
