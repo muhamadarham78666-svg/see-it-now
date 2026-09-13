@@ -1,4 +1,3 @@
-import { useNavigate } from '@tanstack/react-router';
 import { useSearchParams } from '@/lib/rr';
 import { useState, useEffect, useMemo } from 'react';
 import {
@@ -14,7 +13,6 @@ import {
   ScanSearch,
   CheckCircle,
   Zap,
-  Newspaper,
   Eye,
   Layers,
   GraduationCap,
@@ -103,7 +101,6 @@ const processingSteps = [
 ];
 
 export function GeneratePage() {
-  const navigate = useNavigate();
   const { profile, session } = useAuth();
   const { board } = useBoard();
   const { lang, langName } = useLanguage();
@@ -483,15 +480,6 @@ export function GeneratePage() {
     });
   };
 
-  const navigateToPaper = () => {
-    const ids = Array.from(selectedIds).filter(isPersisted);
-    if (ids.length === 0) {
-      setError('Save-able questions only — these questions are not stored in your library yet.');
-      return;
-    }
-    navigate({ to: '/dashboard/papers', search: { questionIds: ids.join(',') } as never });
-  };
-
   if (generating) {
     return (
       <div className="max-w-2xl mx-auto py-12">
@@ -567,11 +555,6 @@ export function GeneratePage() {
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {selectedIds.size > 0 && (
-              <Button variant="secondary" onClick={navigateToPaper}>
-                <Newspaper size={16} /> Add {selectedIds.size} to Paper
-              </Button>
-            )}
             <Button variant="secondary" onClick={() => setPreviewOpen(true)}>
               <Eye size={16} /> Preview &amp; Download
             </Button>
@@ -665,6 +648,40 @@ export function GeneratePage() {
         {/* Input */}
         <div className="lg:col-span-2 space-y-6">
           {/* Step 1 — Class / Book / Range */}
+          <Card className="p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <FileText size={20} className="text-primary-500" />
+              <h2 className="font-display text-lg font-semibold text-slate-900 dark:text-white">
+                Study Material
+              </h2>
+            </div>
+
+            <FileUpload onAttachmentsChange={setAttachments} />
+
+            <div className="my-4 flex items-center gap-3">
+              <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+              <span className="text-xs text-slate-400">OR</span>
+              <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Paste or Write Content
+              </label>
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                rows={8}
+                placeholder="Paste your study material, chapter text, or notes here..."
+                className="input-field resize-y font-sans text-left"
+              />
+              <p className="text-xs text-slate-400 mt-1">
+                {content.length.toLocaleString()} characters
+                {attachments.length > 0 && ` • ${attachments.length} file(s) attached`}
+              </p>
+            </div>
+          </Card>
+
           <Card className="p-6">
             <div className="flex items-center gap-2 mb-4">
               <GraduationCap size={20} className="text-primary-500" />
@@ -885,40 +902,6 @@ export function GeneratePage() {
                   </div>
                 )}
               </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <FileText size={20} className="text-primary-500" />
-              <h2 className="font-display text-lg font-semibold text-slate-900 dark:text-white">
-                Study Material
-              </h2>
-            </div>
-
-            <FileUpload onAttachmentsChange={setAttachments} />
-
-            <div className="my-4 flex items-center gap-3">
-              <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-              <span className="text-xs text-slate-400">OR</span>
-              <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Paste or Write Content
-              </label>
-              <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                rows={8}
-                placeholder="Paste your study material, chapter text, or notes here..."
-                className="input-field resize-y font-sans text-left"
-              />
-              <p className="text-xs text-slate-400 mt-1">
-                {content.length.toLocaleString()} characters
-                {attachments.length > 0 && ` • ${attachments.length} file(s) attached`}
-              </p>
             </div>
           </Card>
 
