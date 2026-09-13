@@ -27,7 +27,7 @@
 - [ ] Merge PaperBuilder + Generate into one flow; "My Papers" (view/edit/duplicate/download/delete w/ confirm)
 - [ ] Regenerate single question (wire onRegenerate)
 - [ ] Duplicate prevention (fingerprint + history check)
-- [ ] Marks validation before PDF; impossible config explanation
+- [x] Marks validation before PDF; impossible config explanation
 - [ ] Custom long question (Advanced -> Writing/Composition)
 - [ ] Autosave paper config/drafts
 - [ ] Notes export: PDF / Word / copy text
