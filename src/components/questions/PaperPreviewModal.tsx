@@ -450,12 +450,12 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta, onMet
             <Download size={16} /> TXT
           </button>
           <button
-            onClick={() => downloadFile(`${fileBase}.html`, html, 'text/html;charset=utf-8')}
+            onClick={() => downloadFile(`${fileBase}.html`, exportHtml, 'text/html;charset=utf-8')}
             className="btn-secondary text-sm"
           >
             <Download size={16} /> HTML
           </button>
-          <button onClick={() => printHtml(html)} className="btn-primary text-sm">
+          <button onClick={() => printHtml(exportHtml)} className="btn-primary text-sm">
             <Printer size={16} /> Print / Save as PDF
           </button>
         </div>
