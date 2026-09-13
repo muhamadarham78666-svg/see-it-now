@@ -33,7 +33,6 @@ export function Footer() {
               <li>PDF & Word Export</li>
             </ul>
           </div>
-        </div>
 
           <div>
             <h4 className="font-display text-sm font-semibold text-slate-900 dark:text-white mb-3">Company</h4>
