@@ -177,9 +177,9 @@ export function buildPaperHtml(
   const muted = '#444';
 
   const groups: { key: Question['question_type']; label: string }[] = [
-    { key: 'mcq', label: style.sections.mcq },
-    { key: 'short', label: style.sections.short },
-    { key: 'long', label: style.sections.long },
+    { key: 'mcq', label: boardStyle.sections.mcq },
+    { key: 'short', label: boardStyle.sections.short },
+    { key: 'long', label: boardStyle.sections.long },
   ];
 
   const t = isUrduPaper ? URDU_LABELS : EN_LABELS;
@@ -336,12 +336,12 @@ export function buildPaperHtml(
       <div class="brand-copy">
         ${meta.boardName ? `<div class="board">${escapeHtml(meta.boardName)}</div>` : ''}
         ${meta.institutionName ? `<h1>${escapeHtml(meta.institutionName)}</h1>` : ''}
-        <div class="exam">${escapeHtml(meta.examName || style.examHeading)}</div>
+        <div class="exam">${escapeHtml(meta.examName || boardStyle.examHeading)}</div>
       </div>
     </div>
     ${metaLine ? `<div class="meta">${metaLine}</div>` : ''}
   </header>
-  ${style.rollNoBox ? `<div class="idbox"><div>${t.rollNo}: ______________</div><div>${t.name}: ______________________</div></div>` : ''}
+  ${boardStyle.rollNoBox ? `<div class="idbox"><div>${t.rollNo}: ______________</div><div>${t.name}: ______________________</div></div>` : ''}
   <div class="totals"><span>${t.totalQuestions}: ${questions.length}</span><span>${t.totalMarks}: ${totalMarks}</span></div>
 
   ${meta.instructions ? `<div class="instructions"><strong>${t.instructions}:</strong>\n${escapeHtml(meta.instructions)}</div>` : ''}
