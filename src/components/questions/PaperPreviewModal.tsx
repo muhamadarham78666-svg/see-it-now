@@ -55,6 +55,8 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta }: Pap
     [meta, questions, withAnswers],
   );
 
+  const check = useMemo(() => validateMarks(questions, meta.attempts), [questions, meta.attempts]);
+
 
   if (!open) return null;
 
