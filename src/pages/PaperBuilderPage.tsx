@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from '@/lib/rr';
 import {
   Newspaper,
@@ -8,12 +8,10 @@ import {
   Eye,
   Save,
   Download,
-  FileText,
   Copy,
   Pencil,
   ChevronUp,
   ChevronDown,
-  X,
 } from 'lucide-react';
 import { Card } from '@/components/nsa/Card';
 import { Button } from '@/components/nsa/Button';
@@ -21,13 +19,12 @@ import { Badge } from '@/components/nsa/Badge';
 import { Spinner, EmptyState } from '@/components/nsa/Feedback';
 import { Modal } from '@/components/nsa/Modal';
 import { QuestionCard } from '@/components/questions/QuestionCard';
+import { PaperPreviewModal } from '@/components/questions/PaperPreviewModal';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { useRealtimeSync } from '@/hooks/useRealtimeSync';
-import { getLetterLabel } from '@/lib/utils';
+import { buildPaperHtml, buildPaperText, downloadFile, PDF_STYLE_OPTIONS, printHtml, type PaperMeta, type PdfStyleKey } from '@/lib/paperExport';
 import type { Paper, Question, PaperQuestion } from '@/types';
-
-type Template = 'classic' | 'modern' | 'premium';
 
 interface PaperSection {
   id: string;
@@ -49,8 +46,6 @@ export function PaperBuilderPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showNewModal, setShowNewModal] = useState(false);
-  const [template, setTemplate] = useState<Template>('classic');
-  const [autoSectioned, setAutoSectioned] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Paper | null>(null);
   const [busy, setBusy] = useState(false);
@@ -322,16 +317,29 @@ export function PaperBuilderPage() {
   };
 
   const totalMarks = paperQuestions.reduce((sum, pq) => sum + pq.marks, 0);
+  const printableQuestions = useMemo(
+    () => paperQuestions.flatMap((pq) => pq.question ? [{ ...pq.question, marks: pq.marks }] : []),
+    [paperQuestions],
+  );
+
+  const paperMeta = useMemo<PaperMeta | null>(() => activePaper ? ({
+    title: activePaper.title,
+    institutionName: activePaper.institution_name ?? undefined,
+    subject: activePaper.subject ?? undefined,
+    className: activePaper.class_name ?? undefined,
+    examName: activePaper.exam_name ?? undefined,
+    examDate: activePaper.exam_date ?? undefined,
+    examTime: activePaper.exam_time ?? undefined,
+    instructions: activePaper.instructions ?? undefined,
+    logoUrl: activePaper.logo_url ?? undefined,
+    footerNote: activePaper.footer_note ?? undefined,
+    watermarkText: activePaper.watermark_text ?? undefined,
+    pdfStyle: (activePaper.pdf_style || 'academic') as PdfStyleKey,
+    printSettings: activePaper.print_settings,
+    attempts: activePaper.attempts,
+  }) : null, [activePaper]);
 
   const getSections = (): PaperSection[] => {
-    if (!autoSectioned) {
-      return [{
-        id: 'all',
-        name: 'Questions',
-        questionType: 'mcq',
-        questionIds: paperQuestions.map((pq) => pq.id),
-      }];
-    }
     const sections: PaperSection[] = [
       { id: 'mcq', name: 'Section A — MCQs', questionType: 'mcq', questionIds: [] },
       { id: 'short', name: 'Section B — Short Questions', questionType: 'short', questionIds: [] },
@@ -347,36 +355,57 @@ export function PaperBuilderPage() {
   };
 
   const handleExportPDF = () => {
-    if (!activePaper) return;
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-    printWindow.document.write(generatePaperHTML(activePaper, paperQuestions, totalMarks, template));
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-    }, 500);
+    if (!paperMeta) return;
+    printHtml(buildPaperHtml(paperMeta, printableQuestions, { withAnswers: false }));
   };
 
   const handleExportTXT = () => {
-    if (!activePaper) return;
-    const text = generatePaperText(activePaper, paperQuestions, totalMarks);
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${activePaper.title.replace(/\s+/g, '_')}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    if (!activePaper || !paperMeta) return;
+    downloadFile(`${activePaper.title.replace(/\s+/g, '_')}.txt`, buildPaperText(paperMeta, printableQuestions, false), 'text/plain;charset=utf-8');
   };
 
   const handleCopyPaper = async () => {
-    if (!activePaper) return;
-    const text = generatePaperText(activePaper, paperQuestions, totalMarks);
+    if (!paperMeta) return;
+    const text = buildPaperText(paperMeta, printableQuestions, false);
     try {
       await navigator.clipboard.writeText(text);
     } catch {
       // clipboard may be blocked
+    }
+  };
+
+  const savePrintMeta = useCallback(async (meta: PaperMeta) => {
+    if (!activePaper) return;
+    const payload = {
+      institution_name: meta.institutionName ?? null,
+      subject: meta.subject ?? null,
+      class_name: meta.className ?? null,
+      exam_name: meta.examName ?? null,
+      exam_date: meta.examDate || null,
+      exam_time: meta.examTime ?? null,
+      instructions: meta.instructions ?? null,
+      logo_url: meta.logoUrl ?? null,
+      footer_note: meta.footerNote ?? null,
+      watermark_text: meta.watermarkText ?? null,
+      pdf_style: meta.pdfStyle ?? 'academic',
+      print_settings: meta.printSettings ?? {},
+      attempts: meta.attempts ?? {},
+    };
+    const { data } = await supabase.from('papers').update(payload).eq('id', activePaper.id).select().single();
+    if (data) {
+      const updated = data as Paper;
+      setActivePaper(updated);
+      setPapers((current) => current.map((paper) => paper.id === updated.id ? updated : paper));
+    }
+  }, [activePaper]);
+
+  const selectTemplate = async (pdfStyle: PdfStyleKey) => {
+    if (!activePaper) return;
+    const { data } = await supabase.from('papers').update({ pdf_style: pdfStyle, print_settings: {} }).eq('id', activePaper.id).select().single();
+    if (data) {
+      const updated = data as Paper;
+      setActivePaper(updated);
+      setPapers((current) => current.map((paper) => paper.id === updated.id ? updated : paper));
     }
   };
 
@@ -477,28 +506,19 @@ export function PaperBuilderPage() {
         <Card className="p-4">
           <div className="flex items-center gap-4 flex-wrap">
             <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Template:</span>
-            {(['classic', 'modern', 'premium'] as Template[]).map((t) => (
+            {PDF_STYLE_OPTIONS.map((option) => (
               <button
-                key={t}
-                onClick={() => setTemplate(t)}
+                key={option.value}
+                onClick={() => selectTemplate(option.value)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all capitalize ${
-                  template === t
+                  (activePaper.pdf_style || 'academic') === option.value
                     ? 'bg-primary-600 text-white'
                     : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
                 }`}
               >
-                {t === 'classic' ? 'Classic Academic' : t === 'modern' ? 'Modern Academy' : 'Premium'}
+                {option.label}
               </button>
             ))}
-            <label className="flex items-center gap-2 ml-auto text-sm text-slate-600 dark:text-slate-400">
-              <input
-                type="checkbox"
-                checked={autoSectioned}
-                onChange={(e) => setAutoSectioned(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500/50"
-              />
-              Auto-section by type
-            </label>
           </div>
         </Card>
       )}
@@ -662,18 +682,15 @@ export function PaperBuilderPage() {
         </div>
       </Modal>
 
-      {/* Preview Modal */}
-      <Modal open={showPreview} onClose={() => setShowPreview(false)} title="Paper Preview" size="xl">
-        <PaperPreview paper={activePaper} questions={paperQuestions} totalMarks={totalMarks} template={template} autoSectioned={autoSectioned} />
-        <div className="flex justify-end gap-3 mt-4">
-          <Button variant="secondary" onClick={handleExportTXT}>
-            <FileText size={16} /> Export TXT
-          </Button>
-          <Button onClick={handleExportPDF}>
-            <Printer size={16} /> Print / PDF
-          </Button>
-        </div>
-      </Modal>
+      {paperMeta && (
+        <PaperPreviewModal
+          open={showPreview}
+          onClose={() => setShowPreview(false)}
+          questions={printableQuestions}
+          defaultMeta={paperMeta}
+          onMetaChange={savePrintMeta}
+        />
+      )}
 
       {/* Delete confirmation */}
       <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Delete this paper?" size="sm">
@@ -722,150 +739,3 @@ function Field({ label, value, onChange, type = 'text', required }: { label: str
   );
 }
 
-function PaperPreview({ paper, questions, totalMarks, template, autoSectioned }: {
-  paper: Paper | null;
-  questions: PaperQuestion[];
-  totalMarks: number;
-  template: Template;
-  autoSectioned: boolean;
-}) {
-  if (!paper) return null;
-
-  const templateClass = template === 'classic' ? 'font-serif' : template === 'modern' ? 'font-sans' : 'font-serif';
-  const headerBorder = template === 'premium' ? 'border-b-4 border-double border-black' : 'border-b-2 border-black';
-
-  const sections: { name: string; type: string; items: PaperQuestion[] }[] = autoSectioned
-    ? [
-        { name: 'Section A — Multiple Choice Questions', type: 'mcq', items: questions.filter((pq) => pq.question?.question_type === 'mcq') },
-        { name: 'Section B — Short Questions', type: 'short', items: questions.filter((pq) => pq.question?.question_type === 'short') },
-        { name: 'Section C — Long Questions', type: 'long', items: questions.filter((pq) => pq.question?.question_type === 'long') },
-      ].filter((s) => s.items.length > 0)
-    : [{ name: 'Questions', type: 'all', items: questions }];
-
-  return (
-    <div className={`bg-white text-black p-8 rounded-lg ${templateClass}`} dir="auto">
-      <div className={`text-center ${headerBorder} pb-4 mb-6`}>
-        {paper.institution_name && <h1 className="text-2xl font-bold mb-1">{paper.institution_name}</h1>}
-        <h2 className="text-lg font-semibold">{paper.exam_name || 'Examination'}</h2>
-        <div className="flex flex-wrap justify-between gap-2 text-sm mt-2">
-          <span>Subject: {paper.subject || '—'}</span>
-          <span>Class: {paper.class_name || '—'}</span>
-        </div>
-        <div className="flex flex-wrap justify-between gap-2 text-sm mt-1">
-          <span>Date: {paper.exam_date || '—'}</span>
-          <span>Time: {paper.exam_time || '—'}</span>
-          <span>Total Marks: {totalMarks}</span>
-        </div>
-      </div>
-
-      {paper.instructions && (
-        <div className="mb-6 text-sm">
-          <p className="font-semibold mb-1">Instructions:</p>
-          <p className="text-gray-700">{paper.instructions}</p>
-        </div>
-      )}
-
-      <div className="space-y-8">
-        {sections.map((section) => (
-          <div key={section.name}>
-            <h3 className="font-bold text-base mb-3 underline">{section.name}</h3>
-            <div className="space-y-4">
-              {section.items.map((pq, i) => (
-                <div key={pq.id} className="border-b border-gray-200 pb-3" dir={pq.question?.language === 'urdu' ? 'rtl' : 'ltr'}>
-                  <div className="flex justify-between items-start mb-2">
-                    <p className="font-medium"><span className="font-bold">Q{i + 1}.</span> {pq.question?.question_text}</p>
-                    <span className="text-sm font-bold ml-4 flex-shrink-0">[{pq.marks}]</span>
-                  </div>
-                  {pq.question?.question_type === 'mcq' && pq.question.options && (
-                    <div className="ml-6 space-y-1">
-                      {pq.question.options.map((opt, j) => (
-                        <p key={j} className="text-sm">
-                          ({getLetterLabel(j)}) {opt.text}
-                        </p>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function generatePaperHTML(paper: Paper, questions: PaperQuestion[], totalMarks: number, template: Template): string {
-  const font = template === 'classic' ? 'Georgia, serif' : template === 'modern' ? 'Arial, sans-serif' : 'Georgia, serif';
-  const sections = [
-    { name: 'Section A — Multiple Choice Questions', type: 'mcq', items: questions.filter((pq) => pq.question?.question_type === 'mcq') },
-    { name: 'Section B — Short Questions', type: 'short', items: questions.filter((pq) => pq.question?.question_type === 'short') },
-    { name: 'Section C — Long Questions', type: 'long', items: questions.filter((pq) => pq.question?.question_type === 'long') },
-  ].filter((s) => s.items.length > 0);
-
-  const sectionsHTML = sections.map((section) => `
-    <h3 style="font-weight:bold;margin:20px 0 10px;text-decoration:underline;">${section.name}</h3>
-    ${section.items.map((pq, i) => `
-      <div style="border-bottom:1px solid #ddd;padding-bottom:10px;margin-bottom:10px;" dir="${pq.question?.language === 'urdu' ? 'rtl' : 'ltr'}">
-        <div style="display:flex;justify-content:space-between;">
-          <p style="font-weight:500;"><b>Q${i + 1}.</b> ${pq.question?.question_text ?? ''}</p>
-          <span style="font-weight:bold;margin-left:16px;">[${pq.marks}]</span>
-        </div>
-        ${pq.question?.question_type === 'mcq' && pq.question.options
-          ? `<div style="margin-left:24px;margin-top:8px;">${pq.question.options.map((opt, j) => `<p style="margin:4px 0;">(${String.fromCharCode(65 + j)}) ${opt.text}</p>`).join('')}</div>`
-          : '<div style="margin-top:20px;border-bottom:1px dotted #999;"></div>'.repeat(pq.question?.question_type === 'long' ? 5 : 2)}
-      </div>
-    `).join('')}
-  `).join('');
-
-  return `<!DOCTYPE html><html><head><title>${paper.title}</title>
-  <style>
-    body { font-family: ${font}; max-width: 800px; margin: 0 auto; padding: 40px; color: #000; }
-    h1 { text-align: center; font-size: 24px; margin-bottom: 4px; }
-    h2 { text-align: center; font-size: 18px; }
-    .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 16px; margin-bottom: 24px; }
-    .meta { display: flex; justify-content: space-between; font-size: 14px; margin-top: 8px; }
-    .instructions { margin-bottom: 24px; font-size: 14px; }
-    @media print { body { padding: 20px; } }
-  </style></head><body>
-  <div class="header">
-    ${paper.institution_name ? `<h1>${paper.institution_name}</h1>` : ''}
-    <h2>${paper.exam_name || 'Examination'}</h2>
-    <div class="meta"><span>Subject: ${paper.subject || '—'}</span><span>Class: ${paper.class_name || '—'}</span></div>
-    <div class="meta"><span>Date: ${paper.exam_date || '—'}</span><span>Time: ${paper.exam_time || '—'}</span><span>Total Marks: ${totalMarks}</span></div>
-  </div>
-  ${paper.instructions ? `<div class="instructions"><p><b>Instructions:</b> ${paper.instructions}</p></div>` : ''}
-  ${sectionsHTML}
-  </body></html>`;
-}
-
-function generatePaperText(paper: Paper, questions: PaperQuestion[], totalMarks: number): string {
-  const sections = [
-    { name: 'Section A — MCQs', type: 'mcq', items: questions.filter((pq) => pq.question?.question_type === 'mcq') },
-    { name: 'Section B — Short Questions', type: 'short', items: questions.filter((pq) => pq.question?.question_type === 'short') },
-    { name: 'Section C — Long Questions', type: 'long', items: questions.filter((pq) => pq.question?.question_type === 'long') },
-  ].filter((s) => s.items.length > 0);
-
-  let text = `${paper.institution_name ?? ''}\n${paper.exam_name ?? 'Examination'}\n`;
-  text += `Subject: ${paper.subject ?? '—'}  Class: ${paper.class_name ?? '—'}\n`;
-  text += `Date: ${paper.exam_date ?? '—'}  Time: ${paper.exam_time ?? '—'}  Total Marks: ${totalMarks}\n`;
-  text += `${'='.repeat(60)}\n\n`;
-  if (paper.instructions) text += `Instructions: ${paper.instructions}\n\n`;
-
-  sections.forEach((section) => {
-    text += `${section.name}\n${'-'.repeat(40)}\n`;
-    section.items.forEach((pq, i) => {
-      text += `Q${i + 1}. ${pq.question?.question_text ?? ''} [${pq.marks} marks]\n`;
-      if (pq.question?.question_type === 'mcq' && pq.question.options) {
-        pq.question.options.forEach((opt, j) => {
-          text += `   ${String.fromCharCode(65 + j)}) ${opt.text}\n`;
-        });
-      } else {
-        text += '\n';
-      }
-      text += '\n';
-    });
-  });
-
-  return text;
-}
