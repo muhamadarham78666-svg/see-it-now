@@ -20,6 +20,7 @@ interface PaperPreviewModalProps {
   questions: Question[];
   defaultMeta: PaperMeta;
   onMetaChange?: (meta: PaperMeta) => void;
+  onQuestionsChange?: (questions: Question[]) => void;
 }
 
 const LOGO_KEY = 'nsagpt.paper.logo';
@@ -49,7 +50,7 @@ function PrintSelect({
 }
 
 
-export function PaperPreviewModal({ open, onClose, questions, defaultMeta, onMetaChange }: PaperPreviewModalProps) {
+export function PaperPreviewModal({ open, onClose, questions, defaultMeta, onMetaChange, onQuestionsChange }: PaperPreviewModalProps) {
   const [meta, setMeta] = useState<PaperMeta>(() => ({
     ...defaultMeta,
     logoUrl:
@@ -92,12 +93,51 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta, onMet
     return () => window.clearTimeout(timer);
   }, [meta, onMetaChange, open]);
 
+  const [items, setItems] = useState<Question[]>(questions);
+  useEffect(() => setItems(questions), [questions]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onMessage = (event: MessageEvent) => {
+      const data = event.data as
+        | { type?: string; qid?: string; field?: string; index?: string | null; value?: string }
+        | undefined;
+      if (!data || data.type !== 'paper-edit' || !data.qid || !data.field) return;
+      const value = data.value ?? '';
+      const idx = data.index === null || data.index === undefined ? -1 : Number(data.index);
+      setItems((list) => {
+        const next = list.map((q) => {
+          if (q.id !== data.qid) return q;
+          if (data.field === 'text') return { ...q, question_text: value };
+          if (data.field === 'option' && q.options?.[idx]) {
+            const options = q.options.map((o, i) => (i === idx ? { ...o, text: value } : o));
+            return { ...q, options };
+          }
+          if (data.field === 'part' && q.parts?.[idx]) {
+            const parts = q.parts.map((p, i) => (i === idx ? { ...p, text: value } : p));
+            return { ...q, parts };
+          }
+          return q;
+        });
+        onQuestionsChange?.(next);
+        return next;
+      });
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [open, onQuestionsChange]);
+
   const html = useMemo(
-    () => buildPaperHtml(meta, questions, { withAnswers }),
-    [meta, questions, withAnswers],
+    () => buildPaperHtml(meta, items, { withAnswers, editable: true }),
+    [meta, items, withAnswers],
   );
 
-  const check = useMemo(() => validateMarks(questions, meta.attempts), [questions, meta.attempts]);
+  const exportHtml = useMemo(
+    () => buildPaperHtml(meta, items, { withAnswers }),
+    [meta, items, withAnswers],
+  );
+
+  const check = useMemo(() => validateMarks(items, meta.attempts), [items, meta.attempts]);
 
 
   if (!open) return null;
@@ -168,7 +208,7 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta, onMet
               Preview &amp; Download
             </h2>
             <span className="hidden sm:inline text-xs text-slate-400 ml-2">
-              {questions.length} questions · {questions.reduce((s, q) => s + (q.marks || 0), 0)} marks
+              {items.length} questions · {check.total} marks
             </span>
           </div>
           <button
@@ -348,7 +388,7 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta, onMet
 
           <div className="min-h-0 flex flex-col bg-slate-200 dark:bg-slate-900">
             <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-slate-300/60 dark:border-slate-700">
-              <p className="text-xs text-slate-500 dark:text-slate-400">Full page preview (A4)</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">A4 preview — click any question or option to edit it</p>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setZoom((z) => Math.max(0.4, Math.round((z - 0.1) * 10) / 10))}
@@ -409,18 +449,18 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta, onMet
             </div>
           )}
           <button
-            onClick={() => downloadFile(`${fileBase}.txt`, buildPaperText(meta, questions, withAnswers), 'text/plain;charset=utf-8')}
+            onClick={() => downloadFile(`${fileBase}.txt`, buildPaperText(meta, items, withAnswers), 'text/plain;charset=utf-8')}
             className="btn-secondary text-sm"
           >
             <Download size={16} /> TXT
           </button>
           <button
-            onClick={() => downloadFile(`${fileBase}.html`, html, 'text/html;charset=utf-8')}
+            onClick={() => downloadFile(`${fileBase}.html`, exportHtml, 'text/html;charset=utf-8')}
             className="btn-secondary text-sm"
           >
             <Download size={16} /> HTML
           </button>
-          <button onClick={() => printHtml(html)} className="btn-primary text-sm">
+          <button onClick={() => printHtml(exportHtml)} className="btn-primary text-sm">
             <Printer size={16} /> Print / Save as PDF
           </button>
         </div>
