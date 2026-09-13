@@ -251,54 +251,64 @@ export function buildPaperHtml(
 <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; }
-  body { font-family: ${style.font === 'sans' ? "'Helvetica Neue', Arial, sans-serif" : "Georgia, 'Times New Roman', serif"}; color: #111; margin: 0; padding: 36px 44px; line-height: 1.6; }
+  body { font-family: ${tpl.bodyFont ?? (style.font === 'sans' ? "'Helvetica Neue', Arial, sans-serif" : "Georgia, 'Times New Roman', serif")}; color: #111; margin: 0; padding: ${tpl.pagePad}; line-height: ${tpl.lineHeight}; position: relative; }
   header { text-align: center; border-bottom: 2px solid ${style.accent}; padding-bottom: 14px; margin-bottom: 18px; }
   header .brand { display: flex; align-items: center; justify-content: center; gap: 14px; }
   header .brand img { height: 64px; width: auto; max-width: 130px; object-fit: contain; }
-  header h1 { margin: 0 0 6px; font-size: 24px; letter-spacing: .3px; }
+  header h1 { margin: 0 0 6px; font-size: ${tpl.baseSize + 10}px; letter-spacing: .3px; }
   header .board { font-size: 13px; font-weight: bold; color: ${style.accent}; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 4px; }
   footer { margin-top: 28px; padding-top: 10px; border-top: 1px dashed #999; text-align: center; font-size: 12.5px; font-weight: bold; }
-  header .exam { font-size: 16px; font-weight: bold; margin-bottom: 6px; }
+  header .exam { font-size: ${tpl.baseSize + 2}px; font-weight: bold; margin-bottom: 6px; }
   header .meta { font-size: 12px; color: #333; }
   .idbox { display: flex; gap: 12px; margin-bottom: 14px; font-size: 12px; }
   .idbox div { flex: 1; border: 1px solid #999; padding: 6px 10px; }
   .totals { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; margin-bottom: 16px; }
-  .instructions { border: 1px solid #bbb; background: #fafafa; padding: 10px 14px; font-size: 12.5px; margin-bottom: 22px; white-space: pre-wrap; }
-  section { margin-bottom: 26px; }
-  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .6px; color: ${style.accent}; border-bottom: 1px solid ${style.accent}; padding-bottom: 6px; margin: 0 0 10px; }
-  .note { font-size: 12px; font-style: italic; color: #444; margin: 0 0 12px; }
-  .q { margin-bottom: 16px; page-break-inside: avoid; }
-  .qhead { display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; }
-  .qtext { margin: 2px 0 8px; font-size: 14px; text-align: left; }
-  .opts { list-style: none; padding: 0; margin: 0 0 4px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; font-size: 13.5px; }
+  .instructions { border: 1px solid #bbb; background: ${tpl.mono ? '#fff' : '#fafafa'}; padding: 10px 14px; font-size: 12.5px; margin-bottom: 22px; white-space: pre-wrap; }
+  section { margin-bottom: ${tpl.gap}px; ${tpl.sectionBox ? `border: 1px solid #d4d4d4; border-radius: 8px; padding: 12px 14px;` : ''} }
+  h2 { font-size: ${tpl.baseSize + 1}px; text-transform: ${tpl.headingCase}; letter-spacing: .6px; color: ${style.accent}; border-bottom: 1px solid ${style.accent}; padding-bottom: 6px; margin: 0 0 10px; }
+  .note { font-size: 12px; font-style: italic; color: ${muted}; margin: 0 0 12px; }
+  .q { margin-bottom: ${Math.round(tpl.gap * 0.6)}px; page-break-inside: avoid; }
+  .qhead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-weight: bold; font-size: 13px; }
+  .qhead .marks { margin-left: auto; text-align: right; white-space: nowrap; font-weight: normal; color: ${muted}; font-size: 12px; }
+  .qtext { margin: 2px 0 8px; font-size: ${tpl.baseSize}px; text-align: left; }
+  .opts { list-style: none; padding: 0; margin: 0 0 4px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; font-size: ${tpl.baseSize - 0.5}px; }
   .opts .lbl { font-weight: bold; }
-  .space { border-bottom: 1px dotted #999; height: 26px; margin-bottom: 6px; }
+  .space { border-bottom: 1px dotted #999; height: ${tpl.baseSize < 13 ? 20 : 26}px; margin-bottom: 6px; }
   .fig { margin: 6px 0 10px; text-align: center; page-break-inside: avoid; }
-  .fig svg { max-width: 320px; height: auto; }
-  .fig figcaption { font-size: 11.5px; color: #444; margin-top: 2px; }
-  .parts { list-style: none; padding: 0 0 0 14px; margin: 0 0 8px; font-size: 13.5px; }
+  .fig svg { max-width: 320px; height: auto; ${tpl.mono ? 'filter: grayscale(100%);' : ''} }
+  .fig figcaption { font-size: 11.5px; color: ${muted}; margin-top: 2px; }
+  .parts { list-style: none; padding: 0 0 0 14px; margin: 0 0 8px; font-size: ${tpl.baseSize - 0.5}px; }
   .parts li { margin-bottom: 6px; }
-  .parts .pmarks { color: #444; font-size: 12px; }
-  .lead { font-size: 13.5px; font-weight: bold; margin: 0 0 10px; }
-  .lead .marks { font-weight: normal; color: #444; }
-  .stmt { font-size: 12px; color: #444; font-style: italic; margin: -4px 0 8px; }
+  .parts .pmarks { color: ${muted}; font-size: 12px; }
+  .lead { display: flex; align-items: baseline; gap: 10px; font-size: ${tpl.baseSize - 0.5}px; font-weight: bold; margin: 0 0 10px; }
+  .lead .marks { margin-left: auto; text-align: right; white-space: nowrap; font-weight: normal; color: ${muted}; }
+  .stmt { font-size: 12px; color: ${muted}; font-style: italic; margin: -4px 0 8px; }
   .q.sub { margin-bottom: 10px; padding-left: 16px; }
   .q.sub .qhead { font-weight: bold; }
 
-  .answer { font-size: 12.5px; color: #14532d; background: #f0fdf4; border-left: 3px solid #16a34a; padding: 6px 10px; }
+  .answer { font-size: 12.5px; color: ${tpl.mono ? '#111' : '#14532d'}; background: ${tpl.mono ? '#f4f4f4' : '#f0fdf4'}; border-left: 3px solid ${tpl.mono ? '#555' : '#16a34a'}; padding: 6px 10px; }
   .rtl { direction: rtl; }
   .rtl .qtext, .rtl .opts, .rtl .lead, .rtl .stmt, .rtl .parts, .rtl .note { font-family: 'Noto Nastaliq Urdu', serif; text-align: right; line-height: 2.2; }
-  .rtl .qhead { flex-direction: row-reverse; }
+  .rtl .qhead, .rtl .lead { flex-direction: row-reverse; }
+  .rtl .qhead .marks, .rtl .lead .marks { margin-left: 0; margin-right: auto; text-align: left; }
   .rtl .q.sub { padding-left: 0; padding-right: 16px; }
+  .watermark { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 0; pointer-events: none; }
+  .watermark span { transform: rotate(-32deg); font-size: 74px; font-weight: bold; letter-spacing: 6px; color: #000; opacity: .07; white-space: nowrap; text-transform: uppercase; }
+  body > header, body > section, body > footer, body > div { position: relative; z-index: 1; }
   ${
     isUrduPaper
       ? `body { direction: rtl; font-family: 'Noto Nastaliq Urdu', serif; line-height: 2.1; }
   h2, .totals, .instructions, .idbox, footer { font-family: 'Noto Nastaliq Urdu', serif; }
   h2 { text-transform: none; }
-  .qtext, .opts { text-align: right; }`
+  .qtext, .opts { text-align: right; }
+  .qhead, .lead { flex-direction: row-reverse; }
+  .qhead .marks, .lead .marks { margin-left: 0; margin-right: auto; text-align: left; }`
       : ''
   }
-  @media print { body { padding: 18px 24px; } }
+  @media print {
+    body { padding: ${tpl.baseSize < 13 ? '14px 20px' : '18px 24px'}; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .watermark span { opacity: .09; }
+  }
 </style>
 </head>
 <body>
