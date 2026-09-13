@@ -1,3 +1,4 @@
+import { useNavigate } from '@tanstack/react-router';
 import { useSearchParams } from '@/lib/rr';
 import { useState, useEffect, useMemo } from 'react';
 import {
@@ -102,6 +103,7 @@ const processingSteps = [
 ];
 
 export function GeneratePage() {
+  const navigate = useNavigate();
   const { profile, session } = useAuth();
   const { board } = useBoard();
   const { lang, langName } = useLanguage();
@@ -483,7 +485,7 @@ export function GeneratePage() {
       setError('Save-able questions only — these questions are not stored in your library yet.');
       return;
     }
-    window.location.href = `/dashboard/papers?questionIds=${encodeURIComponent(ids.join(','))}`;
+    navigate({ to: '/dashboard/papers', search: { questionIds: ids.join(',') } as never });
   };
 
   if (generating) {
