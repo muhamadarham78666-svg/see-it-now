@@ -15,6 +15,7 @@ export function Hero({ onGetStarted, onWatchGuide }: HeroProps) {
       {/* Background effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-primary-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-primary-950/20" />
       <div className="absolute inset-0 bg-grid-pattern bg-[size:40px_40px] opacity-60" />
+      <div className="absolute inset-0 hero-grid-glow opacity-70 motion-reduce:animate-none" aria-hidden />
       <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary-400/20 rounded-full blur-3xl animate-float" />
       <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-accent-400/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
 
