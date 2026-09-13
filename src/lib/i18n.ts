@@ -28,7 +28,7 @@ export function languageDef(code: string | null | undefined): LanguageDef {
 
 export type TransKey =
   | 'nav.dashboard' | 'nav.generate' | 'nav.solver' | 'nav.bookSolver' | 'nav.bank'
-  | 'nav.papers' | 'nav.history' | 'nav.notes' | 'nav.settings' | 'nav.admin'
+  | 'nav.papers' | 'nav.history' | 'nav.notes' | 'nav.settings' | 'nav.support' | 'nav.admin'
   | 'common.signOut' | 'common.light' | 'common.dark' | 'common.user' | 'common.admin'
   | 'common.language' | 'common.board' | 'common.selectBoard' | 'common.viewAll' | 'common.ask'
   | 'dash.welcome' | 'dash.subtitle' | 'dash.askAnything' | 'dash.askHint' | 'dash.askPlaceholder'
@@ -52,6 +52,7 @@ const en: Dict = {
   'nav.history': 'History',
   'nav.notes': 'Notes',
   'nav.settings': 'Settings',
+  'nav.support': 'Support',
   'nav.admin': 'Admin Panel',
   'common.signOut': 'Sign Out',
   'common.light': 'Light Mode',
@@ -112,6 +113,7 @@ const ur: Dict = {
   'nav.history': 'تاریخ',
   'nav.notes': 'نوٹس',
   'nav.settings': 'ترتیبات',
+  'nav.support': 'سپورٹ',
   'nav.admin': 'ایڈمن پینل',
   'common.signOut': 'سائن آؤٹ',
   'common.light': 'لائٹ موڈ',
@@ -172,6 +174,7 @@ const roman: Dict = {
   'nav.history': 'History',
   'nav.notes': 'Notes',
   'nav.settings': 'Settings',
+  'nav.support': 'Support',
   'nav.admin': 'Admin Panel',
   'common.signOut': 'Sign Out',
   'common.light': 'Light Mode',
@@ -232,6 +235,7 @@ const ar: Dict = {
   'nav.history': 'السجل',
   'nav.notes': 'الملاحظات',
   'nav.settings': 'الإعدادات',
+  'nav.support': 'الدعم',
   'nav.admin': 'لوحة المسؤول',
   'common.signOut': 'تسجيل الخروج',
   'common.light': 'الوضع الفاتح',
@@ -292,6 +296,7 @@ const hi: Dict = {
   'nav.history': 'इतिहास',
   'nav.notes': 'नोट्स',
   'nav.settings': 'सेटिंग्स',
+  'nav.support': 'सहायता',
   'nav.admin': 'एडमिन पैनल',
   'common.signOut': 'साइन आउट',
   'common.light': 'लाइट मोड',
@@ -352,6 +357,7 @@ const zh: Dict = {
   'nav.history': '历史记录',
   'nav.notes': '笔记',
   'nav.settings': '设置',
+  'nav.support': '支持',
   'nav.admin': '管理后台',
   'common.signOut': '退出登录',
   'common.light': '浅色模式',
@@ -412,6 +418,7 @@ const es: Dict = {
   'nav.history': 'Historial',
   'nav.notes': 'Notas',
   'nav.settings': 'Ajustes',
+  'nav.support': 'Soporte',
   'nav.admin': 'Panel de administración',
   'common.signOut': 'Cerrar sesión',
   'common.light': 'Modo claro',
@@ -472,6 +479,7 @@ const fr: Dict = {
   'nav.history': 'Historique',
   'nav.notes': 'Notes',
   'nav.settings': 'Paramètres',
+  'nav.support': 'Assistance',
   'nav.admin': 'Panneau admin',
   'common.signOut': 'Se déconnecter',
   'common.light': 'Mode clair',
@@ -532,6 +540,7 @@ const ps: Dict = {
   'nav.history': 'تاریخ',
   'nav.notes': 'یادښتونه',
   'nav.settings': 'تنظیمات',
+  'nav.support': 'پشتیبانی',
   'nav.admin': 'اډمین پینل',
   'common.signOut': 'وتل',
   'common.light': 'روښانه حالت',
@@ -592,6 +601,7 @@ const bn: Dict = {
   'nav.history': 'ইতিহাস',
   'nav.notes': 'নোট',
   'nav.settings': 'সেটিংস',
+  'nav.support': 'সহায়তা',
   'nav.admin': 'অ্যাডমিন প্যানেল',
   'common.signOut': 'সাইন আউট',
   'common.light': 'লাইট মোড',

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Settings as SettingsIcon, Globe, Gauge, Hash, ListOrdered, Sun, Moon, User, Save, Check } from 'lucide-react';
 import { Card } from '@/components/nsa/Card';
 import { Button } from '@/components/nsa/Button';
+import { roleLabel } from '@/lib/roles';
 import { Badge } from '@/components/nsa/Badge';
 import { SegmentedControl } from '@/components/nsa/Toggle';
 import { useAuth } from '@/context/AuthContext';
@@ -155,8 +156,8 @@ export function SettingsPage() {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-500 dark:text-slate-400">Role:</span>
-            <Badge variant={profile?.role === 'admin' ? 'primary' : 'default'}>
-              {profile?.role === 'admin' ? 'Administrator' : 'User'}
+            <Badge variant={profile?.role && profile.role !== 'user' ? 'primary' : 'default'}>
+              {roleLabel(profile?.role)}
             </Badge>
           </div>
         </div>

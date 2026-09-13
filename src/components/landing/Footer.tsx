@@ -1,11 +1,12 @@
 import { Logo } from '@/components/Logo';
+import { Link } from '@/lib/rr';
 
 
 export function Footer() {
   return (
     <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           <div>
             <Logo size="sm" />
             <p className="mt-4 text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-xs">
@@ -30,6 +31,18 @@ export function Footer() {
               <li>Urdu & English Support</li>
               <li>Question Bank & History</li>
               <li>PDF & Word Export</li>
+            </ul>
+          </div>
+        </div>
+
+          <div>
+            <h4 className="font-display text-sm font-semibold text-slate-900 dark:text-white mb-3">Company</h4>
+            <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+              <li><Link to="/about" className="hover:text-primary-600 dark:hover:text-primary-400">About</Link></li>
+              <li><Link to="/contact" className="hover:text-primary-600 dark:hover:text-primary-400">Contact</Link></li>
+              <li><Link to="/faq" className="hover:text-primary-600 dark:hover:text-primary-400">FAQ</Link></li>
+              <li><Link to="/terms" className="hover:text-primary-600 dark:hover:text-primary-400">Terms of Service</Link></li>
+              <li><Link to="/privacy" className="hover:text-primary-600 dark:hover:text-primary-400">Privacy Policy</Link></li>
             </ul>
           </div>
         </div>

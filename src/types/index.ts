@@ -4,7 +4,7 @@ export type Difficulty = 'easy' | 'medium' | 'hard' | 'mixed';
 export type QuestionDifficulty = 'easy' | 'medium' | 'hard';
 export type GenerationStatus = 'pending' | 'analyzing' | 'generating' | 'completed' | 'failed';
 export type PaperStatus = 'draft' | 'finalized';
-export type UserRole = 'admin' | 'user';
+export type UserRole = 'owner' | 'admin' | 'editor' | 'user';
 
 export interface Profile {
   id: string;

@@ -12,11 +12,35 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 type Ctx = { supabase: any; userId: string };
 
 async function assertAdminRole(context: Ctx) {
-  const { data, error } = await context.supabase.rpc("has_role", {
-    _user_id: context.userId,
-    _role: "admin",
+  const results = await Promise.all(
+    (["admin", "owner"] as const).map((role) =>
+      context.supabase.rpc("has_role", { _user_id: context.userId, _role: role }),
+    ),
+  );
+  if (!results.some((r) => r.data)) throw new Error("Forbidden");
+}
+
+/** Records an admin action in the audit trail. Never blocks the action itself. */
+async function audit(
+  context: Ctx,
+  action: string,
+  target?: { type?: string; id?: string; label?: string },
+  metadata?: Record<string, unknown>,
+) {
+  const safe: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(metadata ?? {})) {
+    if (/password|token|secret|code/i.test(k) || v === undefined) continue;
+    safe[k] = v;
+  }
+  const { logAdminAction } = await import("./audit.server");
+  await logAdminAction({
+    actorId: context.userId,
+    action,
+    targetType: target?.type,
+    targetId: target?.id,
+    targetLabel: target?.label,
+    metadata: safe,
   });
-  if (error || !data) throw new Error("Forbidden");
 }
 
 async function assertAdmin(context: Ctx, token: string) {
@@ -30,6 +54,17 @@ async function assertAdmin(context: Ctx, token: string) {
 async function admin(): Promise<any> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin as unknown as any;
+}
+
+/** The permanent owner account can never be demoted or deleted by anyone. */
+async function assertNotOwnerTarget(userId: string) {
+  const db = await admin();
+  const { data } = await db.auth.admin.getUserById(userId);
+  const email = String(data?.user?.email ?? "").toLowerCase();
+  const { PERMANENT_OWNER_EMAIL } = await import("./roles");
+  if (email && email === PERMANENT_OWNER_EMAIL) {
+    throw new Error("The owner account is protected and cannot be changed or removed.");
+  }
 }
 
 const tokenInput = z.object({ token: z.string().min(1) });
@@ -152,6 +187,7 @@ export const adminCreateUserFn = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context as Ctx, data.token);
+    await audit(context as Ctx, "createUser", undefined, { ...data, token: undefined });
     const db = await admin();
     let requestEmail: string | null = null;
     if (data.requestId) {
@@ -241,6 +277,8 @@ export const adminUpdateUserFn = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context as Ctx, data.token);
+    await audit(context as Ctx, "updateUser", undefined, { ...data, token: undefined });
+    if (data.password || data.makeAdmin === false) await assertNotOwnerTarget(data.userId);
     const db = await admin();
     const patch: Record<string, unknown> = {};
     if (data.fullName !== undefined) patch["full_name"] = data.fullName;
@@ -266,6 +304,8 @@ export const adminDeleteUserFn = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => tokenInput.extend({ userId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     await assertAdmin(context as Ctx, data.token);
+    await audit(context as Ctx, "deleteUser", undefined, { ...data, token: undefined });
+    await assertNotOwnerTarget(data.userId);
     if (data.userId === (context as Ctx).userId) {
       return { ok: false as const, message: "You cannot delete your own account." };
     }
@@ -298,6 +338,7 @@ export const adminReviewActionFn = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context as Ctx, data.token);
+    await audit(context as Ctx, "reviewAction", undefined, { ...data, token: undefined });
     const db = await admin();
     if (data.action === "delete") {
       await db.from("reviews").delete().eq("id", data.id);
@@ -333,6 +374,7 @@ export const adminBoardUpdateFn = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context as Ctx, data.token);
+    await audit(context as Ctx, "boardUpdate", undefined, { ...data, token: undefined });
     const db = await admin();
     const patch: Record<string, unknown> = {};
     if (data.isActive !== undefined) patch["is_active"] = data.isActive;
@@ -360,6 +402,7 @@ export const adminRequestActionFn = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context as Ctx, data.token);
+    await audit(context as Ctx, "requestAction", undefined, { ...data, token: undefined });
     const db = await admin();
     if (data.action === "delete") {
       await db.from("access_requests").delete().eq("id", data.id);
@@ -427,6 +470,7 @@ export const adminSubscriptionRequestActionFn = createServerFn({ method: "POST" 
   }).parse(data))
   .handler(async ({ data, context }) => {
     await assertAdmin(context as Ctx, data.token);
+    await audit(context as Ctx, "subscriptionRequestAction", undefined, { ...data, token: undefined });
     const db = await admin();
     if (data.action === "delete") {
       const { error } = await db.from("subscription_requests").delete().eq("id", data.id);
@@ -445,6 +489,7 @@ export const adminActivateSubscriptionFn = createServerFn({ method: "POST" })
   }).parse(data))
   .handler(async ({ data, context }) => {
     await assertAdmin(context as Ctx, data.token);
+    await audit(context as Ctx, "activateSubscription", undefined, { ...data, token: undefined });
     const db = await admin();
     const { data: request, error: requestError } = await db.from("subscription_requests").select("*").eq("id", data.requestId).maybeSingle();
     if (requestError || !request) return { ok: false as const, message: "Subscription request was not found." };
@@ -505,6 +550,7 @@ export const adminRenewSubscriptionFn = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => tokenInput.extend({ id: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     await assertAdmin(context as Ctx, data.token);
+    await audit(context as Ctx, "renewSubscription", undefined, { ...data, token: undefined });
     const db = await admin();
     const { data: subscription, error } = await db.from("subscriptions").select("*").eq("id", data.id).maybeSingle();
     if (error || !subscription) return { ok: false as const, message: "Subscription was not found." };
@@ -554,6 +600,7 @@ export const adminDeleteContentFn = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context as Ctx, data.token);
+    await audit(context as Ctx, "deleteContent", undefined, { ...data, token: undefined });
     const db = await admin();
     await db.from(data.table).delete().eq("id", data.id);
     return { ok: true as const };
@@ -583,6 +630,7 @@ export const adminDeviceActionFn = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context as Ctx, data.token);
+    await audit(context as Ctx, "deviceAction", undefined, { ...data, token: undefined });
     const db = await admin();
     if (data.action === "delete") {
       await db.from("user_devices").delete().eq("id", data.id);
@@ -619,6 +667,7 @@ export const adminResetDevicesFn = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => tokenInput.extend({ userId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     await assertAdmin(context as Ctx, data.token);
+    await audit(context as Ctx, "resetDevices", undefined, { ...data, token: undefined });
     const db = await admin();
     await db.from("user_devices").delete().eq("user_id", data.userId);
     return { ok: true as const };
