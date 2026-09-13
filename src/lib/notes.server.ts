@@ -10,6 +10,9 @@ export interface NoteRequest {
   language: string;
   style: string;
   subject?: string | null;
+  classGroup?: string | null;
+  bookName?: string | null;
+  chapter?: string | null;
   attachments: NoteAttachment[];
 }
 
@@ -37,6 +40,13 @@ function buildInstruction(req: NoteRequest) {
     styleRule(req.style),
     languageRule(req.language),
     req.subject ? `Subject: ${req.subject}.` : "",
+    req.classGroup ? `Class / group: ${req.classGroup}.` : "",
+    req.bookName ? `Textbook: ${req.bookName}.` : "",
+    req.chapter ? `Chapter: ${req.chapter}.` : "",
+    req.bookName || req.attachments.length
+      ? "SOURCE BOUNDARY — STRICT: build the notes ONLY from the given material and the named textbook/chapter. Never bring in content from other books, other boards, or general internet knowledge, and never invent facts, formulas or examples that are not in that source."
+      : "",
+    "Write clean readable text only: no LaTeX or markdown maths ($, \\frac, \\text{}), no ** bold markers, no backticks or code fences. Write maths plainly (x^2 + 3x = 0, (a+b)/2, 30\u00b0).",
     "Use plain text with markdown-style headings (##) and dashes for bullets. No code fences.",
     'Return ONLY JSON: {"title": string, "content": string}',
   ]

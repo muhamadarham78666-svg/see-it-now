@@ -4,7 +4,6 @@ import {
   LayoutDashboard,
   Sparkles,
   Archive,
-  Newspaper,
   Calculator,
   BookOpenCheck,
   
@@ -36,7 +35,6 @@ const navItems = [
   { to: '/dashboard/solver', key: 'nav.solver', icon: Calculator, end: false },
   { to: '/dashboard/book-solver', key: 'nav.bookSolver', icon: BookOpenCheck, end: false },
   { to: '/dashboard/bank', key: 'nav.bank', icon: Archive, end: false },
-  { to: '/dashboard/papers', key: 'nav.papers', icon: Newspaper, end: false },
   { to: '/dashboard/history', key: 'nav.history', icon: History, end: false },
   { to: '/dashboard/notes', key: 'nav.notes', icon: NotebookPen, end: false },
   { to: '/dashboard/support', key: 'nav.support', icon: Headphones, end: false },

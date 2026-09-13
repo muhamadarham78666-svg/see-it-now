@@ -1,3 +1,5 @@
+import { cleanPaperText } from "./paperText";
+
 export interface GenAttachment {
   name: string;
   mime: string;
@@ -87,7 +89,8 @@ export function buildInstruction(settings: GenSettings) {
 
   return [
     "You are an expert Punjab Board exam paper setter for Pakistani schools and colleges.",
-    "If study material is provided (text, images, scans or documents), build the questions strictly from it. If no material is provided, use the standard Punjab textbook syllabus for the given class, book and chapters.",
+    "SOURCE BOUNDARY — STRICT: If study material is provided (text, images, scans or documents), every single question MUST come from inside that material only. If no material is provided, use ONLY the content of the selected Punjab textbook for the given class, book and chapters.",
+    "NEVER use outside sources, other books, internet knowledge, other boards' content, or topics that are not inside the given book/chapters. Do not invent facts, data, poems, passages, formulas or numericals that are not in the book. If you cannot fill the requested count from the book content, repeat coverage of the same book topics with different questions instead of going outside the book.",
     settings.classGroup ? `Class / Group: ${settings.classGroup}.` : "",
     settings.bookName ? `Book / Subject: ${settings.bookName}.` : "",
     settings.rangeLabel ? `Paper range: ${settings.rangeLabel}.` : "",
@@ -149,6 +152,11 @@ export function buildInstruction(settings: GenSettings) {
     'Set "category" to a short key when the question is a special item (letter, application, story, essay, dialogue, precis, comprehension, translation, tashreeh, khulasa, markazi, kahani, khat, mukalma, mazmoon, numerical, conceptual); otherwise null.',
     'Return ONLY JSON in this shape: {"questions":[{"question_text":string,"question_type":"mcq"|"short"|"long","options":[{"label":"A","text":string}]|null,"correct_answer":string|null,"expected_answer":string|null,"answer_points":string[]|null,"parts":[{"label":"a","text":string,"marks":number}]|null,"diagram_svg":string|null,"diagram_note":string|null,"statement":string|null,"category":string|null,"explanation":string,"difficulty":"easy"|"medium"|"hard","topic":string,"marks":number}]}',
     "If the material is an image or scan, first read (OCR) all visible text, then build the questions from it.",
+    "CLEAN EXAM WORDING: write plain exam text only. Never use LaTeX or markdown: no $, $$, \\(, \\), \\[, \\], \\frac, \\text{}, **bold**, backticks, #headings, or code fences anywhere. Write maths in normal readable form (e.g. x^2 + 3x = 0, (a+b)/2, 25 m/s^2, √16, 30°).",
+    "Do not add commentary, notes to the teacher, source references, page numbers, chapter names, headings or any extra words around the questions — this is a printed exam paper.",
+    settings.instructions
+      ? "FINAL CHECK: before answering, silently re-read the TEACHER'S SPECIAL INSTRUCTIONS above and make sure every single point is applied exactly in your JSON output. If any point is not yet applied, fix it before replying."
+      : "",
   ]
 
     .filter(Boolean)
@@ -334,7 +342,11 @@ export function sanitizeSvg(input: unknown): string | null {
 
 const LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
-export function normalizeQuestions(raw: Record<string, unknown>[]): QuestionDraft[] {
+export function normalizeQuestions(
+  raw: Record<string, unknown>[],
+  opts?: { allowDiagrams?: boolean },
+): QuestionDraft[] {
+  const allowDiagrams = opts?.allowDiagrams !== false;
   return raw.map((q) => {
     const type = ((): QuestionDraft["question_type"] => {
       const t = String(q["question_type"] ?? "mcq").toLowerCase();
@@ -347,7 +359,7 @@ export function normalizeQuestions(raw: Record<string, unknown>[]): QuestionDraf
             const obj = (typeof o === "object" && o !== null ? o : {}) as Record<string, unknown>;
             return {
               label: String(obj["label"] ?? LETTERS[i] ?? String(i + 1)),
-              text: String(obj["text"] ?? (typeof o === "string" ? o : "")),
+              text: cleanPaperText(String(obj["text"] ?? (typeof o === "string" ? o : ""))),
             };
           })
         : null;
@@ -356,15 +368,15 @@ export function normalizeQuestions(raw: Record<string, unknown>[]): QuestionDraf
       return d === "easy" || d === "hard" ? d : "medium";
     })();
     const points = Array.isArray(q["answer_points"])
-      ? (q["answer_points"] as unknown[]).map((p) => String(p))
+      ? (q["answer_points"] as unknown[]).map((p) => cleanPaperText(String(p)))
       : null;
     const marksRaw = Number(q["marks"]);
     return {
-      question_text: String(q["question_text"] ?? "").trim(),
+      question_text: cleanPaperText(String(q["question_text"] ?? "")),
       question_type: type,
       options,
-      correct_answer: q["correct_answer"] != null ? String(q["correct_answer"]) : null,
-      expected_answer: q["expected_answer"] != null ? String(q["expected_answer"]) : null,
+      correct_answer: q["correct_answer"] != null ? cleanPaperText(String(q["correct_answer"])) || null : null,
+      expected_answer: q["expected_answer"] != null ? cleanPaperText(String(q["expected_answer"])) || null : null,
       answer_points: type === "long" ? points : null,
       parts:
         type === "long" && Array.isArray(q["parts"])
@@ -374,20 +386,21 @@ export function normalizeQuestions(raw: Record<string, unknown>[]): QuestionDraf
                 const m = Number(obj["marks"]);
                 return {
                   label: String(obj["label"] ?? (i === 0 ? "a" : "b")),
-                  text: String(obj["text"] ?? "").trim(),
+                  text: cleanPaperText(String(obj["text"] ?? "")),
                   marks: Number.isFinite(m) && m > 0 ? m : 0,
                 };
               })
               .filter((p) => p.text.length > 0)
           : null,
-      diagram_svg: sanitizeSvg(q["diagram_svg"]),
-      diagram_note: q["diagram_note"] != null ? String(q["diagram_note"]) : null,
-      statement: q["statement"] != null ? String(q["statement"]).trim() || null : null,
+      diagram_svg: allowDiagrams ? sanitizeSvg(q["diagram_svg"]) : null,
+      diagram_note:
+        allowDiagrams && q["diagram_note"] != null ? cleanPaperText(String(q["diagram_note"])) || null : null,
+      statement: q["statement"] != null ? cleanPaperText(String(q["statement"])) || null : null,
       category: q["category"] != null ? String(q["category"]).trim().toLowerCase() || null : null,
-      explanation: q["explanation"] != null ? String(q["explanation"]) : null,
+      explanation: q["explanation"] != null ? cleanPaperText(String(q["explanation"])) || null : null,
 
       difficulty,
-      topic: q["topic"] != null ? String(q["topic"]) : null,
+      topic: q["topic"] != null ? cleanPaperText(String(q["topic"])) || null : null,
       marks: Number.isFinite(marksRaw) && marksRaw > 0 ? marksRaw : type === "long" ? 5 : type === "short" ? 2 : 1,
     };
   }).filter((q) => q.question_text.length > 0);

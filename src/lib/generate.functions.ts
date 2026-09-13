@@ -56,5 +56,7 @@ export const generateQuestionsFn = createServerFn({ method: "POST" })
     const { enforceAiLimit } = await import('./ai-limits.server');
     await enforceAiLimit(context as any, 'generate');
     const raw = await requestQuestions(data.text, data.attachments, data.settings);
-    return { questions: normalizeQuestions(raw) };
+    return {
+      questions: normalizeQuestions(raw, { allowDiagrams: data.settings.wantDiagrams === true }),
+    };
   });

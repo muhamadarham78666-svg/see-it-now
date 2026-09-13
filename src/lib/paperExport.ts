@@ -1,3 +1,4 @@
+import { cleanPaperText } from './paperText';
 import type { Question } from '@/types';
 import { getBoardStyle } from '@/lib/boardStyles';
 
@@ -336,11 +337,12 @@ function localizeUrduMeta(value: string | undefined, kind: 'instructions' | 'exa
 }
 
 const escapeHtml = (value: string) =>
-  value
+  cleanPaperText(value)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+
 
 /** Marks the section actually carries, honouring "Attempt any N". */
 export function sectionMarkPlan(items: Question[], attempt?: number) {

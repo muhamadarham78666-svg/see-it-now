@@ -8,6 +8,9 @@ const inputSchema = z.object({
   language: z.string().default("english"),
   style: z.string().default("structured"),
   subject: z.string().nullable().optional(),
+  classGroup: z.string().nullable().optional(),
+  bookName: z.string().nullable().optional(),
+  chapter: z.string().nullable().optional(),
   attachments: z
     .array(
       z.object({
