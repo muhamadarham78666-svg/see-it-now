@@ -383,7 +383,7 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta, onMet
 
           <div className="min-h-0 flex flex-col bg-slate-200 dark:bg-slate-900">
             <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-slate-300/60 dark:border-slate-700">
-              <p className="text-xs text-slate-500 dark:text-slate-400">Full page preview (A4)</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">A4 preview — click any question or option to edit it</p>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setZoom((z) => Math.max(0.4, Math.round((z - 0.1) * 10) / 10))}
