@@ -124,7 +124,6 @@ export function DashboardPage() {
     { label: t('qa.solver'), icon: Calculator, color: 'from-accent-600 to-primary-500', action: () => navigate('/dashboard/solver') },
     { label: t('qa.upload'), icon: FileUp, color: 'from-primary-400 to-accent-400', action: () => navigate('/dashboard/generate') },
     { label: t('qa.bank'), icon: Archive, color: 'from-slate-500 to-slate-600', action: () => navigate('/dashboard/bank') },
-    { label: t('qa.paper'), icon: Newspaper, color: 'from-primary-600 to-accent-500', action: () => navigate('/dashboard/papers') },
     { label: t('qa.notes'), icon: NotebookPen, color: 'from-success-500 to-primary-500', action: () => navigate('/dashboard/notes') },
   ];
 
