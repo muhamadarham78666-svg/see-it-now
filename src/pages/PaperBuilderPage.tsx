@@ -10,6 +10,7 @@ import {
   Download,
   FileText,
   Copy,
+  Pencil,
   ChevronUp,
   ChevronDown,
   X,
