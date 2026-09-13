@@ -221,7 +221,7 @@ export function buildPaperHtml(
               )}</div>`
             : '';
           return `<div class="q ${grouped ? 'sub' : ''} ${rtl ? 'rtl' : ''}">
-            <div class="qhead"><span class="qno">${itemNo}</span>${style.perQuestionMarks && !grouped ? `<span class="marks">(${q.marks})</span>` : ''}</div>
+            <div class="qhead"><span class="qno">${itemNo}</span>${style.perQuestionMarks && q.marks ? `<span class="marks">(${q.marks} ${t.marks})</span>` : ''}</div>
             <p class="qtext">${escapeHtml(q.question_text)}</p>
             ${statement}
             ${diagram}
