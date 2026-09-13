@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { X, Printer, Download, FileText, Eye, EyeOff, ImagePlus, Trash2, Building2, CalendarDays, ListChecks } from 'lucide-react';
+import { X, Printer, Download, FileText, Eye, EyeOff, ImagePlus, Trash2, Building2, CalendarDays, ListChecks, AlertTriangle } from 'lucide-react';
 import {
   buildPaperHtml,
   buildPaperText,
