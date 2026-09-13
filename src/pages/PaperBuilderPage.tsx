@@ -177,7 +177,7 @@ export function PaperBuilderPage() {
 
       const { data, error } = await supabase
         .from('papers')
-        .insert({ user_id: userId, ...payload, status: 'draft' })
+        .insert({ user_id: userId, ...payload, status: 'draft', pdf_style: 'academic' })
         .select()
         .single();
 
@@ -212,6 +212,12 @@ export function PaperBuilderPage() {
           exam_time: p.exam_time,
           total_marks: p.total_marks,
           instructions: p.instructions,
+          logo_url: p.logo_url,
+          footer_note: p.footer_note,
+          watermark_text: p.watermark_text,
+          pdf_style: p.pdf_style,
+          print_settings: p.print_settings,
+          attempts: p.attempts,
           status: 'draft',
         })
         .select()
@@ -684,6 +690,7 @@ export function PaperBuilderPage() {
 
       {paperMeta && (
         <PaperPreviewModal
+          key={activePaper?.id}
           open={showPreview}
           onClose={() => setShowPreview(false)}
           questions={printableQuestions}

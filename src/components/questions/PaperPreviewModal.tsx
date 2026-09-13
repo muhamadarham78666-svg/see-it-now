@@ -81,14 +81,15 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta, onMet
 
   useEffect(() => {
     if (!open) return;
-    setMeta((current) => ({ ...current, ...defaultMeta, logoUrl: defaultMeta.logoUrl ?? current.logoUrl }));
     fitZoom();
     window.addEventListener('resize', fitZoom);
     return () => window.removeEventListener('resize', fitZoom);
   }, [open, fitZoom, defaultMeta]);
 
   useEffect(() => {
-    if (open) onMetaChange?.(meta);
+    if (!open || !onMetaChange) return;
+    const timer = window.setTimeout(() => onMetaChange(meta), 500);
+    return () => window.clearTimeout(timer);
   }, [meta, onMetaChange, open]);
 
   const html = useMemo(
