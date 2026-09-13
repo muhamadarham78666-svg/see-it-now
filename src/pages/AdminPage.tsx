@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { AdminSupportPanel, AdminAuditPanel, AdminHealthPanel } from '@/components/admin/AdminSupportPanel';
 import { Card } from '@/components/nsa/Card';
 import { Badge } from '@/components/nsa/Badge';
 import { Spinner } from '@/components/nsa/Feedback';
@@ -55,7 +56,7 @@ import {
   verifyAdminCodeFn,
 } from '@/lib/admin.functions';
 
-type Tab = 'overview' | 'users' | 'reviews' | 'requests' | 'subscriptions' | 'devices' | 'boards' | 'content';
+type Tab = 'overview' | 'users' | 'reviews' | 'requests' | 'subscriptions' | 'devices' | 'boards' | 'content' | 'support' | 'audit' | 'health';
 
 interface RequestAccountForm {
   id: string;
@@ -319,6 +320,9 @@ export function AdminPage() {
     { key: 'devices', label: 'Devices', icon: ShieldCheck, count: devices.filter((d) => d.status === 'pending').length || undefined },
     { key: 'boards', label: 'Boards', icon: Landmark },
     { key: 'content', label: 'Content', icon: FileText },
+    { key: 'support', label: 'Support', icon: Headphones },
+    { key: 'audit', label: 'Activity log', icon: ScrollText },
+    { key: 'health', label: 'System health', icon: Activity },
   ];
 
   const searchTerm = query.trim().toLowerCase();
@@ -844,6 +848,12 @@ export function AdminPage() {
             ))}
           </div>
         </Card>
+      ) : tab === 'support' ? (
+        <AdminSupportPanel token={tk} />
+      ) : tab === 'audit' ? (
+        <AdminAuditPanel token={tk} />
+      ) : tab === 'health' ? (
+        <AdminHealthPanel token={tk} />
       ) : (
         <div className="grid md:grid-cols-2 gap-3">
           {([
