@@ -164,7 +164,6 @@ export interface GenerationSettings {
   /** Force the whole paper into Urdu. */
   forceUrdu?: boolean | null;
   /** Teacher-written long questions preserved exactly in the final result. */
-  customLongQuestions?: { text: string; marks: number }[] | null;
 }
 
 export interface PaperInfo {

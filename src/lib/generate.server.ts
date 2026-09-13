@@ -41,7 +41,6 @@ export interface GenSettings {
   /** Force the whole paper into Urdu (Urdu, Islamiat, Mutalia Pakistan books). */
   forceUrdu?: boolean | null;
   /** Teacher-written long questions appended unchanged by the client. */
-  customLongQuestions?: { text: string; marks: number }[] | null;
 }
 
 /** Human labels for the composition keys, used in the AI brief. */
@@ -145,9 +144,6 @@ export function buildInstruction(settings: GenSettings) {
       : 'Set "statement":null.',
     settings.forceUrdu
       ? "This is an Urdu-medium paper: EVERY question, option, part, statement, topic and answer must be written in Urdu script only. Do not use a single English sentence."
-      : "",
-    settings.customLongQuestions?.length
-      ? `The teacher has supplied ${settings.customLongQuestions.length} custom long question(s), which the app adds separately. Do NOT repeat, paraphrase or replace them in your generated questions.`
       : "",
     'NEVER write question numbers, "Q1", "Question 3", "(i)", "1." or section headings inside question_text, parts or options — numbering is added by the app for each section separately.',
     'Set "category" to a short key when the question is a special item (letter, application, story, essay, dialogue, precis, comprehension, translation, tashreeh, khulasa, markazi, kahani, khat, mukalma, mazmoon, numerical, conceptual); otherwise null.',

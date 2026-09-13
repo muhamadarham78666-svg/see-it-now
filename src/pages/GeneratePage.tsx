@@ -22,8 +22,6 @@ import {
   Lightbulb,
   Wand2,
   PenLine,
-  Plus,
-  X,
 } from 'lucide-react';
 import { Card } from '@/components/nsa/Card';
 import { Button } from '@/components/nsa/Button';
@@ -38,7 +36,6 @@ import { useBoard } from '@/context/BoardContext';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { questionGenerator, type GenAttachment } from '@/services/aiService';
-import type { GeneratedQuestionData } from '@/services/aiService';
 import {
   CLASS_GROUPS,
   RANGE_LABELS,
@@ -150,10 +147,6 @@ export function GeneratePage() {
   const [longParts, setLongParts] = useState(true);
   const [attempts, setAttempts] = useState({ mcq: 0, short: 0, long: 0 });
   const [composition, setComposition] = useState<string[]>([]);
-  const [customLongText, setCustomLongText] = useState('');
-  const [customLongMarks, setCustomLongMarks] = useState(5);
-  const [customLongQuestions, setCustomLongQuestions] = useState<{ text: string; marks: number }[]>([]);
-  const [customLongError, setCustomLongError] = useState<string | null>(null);
   const [translation, setTranslation] = useState<string>('');
   const [statements, setStatements] = useState(true);
   const [plan, setPlan] = useState<PaperPlan | null>(null);
@@ -215,38 +208,6 @@ export function GeneratePage() {
     [composition, intent.composition],
   );
   const effectiveUrdu = language === 'urdu' || Boolean(bookObj?.urdu) || intent.urdu;
-
-  const addCustomLongQuestion = () => {
-    const text = customLongText.replace(/\s+/g, ' ').trim();
-    if (!text) {
-      setCustomLongError('Long question likhein, phir add karein.');
-      return;
-    }
-    if (customLongQuestions.some((item) => item.text.toLocaleLowerCase() === text.toLocaleLowerCase())) {
-      setCustomLongError('Ye long question pehle hi add ho chuka hai.');
-      return;
-    }
-    const marks = Number.isFinite(customLongMarks) && customLongMarks > 0 ? customLongMarks : 5;
-    setCustomLongQuestions((items) => [...items, { text, marks }]);
-    setMixCounts((counts) => {
-      if (questionType === 'mixed') return { ...counts, long: counts.long + 1 };
-      return {
-        mcq: questionType === 'mcq' ? effectiveCount : 0,
-        short: questionType === 'short' ? effectiveCount : 0,
-        long: (questionType === 'long' ? effectiveCount : 0) + 1,
-      };
-    });
-    setQuestionType('mixed');
-    setCustomLongText('');
-    setCustomLongError(null);
-    setNotice('Custom long question Long Questions mein add ho gaya.');
-  };
-
-  const removeCustomLongQuestion = (index: number) => {
-    setCustomLongQuestions((items) => items.filter((_, itemIndex) => itemIndex !== index));
-    setMixCounts((counts) => ({ ...counts, long: Math.max(0, counts.long - 1) }));
-    setCustomLongError(null);
-  };
 
   const applyPlan = (p: PaperPlan) => {
     const patch = p.patch;
@@ -330,8 +291,8 @@ export function GeneratePage() {
   }, [generating]);
 
   const handleGenerate = async () => {
-    if (!hasMaterial && !bookObj && customLongQuestions.length === 0) {
-      setError('Select a Class and Book, upload material, or add a custom long question.');
+    if (!hasMaterial && !bookObj) {
+      setError('Select a Class and Book or upload material.');
       return;
     }
     if (isMixed && mixTotal < 1) {
@@ -349,9 +310,7 @@ export function GeneratePage() {
     const effectiveChapter =
       chapter || (range === 'chapters' && pickedChapters.length ? pickedChapters.join(', ') : '');
 
-    const aiTypeCounts = isMixed
-      ? { ...mixCounts, long: Math.max(0, mixCounts.long - customLongQuestions.length) }
-      : null;
+    const aiTypeCounts = isMixed ? mixCounts : null;
     const aiQuestionCount = isMixed
       ? aiTypeCounts!.mcq + aiTypeCounts!.short + aiTypeCounts!.long
       : effectiveCount;
@@ -378,7 +337,6 @@ export function GeneratePage() {
       translation: translation || null,
       statements: statements || intent.statements,
       forceUrdu: effectiveUrdu,
-      customLongQuestions: customLongQuestions.length ? customLongQuestions : null,
     };
 
 
@@ -407,24 +365,7 @@ export function GeneratePage() {
               : undefined,
           )
         : { questions: [], mode: 'ai' as const };
-      const customDrafts: GeneratedQuestionData[] = customLongQuestions.map((item) => ({
-        question_text: item.text,
-        question_type: 'long',
-        options: null,
-        correct_answer: null,
-        expected_answer: null,
-        answer_points: null,
-        parts: null,
-        diagram_svg: null,
-        diagram_note: null,
-        statement: null,
-        category: 'custom',
-        explanation: null,
-        difficulty: difficulty === 'mixed' ? 'medium' : difficulty,
-        topic: null,
-        marks: item.marks,
-      }));
-      const questions = [...result.questions, ...customDrafts];
+      const questions = result.questions;
       setCurrentStep(processingSteps.length - 1);
       if (result.mode === 'offline') {
         setNotice(
@@ -1145,6 +1086,17 @@ export function GeneratePage() {
                   English aur Urdu papers ke liye — jo chunein ge wo paper mein zaroor aayega.
                 </p>
                 <div className="flex flex-wrap gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setQuestionType('long')}
+                    className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
+                      questionType === 'long'
+                        ? 'bg-primary-500 border-primary-500 text-white'
+                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300'
+                    }`}
+                  >
+                    Long Question
+                  </button>
                   {[
                     { key: 'letter', label: 'Letter / خط' },
                     { key: 'application', label: 'Application / درخواست' },
@@ -1179,66 +1131,6 @@ export function GeneratePage() {
                   })}
                 </div>
 
-                <div className="mt-4 border-t border-slate-200 dark:border-slate-700 pt-4">
-                  <label htmlFor="custom-long-question" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                    Custom Long Question
-                  </label>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
-                    Apna complete English ya Urdu sawal likhein. Ye seedha Long Questions mein add hoga.
-                  </p>
-                  <textarea
-                    id="custom-long-question"
-                    value={customLongText}
-                    onChange={(event) => {
-                      setCustomLongText(event.target.value);
-                      setCustomLongError(null);
-                    }}
-                    rows={3}
-                    dir={language === 'urdu' ? 'rtl' : 'auto'}
-                    placeholder={language === 'urdu' ? 'اپنا تفصیلی سوال یہاں لکھیں۔۔۔' : 'Write your complete long question here…'}
-                    className="input-field resize-y min-h-24"
-                  />
-                  <div className="mt-2 flex items-end gap-2 flex-wrap">
-                    <div>
-                      <label htmlFor="custom-long-marks" className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
-                        Marks
-                      </label>
-                      <input
-                        id="custom-long-marks"
-                        type="number"
-                        min={1}
-                        max={100}
-                        value={customLongMarks}
-                        onChange={(event) => setCustomLongMarks(Math.max(1, Number(event.target.value) || 1))}
-                        className="input-field w-24"
-                      />
-                    </div>
-                    <Button size="sm" onClick={addCustomLongQuestion} disabled={!customLongText.trim()}>
-                      <Plus size={15} /> Add to Long Questions
-                    </Button>
-                  </div>
-                  {customLongError && <p className="mt-2 text-xs text-error-600 dark:text-error-400">{customLongError}</p>}
-                  {customLongQuestions.length > 0 && (
-                    <div className="mt-3 space-y-2" aria-label="Added custom long questions">
-                      {customLongQuestions.map((item, index) => (
-                        <div key={`${item.text}-${index}`} className="flex items-start gap-2 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50/60 dark:bg-primary-900/20 p-2.5">
-                          <span className="mt-0.5 shrink-0 text-xs font-bold text-primary-700 dark:text-primary-300">L{index + 1}</span>
-                          <p dir="auto" className="min-w-0 flex-1 text-sm text-slate-700 dark:text-slate-200">{item.text}</p>
-                          <span className="shrink-0 text-xs text-slate-500 dark:text-slate-400">{item.marks} marks</span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 shrink-0 p-0"
-                            title="Remove custom long question"
-                            onClick={() => removeCustomLongQuestion(index)}
-                          >
-                            <X size={14} />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
                 <label className="block text-xs text-slate-500 dark:text-slate-400 mt-4 mb-1">
                   Translation question
                 </label>
@@ -1252,7 +1144,6 @@ export function GeneratePage() {
                   <option value="english-to-urdu">English → Urdu</option>
                   <option value="both">Both (student ki marzi)</option>
                 </select>
-              </div>
               </div>
 
               {/* Attempt any N */}
@@ -1390,7 +1281,7 @@ export function GeneratePage() {
             onClick={handleGenerate}
             size="lg"
             className="w-full"
-            disabled={!hasMaterial && !bookObj && customLongQuestions.length === 0}
+            disabled={!hasMaterial && !bookObj}
           >
             <Sparkles size={18} />
             Generate Paper
