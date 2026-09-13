@@ -206,7 +206,25 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta }: Pap
               </select>
             </div>
 
-
+            <div>
+              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+                PDF Template
+              </label>
+              <select
+                value={meta.pdfStyle ?? 'classic'}
+                onChange={(e) => setMeta((m) => ({ ...m, pdfStyle: e.target.value as PaperMeta['pdfStyle'] }))}
+                className="input-field text-sm !py-2"
+              >
+                {PDF_STYLE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-[11px] text-slate-400 mt-1">
+                {PDF_STYLE_OPTIONS.find((o) => o.value === (meta.pdfStyle ?? 'classic'))?.hint}
+              </p>
+            </div>
 
             {groupTitle(<CalendarDays size={13} />, 'Schedule')}
             <div className="grid grid-cols-2 gap-3">
