@@ -7,7 +7,6 @@ import {
   Shuffle,
   FileUp,
   Archive,
-  Newspaper,
   Calculator,
   TrendingUp,
   Clock,
@@ -129,7 +128,6 @@ export function DashboardPage() {
 
   const statCards = [
     { label: t('stats.questions'), value: stats.questionsGenerated, icon: TrendingUp, color: 'text-primary-500', bg: 'bg-primary-50 dark:bg-primary-900/20' },
-    { label: t('stats.papers'), value: stats.papersCreated, icon: Newspaper, color: 'text-accent-500', bg: 'bg-accent-50 dark:bg-accent-900/20' },
     { label: t('stats.recent'), value: stats.recentGenerations, icon: Clock, color: 'text-success-500', bg: 'bg-success-50 dark:bg-success-900/20' },
     { label: t('stats.saved'), value: stats.savedQuestions, icon: Layers, color: 'text-warning-500', bg: 'bg-warning-50 dark:bg-warning-900/20' },
     { label: t('stats.notes'), value: stats.notes, icon: NotebookPen, color: 'text-success-500', bg: 'bg-success-50 dark:bg-success-900/20' },

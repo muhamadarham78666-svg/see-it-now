@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from '@/lib/rr';
-import { Search, Filter, Archive, Plus, Trash2, Newspaper, X, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Filter, Archive, Plus, Trash2, X, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/nsa/Card';
 import { Button } from '@/components/nsa/Button';
 
@@ -94,12 +94,6 @@ export function QuestionBankPage() {
     await supabase.from('questions').delete().in('id', Array.from(selectedIds)).eq('user_id', userId);
     setQuestions((prev) => prev.filter((q) => !selectedIds.has(q.id)));
     setSelectedIds(new Set());
-  };
-
-  const handleAddToPaper = () => {
-    if (selectedIds.size === 0) return;
-    const ids = Array.from(selectedIds).join(',');
-    navigate(`/dashboard/papers?questionIds=${encodeURIComponent(ids)}`);
   };
 
   const handleDuplicate = async (question: Question) => {
@@ -229,9 +223,6 @@ export function QuestionBankPage() {
             {selectedIds.size} selected
           </span>
           <div className="flex items-center gap-2">
-            <Button size="sm" onClick={handleAddToPaper}>
-              <Newspaper size={16} /> Add to Paper
-            </Button>
             <Button size="sm" variant="secondary" onClick={handleExportSelected}>
               <Download size={16} /> Export
             </Button>
