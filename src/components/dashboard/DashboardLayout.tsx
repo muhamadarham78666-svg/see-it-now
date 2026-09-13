@@ -4,7 +4,6 @@ import {
   LayoutDashboard,
   Sparkles,
   Archive,
-  Newspaper,
   Calculator,
   BookOpenCheck,
   
