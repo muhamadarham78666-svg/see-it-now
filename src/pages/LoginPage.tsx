@@ -10,6 +10,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Logo } from '@/components/Logo';
 import { AccessRequestForm } from '@/components/AccessRequestForm';
 import { supabase } from '@/lib/supabase';
+import { isStaffRole } from '@/lib/roles';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -69,7 +70,7 @@ export function LoginPage() {
       const { data: roles } = userId
         ? await supabase.from('user_roles').select('role').eq('user_id', userId)
         : { data: null };
-      if (!roles?.some((r) => r.role === 'admin')) {
+      if (!roles?.some((r) => isStaffRole(r.role as string))) {
         await supabase.auth.signOut();
         setError('This account does not have administrator access.');
         setLoading(false);

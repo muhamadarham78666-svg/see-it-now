@@ -35,6 +35,8 @@ export const solveProblemsFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { requireActiveSubscription } = await import('./subscription.server');
     await requireActiveSubscription(context);
+    const { enforceAiLimit } = await import('./ai-limits.server');
+    await enforceAiLimit(context as any, 'solver');
     const raw = await requestSolutions(data.text, data.attachments, data.settings);
     return { problems: normalizeSolutions(raw) };
   });

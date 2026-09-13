@@ -53,6 +53,8 @@ export const generateQuestionsFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { requireActiveSubscription } = await import('./subscription.server');
     await requireActiveSubscription(context);
+    const { enforceAiLimit } = await import('./ai-limits.server');
+    await enforceAiLimit(context as any, 'generate');
     const raw = await requestQuestions(data.text, data.attachments, data.settings);
     return { questions: normalizeQuestions(raw) };
   });

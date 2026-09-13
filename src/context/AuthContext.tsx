@@ -53,7 +53,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       supabase.from('user_roles').select('role').eq('user_id', userId),
     ]);
 
-    const role: Profile['role'] = roleRows?.some((r) => r.role === 'admin') ? 'admin' : 'user';
+    const roleSet = new Set((roleRows ?? []).map((r) => r.role as string));
+    const role: Profile['role'] = roleSet.has('owner')
+      ? 'owner'
+      : roleSet.has('admin')
+        ? 'admin'
+        : roleSet.has('editor')
+          ? 'editor'
+          : 'user';
 
     if (error) {
       console.error('Error loading profile:', error);

@@ -11,6 +11,7 @@ import {
 
   History,
   NotebookPen,
+  Headphones,
   Settings,
   Menu,
   X,
@@ -24,6 +25,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { LanguageChip } from '@/components/LanguageChip';
 import { useTheme } from '@/context/ThemeContext';
+import { roleLabel } from '@/lib/roles';
 import { Logo } from '@/components/Logo';
 import { BoardChip } from '@/components/boards/BoardSelector';
 
@@ -37,6 +39,7 @@ const navItems = [
   { to: '/dashboard/papers', key: 'nav.papers', icon: Newspaper, end: false },
   { to: '/dashboard/history', key: 'nav.history', icon: History, end: false },
   { to: '/dashboard/notes', key: 'nav.notes', icon: NotebookPen, end: false },
+  { to: '/dashboard/support', key: 'nav.support', icon: Headphones, end: false },
   { to: '/dashboard/settings', key: 'nav.settings', icon: Settings, end: false },
 ] as const;
 
@@ -54,7 +57,7 @@ export function DashboardLayout() {
   };
 
   const baseItems = navItems.map((n) => ({ to: n.to, label: t(n.key), icon: n.icon, end: n.end as boolean }));
-  const items = profile?.role === 'admin'
+  const items = profile?.role === 'admin' || profile?.role === 'owner' || profile?.role === 'editor'
     ? [...baseItems, { to: '/admin', label: t('nav.admin'), icon: ShieldCheck, end: false }]
     : baseItems;
 
@@ -103,7 +106,7 @@ export function DashboardLayout() {
                 {profile?.full_name ?? t('common.user')}
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                {profile?.role === 'admin' ? t('common.admin') : t('common.user')}
+                {profile?.role && profile.role !== 'user' ? roleLabel(profile.role) : t('common.user')}
               </p>
             </div>
           </div>
@@ -172,7 +175,7 @@ export function DashboardLayout() {
                     {profile?.full_name ?? t('common.user')}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                    {profile?.role === 'admin' ? t('common.admin') : t('common.user')}
+                    {profile?.role && profile.role !== 'user' ? roleLabel(profile.role) : t('common.user')}
                   </p>
                 </div>
               </div>

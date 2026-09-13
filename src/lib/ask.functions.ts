@@ -21,5 +21,7 @@ export const askNsagptFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { requireActiveSubscription } = await import('./subscription.server');
     await requireActiveSubscription(context);
+    const { enforceAiLimit } = await import('./ai-limits.server');
+    await enforceAiLimit(context as any, 'ask');
     return { reply: await askNsagpt(data.messages, data.uiLanguage ?? null) };
   });

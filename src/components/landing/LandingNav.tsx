@@ -22,10 +22,10 @@ export function LandingNav({ onGetStarted }: LandingNavProps) {
   }, []);
 
   const navLinks = [
-    { label: t('land.nav.how'), href: '#how-it-works' },
-    { label: t('land.nav.guide'), href: '#guide' },
-    { label: t('land.nav.features'), href: '#features' },
-    { label: t('land.nav.why'), href: '#why' },
+    { label: t('land.nav.how'), href: '/#how-it-works' },
+    { label: t('land.nav.guide'), href: '/#guide' },
+    { label: t('land.nav.features'), href: '/#features' },
+    { label: t('land.nav.why'), href: '/#why' },
   ];
 
   return (

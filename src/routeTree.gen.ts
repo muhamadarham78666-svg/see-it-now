@@ -10,10 +10,15 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardAskRouteImport } from './routes/dashboard.ask'
 import { Route as DashboardBankRouteImport } from './routes/dashboard.bank'
@@ -24,10 +29,16 @@ import { Route as DashboardNotesRouteImport } from './routes/dashboard.notes'
 import { Route as DashboardPapersRouteImport } from './routes/dashboard.papers'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardSolverRouteImport } from './routes/dashboard.solver'
+import { Route as DashboardSupportRouteImport } from './routes/dashboard.support'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -35,9 +46,19 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -45,9 +66,19 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
@@ -100,13 +131,23 @@ const DashboardSolverRoute = DashboardSolverRouteImport.update({
   path: '/solver',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardSupportRoute = DashboardSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => DashboardRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
+  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/faq': typeof FaqRoute
   '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/dashboard/ask': typeof DashboardAskRoute
   '/dashboard/bank': typeof DashboardBankRoute
   '/dashboard/book-solver': typeof DashboardBookSolverRoute
@@ -116,13 +157,19 @@ export interface FileRoutesByFullPath {
   '/dashboard/papers': typeof DashboardPapersRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/solver': typeof DashboardSolverRoute
+  '/dashboard/support': typeof DashboardSupportRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
+  '/contact': typeof ContactRoute
+  '/faq': typeof FaqRoute
   '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/dashboard/ask': typeof DashboardAskRoute
   '/dashboard/bank': typeof DashboardBankRoute
   '/dashboard/book-solver': typeof DashboardBookSolverRoute
@@ -132,15 +179,21 @@ export interface FileRoutesByTo {
   '/dashboard/papers': typeof DashboardPapersRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/solver': typeof DashboardSolverRoute
+  '/dashboard/support': typeof DashboardSupportRoute
   '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
+  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/faq': typeof FaqRoute
   '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/dashboard/ask': typeof DashboardAskRoute
   '/dashboard/bank': typeof DashboardBankRoute
   '/dashboard/book-solver': typeof DashboardBookSolverRoute
@@ -150,16 +203,22 @@ export interface FileRoutesById {
   '/dashboard/papers': typeof DashboardPapersRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/solver': typeof DashboardSolverRoute
+  '/dashboard/support': typeof DashboardSupportRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/admin'
+    | '/contact'
     | '/dashboard'
+    | '/faq'
     | '/login'
+    | '/privacy'
     | '/sitemap.xml'
+    | '/terms'
     | '/dashboard/ask'
     | '/dashboard/bank'
     | '/dashboard/book-solver'
@@ -169,13 +228,19 @@ export interface FileRouteTypes {
     | '/dashboard/papers'
     | '/dashboard/settings'
     | '/dashboard/solver'
+    | '/dashboard/support'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/admin'
+    | '/contact'
+    | '/faq'
     | '/login'
+    | '/privacy'
     | '/sitemap.xml'
+    | '/terms'
     | '/dashboard/ask'
     | '/dashboard/bank'
     | '/dashboard/book-solver'
@@ -185,14 +250,20 @@ export interface FileRouteTypes {
     | '/dashboard/papers'
     | '/dashboard/settings'
     | '/dashboard/solver'
+    | '/dashboard/support'
     | '/dashboard'
   id:
     | '__root__'
     | '/'
+    | '/about'
     | '/admin'
+    | '/contact'
     | '/dashboard'
+    | '/faq'
     | '/login'
+    | '/privacy'
     | '/sitemap.xml'
+    | '/terms'
     | '/dashboard/ask'
     | '/dashboard/bank'
     | '/dashboard/book-solver'
@@ -202,15 +273,21 @@ export interface FileRouteTypes {
     | '/dashboard/papers'
     | '/dashboard/settings'
     | '/dashboard/solver'
+    | '/dashboard/support'
     | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
+  ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  FaqRoute: typeof FaqRoute
   LoginRoute: typeof LoginRoute
+  PrivacyRoute: typeof PrivacyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TermsRoute: typeof TermsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -222,11 +299,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -236,6 +327,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -243,11 +341,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/': {
@@ -320,6 +432,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSolverRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/support': {
+      id: '/dashboard/support'
+      path: '/support'
+      fullPath: '/dashboard/support'
+      preLoaderRoute: typeof DashboardSupportRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
 
@@ -333,6 +452,7 @@ interface DashboardRouteChildren {
   DashboardPapersRoute: typeof DashboardPapersRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardSolverRoute: typeof DashboardSolverRoute
+  DashboardSupportRoute: typeof DashboardSupportRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
@@ -346,6 +466,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardPapersRoute: DashboardPapersRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardSolverRoute: DashboardSolverRoute,
+  DashboardSupportRoute: DashboardSupportRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 
@@ -355,10 +476,15 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
+  ContactRoute: ContactRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  FaqRoute: FaqRoute,
   LoginRoute: LoginRoute,
+  PrivacyRoute: PrivacyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
