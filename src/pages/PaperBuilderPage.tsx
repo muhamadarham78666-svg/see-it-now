@@ -412,7 +412,7 @@ export function PaperBuilderPage() {
               </Button>
             </>
           )}
-          <Button onClick={() => setShowNewModal(true)}>
+          <Button onClick={openNewPaper}>
             <Plus size={18} /> New Paper
           </Button>
         </div>
@@ -509,7 +509,7 @@ export function PaperBuilderPage() {
             icon={<Newspaper size={32} />}
             title="No question papers yet"
             description="Create a new paper to start building your professional exam paper."
-            action={<Button onClick={() => setShowNewModal(true)}><Plus size={16} /> Create Paper</Button>}
+            action={<Button onClick={openNewPaper}><Plus size={16} /> Create Paper</Button>}
           />
         </Card>
       ) : (
@@ -633,7 +633,7 @@ export function PaperBuilderPage() {
       </Modal>
 
       {/* New Paper Modal */}
-      <Modal open={showNewModal} onClose={() => setShowNewModal(false)} title="Create New Paper" size="lg">
+      <Modal open={showNewModal} onClose={() => setShowNewModal(false)} title={editingId ? 'Edit Paper Details' : 'Create New Paper'} size="lg">
         <div className="grid sm:grid-cols-2 gap-4">
           <Field label="Paper Title" value={form.title} onChange={(v) => setForm({ ...form, title: v })} required />
           <Field label="Institution / School" value={form.institution_name} onChange={(v) => setForm({ ...form, institution_name: v })} />
@@ -688,6 +688,19 @@ export function PaperBuilderPage() {
         </div>
       </Modal>
     </div>
+  );
+}
+
+function IconAction({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      className="p-1.5 rounded-lg text-slate-400 hover:text-primary-500 hover:bg-slate-100 dark:hover:bg-slate-700"
+    >
+      {children}
+    </button>
   );
 }
 
