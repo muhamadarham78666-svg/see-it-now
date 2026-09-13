@@ -103,6 +103,7 @@ const processingSteps = [
 ];
 
 export function GeneratePage() {
+  const navigate = useNavigate();
   const { profile, session } = useAuth();
   const { board } = useBoard();
   const { lang, langName } = useLanguage();
