@@ -9,6 +9,8 @@ export const Route = createFileRoute("/dashboard/papers")({
       { name: "description", content: "Question Papers in your NSAGPT dashboard." },
       { property: "og:title", content: "Question Papers — NSAGPT" },
       { property: "og:description", content: "Question Papers in your NSAGPT dashboard." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: PaperBuilderPage,

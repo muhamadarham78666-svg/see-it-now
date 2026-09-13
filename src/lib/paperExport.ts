@@ -25,36 +25,50 @@ export interface PaperMeta {
   watermarkText?: string;
   /** PDF template / print style. */
   pdfStyle?: PdfStyleKey;
+  /** Reusable visual overrides for the selected print template. */
+  printSettings?: Partial<PaperPrintSettings>;
 }
 
-export type PdfStyleKey = 'classic' | 'modern' | 'compact' | 'elegant' | 'bw';
+export type PdfStyleKey = 'academic' | 'modern' | 'classic' | 'compact' | 'formal';
+export type PaperFontKey = 'serif' | 'sans' | 'book';
+export type PaperDensity = 'compact' | 'balanced' | 'spacious';
+export type PaperDivider = 'single' | 'double' | 'boxed';
+export type PaperLogoAlignment = 'left' | 'center' | 'right';
+
+export interface PaperPrintSettings {
+  accentColor: string;
+  headingFont: PaperFontKey;
+  bodyFont: PaperFontKey;
+  fontSize: number;
+  density: PaperDensity;
+  divider: PaperDivider;
+  logoSize: number;
+  logoAlignment: PaperLogoAlignment;
+}
 
 export const PDF_STYLE_OPTIONS: { value: PdfStyleKey; label: string; hint: string }[] = [
-  { value: 'classic', label: 'Classic (Board style)', hint: 'Serif, coloured headings' },
-  { value: 'modern', label: 'Modern', hint: 'Clean sans-serif, boxed sections' },
-  { value: 'compact', label: 'Compact (save paper)', hint: 'Tighter spacing, smaller text' },
-  { value: 'elegant', label: 'Elegant', hint: 'Wide margins, refined typography' },
-  { value: 'bw', label: 'Black & White', hint: 'Ink friendly, no colours' },
+  { value: 'academic', label: 'Modern Professional Academic', hint: 'Formal header, ruled sections and compact academic typography' },
+  { value: 'modern', label: 'Modern Professional', hint: 'Clean sans-serif layout with crisp section blocks' },
+  { value: 'classic', label: 'Classic Board', hint: 'Traditional serif board-paper presentation' },
+  { value: 'compact', label: 'Compact Exam', hint: 'Maximum questions per page with restrained spacing' },
+  { value: 'formal', label: 'Formal Institutional', hint: 'Prominent institute identity and double rules' },
 ];
 
-interface PdfStyleTokens {
-  bodyFont: string | null;
-  baseSize: number;
-  lineHeight: number;
-  pagePad: string;
-  headingCase: string;
-  mono: boolean;
-  sectionBox: boolean;
-  gap: number;
-}
-
-const PDF_STYLE_TOKENS: Record<PdfStyleKey, PdfStyleTokens> = {
-  classic: { bodyFont: null, baseSize: 14, lineHeight: 1.6, pagePad: '36px 44px', headingCase: 'uppercase', mono: false, sectionBox: false, gap: 26 },
-  modern: { bodyFont: "'Helvetica Neue', Arial, sans-serif", baseSize: 13.5, lineHeight: 1.55, pagePad: '34px 40px', headingCase: 'none', mono: false, sectionBox: true, gap: 22 },
-  compact: { bodyFont: "'Helvetica Neue', Arial, sans-serif", baseSize: 12.5, lineHeight: 1.35, pagePad: '24px 30px', headingCase: 'uppercase', mono: false, sectionBox: false, gap: 14 },
-  elegant: { bodyFont: "Georgia, 'Times New Roman', serif", baseSize: 14.5, lineHeight: 1.75, pagePad: '48px 60px', headingCase: 'none', mono: false, sectionBox: false, gap: 30 },
-  bw: { bodyFont: "Georgia, 'Times New Roman', serif", baseSize: 14, lineHeight: 1.6, pagePad: '36px 44px', headingCase: 'uppercase', mono: true, sectionBox: false, gap: 24 },
+export const PAPER_PRINT_PRESETS: Record<PdfStyleKey, PaperPrintSettings> = {
+  academic: { accentColor: '#17365d', headingFont: 'sans', bodyFont: 'serif', fontSize: 13, density: 'compact', divider: 'single', logoSize: 72, logoAlignment: 'left' },
+  modern: { accentColor: '#174e48', headingFont: 'sans', bodyFont: 'sans', fontSize: 13, density: 'balanced', divider: 'boxed', logoSize: 68, logoAlignment: 'left' },
+  classic: { accentColor: '#111827', headingFont: 'serif', bodyFont: 'serif', fontSize: 13.5, density: 'balanced', divider: 'single', logoSize: 68, logoAlignment: 'center' },
+  compact: { accentColor: '#263238', headingFont: 'sans', bodyFont: 'sans', fontSize: 12, density: 'compact', divider: 'single', logoSize: 58, logoAlignment: 'left' },
+  formal: { accentColor: '#5b2132', headingFont: 'serif', bodyFont: 'book', fontSize: 13.5, density: 'balanced', divider: 'double', logoSize: 76, logoAlignment: 'center' },
 };
+
+export const DEFAULT_PDF_STYLE: PdfStyleKey = 'academic';
+
+export function resolvePrintSettings(meta: PaperMeta): PaperPrintSettings {
+  const requested = meta.pdfStyle ?? DEFAULT_PDF_STYLE;
+  const style = requested in PAPER_PRINT_PRESETS ? requested : DEFAULT_PDF_STYLE;
+  return { ...PAPER_PRINT_PRESETS[style], ...meta.printSettings };
+}
 
 /** Marks total per section vs. expected paper total; used to warn before export. */
 export function validateMarks(
@@ -139,7 +153,6 @@ export function buildPaperHtml(
   const metaLine = [
     meta.subject && `Subject: ${escapeHtml(meta.subject)}`,
     meta.className && `Class: ${escapeHtml(meta.className)}`,
-    meta.chapter && `Chapter: ${escapeHtml(meta.chapter)}`,
     meta.examDate && `Date: ${escapeHtml(meta.examDate)}`,
     meta.examTime && `Time: ${escapeHtml(meta.examTime)}`,
   ]
@@ -147,15 +160,29 @@ export function buildPaperHtml(
     .join(' &nbsp;•&nbsp; ');
 
   const boardStyle = getBoardStyle(meta.boardStyle);
-  const tpl = PDF_STYLE_TOKENS[meta.pdfStyle ?? 'classic'] ?? PDF_STYLE_TOKENS.classic;
-  const style = tpl.mono ? { ...boardStyle, accent: '#111111' } : boardStyle;
-  const muted = tpl.mono ? '#333' : '#444';
+  const print = resolvePrintSettings(meta);
+  const accent = /^#[0-9a-f]{6}$/i.test(print.accentColor) ? print.accentColor : PAPER_PRINT_PRESETS.academic.accentColor;
+  const fontMap: Record<PaperFontKey, string> = {
+    serif: "Georgia, 'Times New Roman', serif",
+    sans: "Arial, 'Helvetica Neue', sans-serif",
+    book: "'Palatino Linotype', Palatino, Georgia, serif",
+  };
+  const density = {
+    compact: { page: '18px 26px', section: 12, question: 7, line: 1.34, answer: 18 },
+    balanced: { page: '26px 34px', section: 18, question: 10, line: 1.48, answer: 23 },
+    spacious: { page: '34px 44px', section: 24, question: 14, line: 1.62, answer: 30 },
+  }[print.density];
+  const bodyFont = fontMap[print.bodyFont];
+  const headingFont = fontMap[print.headingFont];
+  const muted = '#444';
 
   const groups: { key: Question['question_type']; label: string }[] = [
-    { key: 'mcq', label: style.sections.mcq },
-    { key: 'short', label: style.sections.short },
-    { key: 'long', label: style.sections.long },
+    { key: 'mcq', label: boardStyle.sections.mcq },
+    { key: 'short', label: boardStyle.sections.short },
+    { key: 'long', label: boardStyle.sections.long },
   ];
+  const cleanSectionLabel = (label: string) =>
+    label.replace(/\s*[—-]?\s*Q\.?\s*1\s*/i, ' ').replace(/\s{2,}/g, ' ').trim();
 
   const t = isUrduPaper ? URDU_LABELS : EN_LABELS;
 
@@ -166,22 +193,16 @@ export function buildPaperHtml(
       if (!items.length) return '';
       const sectionMarks = items.reduce((s, q) => s + (q.marks || 0), 0);
       const chosen = meta.attempts?.[key];
-      const attemptAny =
-        chosen && chosen > 0 && chosen < items.length
-          ? chosen
-          : style.attemptAnyNote && key !== 'mcq' && items.length > 2
-            ? Math.max(1, items.length - 1)
-            : 0;
+      const attemptAny = chosen && chosen > 0 && chosen < items.length ? chosen : 0;
       const note = attemptAny
         ? `<p class="note">${t.attemptAny(attemptAny, items.length)} (${sectionMarks} ${t.marks})</p>`
         : '';
-      // MCQ and short sections carry ONE question number with roman sub-items;
-      // long questions each get their own number. Numbering restarts per section.
-      const grouped = key !== 'long';
-      const sectionNo = grouped ? ++qNumber : 0;
+      // Each section receives one main question number: objective Q1, short Q2, long Q3.
+      // Items stay inline as (i), (ii), while long-question parts remain (a), (b).
+      const sectionNo = ++qNumber;
       const rows = items
         .map((q, index) => {
-          const itemNo = grouped ? `(${roman(index + 1)})` : `${t.q}${++qNumber}.`;
+          const itemNo = `(${roman(index + 1)})`;
           const rtl = q.language === 'urdu' || isUrduPaper;
           const opts =
             q.question_type === 'mcq' && q.options
@@ -220,9 +241,8 @@ export function buildPaperHtml(
                     : (q.answer_points ?? []).join(' • ') || '—',
               )}</div>`
             : '';
-          return `<div class="q ${grouped ? 'sub' : ''} ${rtl ? 'rtl' : ''}">
-            <div class="qhead"><span class="qno">${itemNo}</span>${style.perQuestionMarks && q.marks ? `<span class="marks">(${q.marks} ${t.marks})</span>` : ''}</div>
-            <p class="qtext">${escapeHtml(q.question_text)}</p>
+           return `<div class="q sub ${rtl ? 'rtl' : ''}">
+             <div class="qline"><p class="qtext"><span class="itemno">${itemNo}</span> ${escapeHtml(q.question_text)}</p>${boardStyle.perQuestionMarks && q.marks ? `<span class="marks">[${q.marks}]</span>` : ''}</div>
             ${statement}
             ${diagram}
             ${parts}
@@ -232,12 +252,8 @@ export function buildPaperHtml(
           </div>`;
         })
         .join('');
-      const lead = grouped
-        ? `<p class="lead"><span class="qno">${t.q}${sectionNo}.</span> ${escapeHtml(label)}${
-            style.perQuestionMarks ? ` <span class="marks">(${sectionMarks})</span>` : ''
-          }</p>`
-        : '';
-      return `<section class="${isUrduPaper ? 'rtl' : ''}"><h2>${escapeHtml(label)}</h2>${lead}${note}${rows}</section>`;
+      const lead = `<div class="section-title"><span class="mainq">${t.q}${sectionNo}.</span><span>${escapeHtml(cleanSectionLabel(label))}</span>${boardStyle.perQuestionMarks ? `<span class="section-marks">[${sectionMarks}]</span>` : ''}</div>`;
+      return `<section class="${isUrduPaper ? 'rtl' : ''}">${lead}${note}${rows}</section>`;
     })
     .join('');
 
@@ -251,62 +267,67 @@ export function buildPaperHtml(
 <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; }
-  body { font-family: ${tpl.bodyFont ?? (style.font === 'sans' ? "'Helvetica Neue', Arial, sans-serif" : "Georgia, 'Times New Roman', serif")}; color: #111; margin: 0; padding: ${tpl.pagePad}; line-height: ${tpl.lineHeight}; position: relative; }
-  header { text-align: center; border-bottom: 2px solid ${style.accent}; padding-bottom: 14px; margin-bottom: 18px; }
-  header .brand { display: flex; align-items: center; justify-content: center; gap: 14px; }
-  header .brand img { height: 64px; width: auto; max-width: 130px; object-fit: contain; }
-  header h1 { margin: 0 0 6px; font-size: ${tpl.baseSize + 10}px; letter-spacing: .3px; }
-  header .board { font-size: 13px; font-weight: bold; color: ${style.accent}; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 4px; }
-  footer { margin-top: 28px; padding-top: 10px; border-top: 1px dashed #999; text-align: center; font-size: 12.5px; font-weight: bold; }
-  header .exam { font-size: ${tpl.baseSize + 2}px; font-weight: bold; margin-bottom: 6px; }
+  @page { size: A4; margin: 10mm 11mm; }
+  body { font-family: ${bodyFont}; color: #111; margin: 0; padding: ${density.page}; line-height: ${density.line}; position: relative; font-size: ${print.fontSize}px; }
+  header { text-align: center; border-bottom: ${print.divider === 'double' ? '4px double' : '2px solid'} ${accent}; padding-bottom: 9px; margin-bottom: 10px; }
+  header .brand { display: grid; grid-template-columns: ${print.logoAlignment === 'center' ? '1fr' : `${print.logoSize}px 1fr ${print.logoSize}px`}; align-items: center; gap: 12px; }
+  header .brand.no-logo { grid-template-columns: 1fr; }
+  header .brand.no-logo .brand-copy { grid-column: 1; }
+  header .brand.logo-right img { grid-column: 3; }
+  header .brand.logo-center img { margin: 0 auto 3px; }
+  header .brand.logo-center .brand-copy { grid-row: 2; }
+  header .brand-copy { grid-column: ${print.logoAlignment === 'left' ? '2' : print.logoAlignment === 'right' ? '1 / 3' : '1'}; }
+  header .brand img { height: ${print.logoSize}px; width: ${print.logoSize}px; max-width: 100%; object-fit: contain; }
+  header h1 { font-family: ${headingFont}; margin: 0 0 2px; font-size: ${print.fontSize + 9}px; font-weight: 800; }
+  header .board { font-family: ${headingFont}; font-size: 11px; font-weight: bold; color: ${accent}; text-transform: uppercase; margin-bottom: 2px; }
+  footer { margin-top: 16px; padding-top: 7px; border-top: 1px dashed #777; text-align: center; font-size: 11px; font-weight: bold; }
+  header .exam { font-family: ${headingFont}; font-size: ${print.fontSize + 1}px; font-weight: bold; margin-bottom: 4px; }
   header .meta { font-size: 12px; color: #333; }
-  .idbox { display: flex; gap: 12px; margin-bottom: 14px; font-size: 12px; }
-  .idbox div { flex: 1; border: 1px solid #999; padding: 6px 10px; }
-  .totals { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; margin-bottom: 16px; }
-  .instructions { border: 1px solid #bbb; background: ${tpl.mono ? '#fff' : '#fafafa'}; padding: 10px 14px; font-size: 12.5px; margin-bottom: 22px; white-space: pre-wrap; }
-  section { margin-bottom: ${tpl.gap}px; ${tpl.sectionBox ? `border: 1px solid #d4d4d4; border-radius: 8px; padding: 12px 14px;` : ''} }
-  h2 { font-size: ${tpl.baseSize + 1}px; text-transform: ${tpl.headingCase}; letter-spacing: .6px; color: ${style.accent}; border-bottom: 1px solid ${style.accent}; padding-bottom: 6px; margin: 0 0 10px; }
-  .note { font-size: 12px; font-style: italic; color: ${muted}; margin: 0 0 12px; }
-  .q { margin-bottom: ${Math.round(tpl.gap * 0.6)}px; page-break-inside: avoid; }
-  .qhead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-weight: bold; font-size: 13px; }
-  .qhead .marks { margin-left: auto; text-align: right; white-space: nowrap; font-weight: normal; color: ${muted}; font-size: 12px; }
-  .qtext { margin: 2px 0 8px; font-size: ${tpl.baseSize}px; text-align: left; }
-  .opts { list-style: none; padding: 0; margin: 0 0 4px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; font-size: ${tpl.baseSize - 0.5}px; }
+  .idbox { display: flex; gap: 8px; margin-bottom: 8px; font-size: 11px; }
+  .idbox div { flex: 1; border: 1px solid #888; padding: 4px 8px; }
+  .totals { display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; margin-bottom: 8px; }
+  .instructions { border: 1px solid #999; background: #fafafa; padding: 6px 9px; font-size: 11.5px; margin-bottom: 10px; white-space: pre-wrap; }
+  section { margin-bottom: ${density.section}px; ${print.divider === 'boxed' ? `border: 1px solid #aaa; padding: 8px 10px;` : ''} break-inside: auto; }
+  .section-title { font-family: ${headingFont}; display: flex; align-items: baseline; gap: 7px; font-size: ${print.fontSize}px; font-weight: 800; color: ${accent}; border-bottom: ${print.divider === 'double' ? '3px double' : '1.5px solid'} ${accent}; padding-bottom: 3px; margin: 0 0 6px; }
+  .section-title .section-marks { margin-left: auto; white-space: nowrap; color: #222; font-size: 11px; font-weight: 600; }
+  .note { font-size: 11.5px; font-weight: 700; color: ${muted}; margin: 0 0 6px; border-bottom: 1px dashed #999; padding-bottom: 4px; }
+  .q { margin-bottom: ${density.question}px; page-break-inside: avoid; break-inside: avoid; }
+  .qline { display: flex; align-items: baseline; gap: 10px; }
+  .qline .marks { margin-left: auto; text-align: right; white-space: nowrap; color: ${muted}; font-size: 11px; font-weight: 600; }
+  .qtext { flex: 1; margin: 0 0 4px; font-size: ${print.fontSize}px; text-align: left; }
+  .itemno { display: inline-block; min-width: 26px; font-weight: 700; }
+  .opts { list-style: none; padding: 0 0 0 28px; margin: 0 0 3px; display: grid; grid-template-columns: 1fr 1fr; gap: 2px 16px; font-size: ${print.fontSize - 0.5}px; }
   .opts .lbl { font-weight: bold; }
-  .space { border-bottom: 1px dotted #999; height: ${tpl.baseSize < 13 ? 20 : 26}px; margin-bottom: 6px; }
-  .fig { margin: 6px 0 10px; text-align: center; page-break-inside: avoid; }
-  .fig svg { max-width: 320px; height: auto; ${tpl.mono ? 'filter: grayscale(100%);' : ''} }
+  .space { border-bottom: 1px dotted #aaa; height: ${density.answer}px; margin: 0 0 3px 28px; }
+  .fig { margin: 4px 0 6px; text-align: center; page-break-inside: avoid; break-inside: avoid; }
+  .fig svg { max-width: 280px; max-height: 190px; height: auto; }
   .fig figcaption { font-size: 11.5px; color: ${muted}; margin-top: 2px; }
-  .parts { list-style: none; padding: 0 0 0 14px; margin: 0 0 8px; font-size: ${tpl.baseSize - 0.5}px; }
-  .parts li { margin-bottom: 6px; }
+  .parts { list-style: none; padding: 0 0 0 28px; margin: 0 0 4px; font-size: ${print.fontSize - 0.5}px; }
+  .parts li { margin-bottom: 3px; }
   .parts .pmarks { color: ${muted}; font-size: 12px; }
-  .lead { display: flex; align-items: baseline; gap: 10px; font-size: ${tpl.baseSize - 0.5}px; font-weight: bold; margin: 0 0 10px; }
-  .lead .marks { margin-left: auto; text-align: right; white-space: nowrap; font-weight: normal; color: ${muted}; }
-  .stmt { font-size: 12px; color: ${muted}; font-style: italic; margin: -4px 0 8px; }
-  .q.sub { margin-bottom: 10px; padding-left: 16px; }
-  .q.sub .qhead { font-weight: bold; }
+  .stmt { font-size: 11px; color: ${muted}; font-style: italic; margin: -2px 0 4px 28px; }
+  .q.sub { padding-left: 2px; }
 
-  .answer { font-size: 12.5px; color: ${tpl.mono ? '#111' : '#14532d'}; background: ${tpl.mono ? '#f4f4f4' : '#f0fdf4'}; border-left: 3px solid ${tpl.mono ? '#555' : '#16a34a'}; padding: 6px 10px; }
+  .answer { font-size: 11.5px; color: #174e48; background: #f4faf8; border-left: 3px solid #174e48; padding: 5px 8px; }
   .rtl { direction: rtl; }
   .rtl .qtext, .rtl .opts, .rtl .lead, .rtl .stmt, .rtl .parts, .rtl .note { font-family: 'Noto Nastaliq Urdu', serif; text-align: right; line-height: 2.2; }
-  .rtl .qhead, .rtl .lead { flex-direction: row-reverse; }
-  .rtl .qhead .marks, .rtl .lead .marks { margin-left: 0; margin-right: auto; text-align: left; }
+  .rtl .qline, .rtl .section-title { flex-direction: row-reverse; }
+  .rtl .qline .marks, .rtl .section-title .section-marks { margin-left: 0; margin-right: auto; text-align: left; }
   .rtl .q.sub { padding-left: 0; padding-right: 16px; }
   .watermark { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 0; pointer-events: none; }
-  .watermark span { transform: rotate(-32deg); font-size: 74px; font-weight: bold; letter-spacing: 6px; color: #000; opacity: .07; white-space: nowrap; text-transform: uppercase; }
+  .watermark span { transform: rotate(-32deg); font-size: 70px; font-weight: bold; color: #000; opacity: .055; white-space: nowrap; text-transform: uppercase; }
   body > header, body > section, body > footer, body > div { position: relative; z-index: 1; }
   ${
     isUrduPaper
       ? `body { direction: rtl; font-family: 'Noto Nastaliq Urdu', serif; line-height: 2.1; }
-  h2, .totals, .instructions, .idbox, footer { font-family: 'Noto Nastaliq Urdu', serif; }
-  h2 { text-transform: none; }
+  .section-title, .totals, .instructions, .idbox, footer { font-family: 'Noto Nastaliq Urdu', serif; }
   .qtext, .opts { text-align: right; }
-  .qhead, .lead { flex-direction: row-reverse; }
-  .qhead .marks, .lead .marks { margin-left: 0; margin-right: auto; text-align: left; }`
+  .qline, .section-title { flex-direction: row-reverse; }
+  .qline .marks, .section-title .section-marks { margin-left: 0; margin-right: auto; text-align: left; }`
       : ''
   }
   @media print {
-    body { padding: ${tpl.baseSize < 13 ? '14px 20px' : '18px 24px'}; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body { padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .watermark span { opacity: .09; }
   }
 </style>
@@ -314,17 +335,17 @@ export function buildPaperHtml(
 <body>
   ${meta.watermarkText ? `<div class="watermark" aria-hidden="true"><span>${escapeHtml(meta.watermarkText)}</span></div>` : ''}
   <header>
-    <div class="brand">
+    <div class="brand logo-${print.logoAlignment}${meta.logoUrl ? '' : ' no-logo'}">
       ${meta.logoUrl ? `<img src="${escapeHtml(meta.logoUrl)}" alt="Logo" />` : ''}
-      <div>
+      <div class="brand-copy">
         ${meta.boardName ? `<div class="board">${escapeHtml(meta.boardName)}</div>` : ''}
         ${meta.institutionName ? `<h1>${escapeHtml(meta.institutionName)}</h1>` : ''}
-        <div class="exam">${escapeHtml(meta.examName || style.examHeading)}</div>
+        <div class="exam">${escapeHtml(meta.examName || boardStyle.examHeading)}</div>
       </div>
     </div>
     ${metaLine ? `<div class="meta">${metaLine}</div>` : ''}
   </header>
-  ${style.rollNoBox ? `<div class="idbox"><div>${t.rollNo}: ______________</div><div>${t.name}: ______________________</div></div>` : ''}
+  ${boardStyle.rollNoBox ? `<div class="idbox"><div>${t.rollNo}: ______________</div><div>${t.name}: ______________________</div></div>` : ''}
   <div class="totals"><span>${t.totalQuestions}: ${questions.length}</span><span>${t.totalMarks}: ${totalMarks}</span></div>
 
   ${meta.instructions ? `<div class="instructions"><strong>${t.instructions}:</strong>\n${escapeHtml(meta.instructions)}</div>` : ''}
@@ -434,7 +455,7 @@ export function buildPaperText(meta: PaperMeta, questions: Question[], withAnswe
   const lines: string[] = [];
   if (meta.institutionName) lines.push(meta.institutionName);
   lines.push(meta.examName || meta.title);
-  const info = [meta.subject, meta.className, meta.chapter, meta.examDate].filter(Boolean);
+  const info = [meta.subject, meta.className, meta.examDate].filter(Boolean);
   if (info.length) lines.push(info.join(' | '));
   lines.push(
     `Total Marks: ${questions.reduce((s, q) => s + (q.marks || 0), 0)}`,
@@ -446,22 +467,16 @@ export function buildPaperText(meta: PaperMeta, questions: Question[], withAnswe
   let lastType: Question['question_type'] | null = null;
   let subNo = 0;
   questions.forEach((q) => {
-    const grouped = q.question_type !== 'long';
     if (q.question_type !== lastType) {
       lastType = q.question_type;
       subNo = 0;
-      if (grouped) {
-        qNo += 1;
-        lines.push(`Q${qNo}.`);
-      }
-    }
-    if (grouped) {
-      subNo += 1;
-      lines.push(`  (${roman(subNo)}) ${q.question_text}`);
-    } else {
       qNo += 1;
-      lines.push(`Q${qNo}. (${q.marks}) ${q.question_text}`);
+      const sameType = questions.filter((item) => item.question_type === q.question_type);
+      const attempt = meta.attempts?.[q.question_type];
+      lines.push(`Q${qNo}.`, attempt && attempt < sameType.length ? `Attempt any ${attempt} of ${sameType.length} questions.` : '');
     }
+    subNo += 1;
+    lines.push(`  (${roman(subNo)}) ${q.question_text} [${q.marks}]`);
     if (q.statement) lines.push(`   → ${q.statement}`);
     if (q.diagram_note) lines.push(`   [Figure: ${q.diagram_note}]`);
     if (q.parts) q.parts.forEach((p) => lines.push(`   (${p.label}) ${p.text}${p.marks ? ` (${p.marks})` : ''}`));

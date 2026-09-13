@@ -625,7 +625,6 @@ export function GeneratePage() {
           defaultMeta={{
             title: title || `${bookObj?.name ?? 'Question'} Paper`,
             subject: subject || bookObj?.name || '',
-            chapter: chapter || (range === 'chapters' ? pickedChapters.join(', ') : RANGE_LABELS[range]),
             examName: title || pattern?.label || 'Question Paper',
             className: group ? `${group.classLevel} — ${group.group}` : '',
             examTime: pattern?.subjectiveTime ?? '',
@@ -633,6 +632,8 @@ export function GeneratePage() {
             boardStyle: board?.style ?? 'punjab',
             instructions:
               pattern?.notes.join('\n') ?? 'Attempt all questions. Write answers clearly.',
+            attempts: attempts.mcq || attempts.short || attempts.long ? attempts : undefined,
+            pdfStyle: 'academic',
           }}
         />
       </div>

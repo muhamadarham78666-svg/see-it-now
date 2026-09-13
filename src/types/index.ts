@@ -84,6 +84,8 @@ export interface Question {
 }
 
 
+export type JsonValue = string | number | boolean | null | { [key: string]: JsonValue | undefined } | JsonValue[];
+
 export interface Paper {
   id: string;
   user_id: string;
@@ -98,6 +100,11 @@ export interface Paper {
   total_marks: number;
   instructions: string | null;
   logo_url: string | null;
+  footer_note: string | null;
+  watermark_text: string | null;
+  pdf_style: string;
+  print_settings: { [key: string]: JsonValue | undefined };
+  attempts: Partial<QuestionTypeCounts>;
   status: PaperStatus;
   created_at: string;
   updated_at: string;
