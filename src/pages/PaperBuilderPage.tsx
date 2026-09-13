@@ -383,7 +383,8 @@ export function PaperBuilderPage() {
   };
 
   const savePrintMeta = useCallback(async (meta: PaperMeta) => {
-    if (!activePaper) return;
+    const paperId = activePaper?.id;
+    if (!paperId) return;
     const payload = {
       institution_name: meta.institutionName ?? null,
       subject: meta.subject ?? null,
@@ -399,7 +400,7 @@ export function PaperBuilderPage() {
       print_settings: meta.printSettings ?? {},
       attempts: meta.attempts ?? {},
     };
-    const { data } = await supabase.from('papers').update(payload).eq('id', activePaper.id).select().single();
+    const { data } = await supabase.from('papers').update(payload).eq('id', paperId).select().single();
     if (data) {
       const updated = data as Paper;
       setActivePaper(updated);
