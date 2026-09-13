@@ -50,7 +50,7 @@ function PrintSelect({
 }
 
 
-export function PaperPreviewModal({ open, onClose, questions, defaultMeta, onMetaChange }: PaperPreviewModalProps) {
+export function PaperPreviewModal({ open, onClose, questions, defaultMeta, onMetaChange, onQuestionsChange }: PaperPreviewModalProps) {
   const [meta, setMeta] = useState<PaperMeta>(() => ({
     ...defaultMeta,
     logoUrl:
