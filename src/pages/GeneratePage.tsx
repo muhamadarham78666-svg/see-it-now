@@ -376,30 +376,30 @@ export function GeneratePage() {
 
 
     try {
-      const result = await questionGenerator.generate(
-        content,
-        attachments,
-        settings,
-        undefined,
-        group && bookObj && pattern
-          ? {
-              group,
-              book: bookObj,
-              pattern,
-              chapters: rangeChapters,
-              counts: isMixed
-                ? mixCounts
-                : {
+      const result = aiQuestionCount > 0
+        ? await questionGenerator.generate(
+            content,
+            attachments,
+            settings,
+            undefined,
+            group && bookObj && pattern
+              ? {
+                  group,
+                  book: bookObj,
+                  pattern,
+                  chapters: rangeChapters,
+                  counts: aiTypeCounts ?? {
                     mcq: questionType === 'mcq' ? effectiveCount : 0,
                     short: questionType === 'short' ? effectiveCount : 0,
                     long: questionType === 'long' ? effectiveCount : 0,
                   },
-              difficulty,
-              mcqOptionsCount: mcqOptions,
-              urdu: language === 'urdu' || Boolean(bookObj.urdu),
-            }
-          : undefined,
-      );
+                  difficulty,
+                  mcqOptionsCount: mcqOptions,
+                  urdu: effectiveUrdu,
+                }
+              : undefined,
+          )
+        : { questions: [], mode: 'ai' as const };
       const customDrafts: GeneratedQuestionData[] = customLongQuestions.map((item) => ({
         question_text: item.text,
         question_type: 'long',
@@ -427,7 +427,7 @@ export function GeneratePage() {
         );
       }
 
-      const questionLanguage: Question['language'] = language;
+      const questionLanguage: Question['language'] = effectiveUrdu ? 'urdu' : language;
       let finalQuestions = questionGenerator.toLocalQuestions(questions, questionLanguage);
 
       if (session) {
