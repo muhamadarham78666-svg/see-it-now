@@ -10,6 +10,7 @@ import {
   Download,
   FileText,
   Copy,
+  Pencil,
   ChevronUp,
   ChevronDown,
   X,
@@ -50,6 +51,9 @@ export function PaperBuilderPage() {
   const [showNewModal, setShowNewModal] = useState(false);
   const [template, setTemplate] = useState<Template>('classic');
   const [autoSectioned, setAutoSectioned] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Paper | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const [form, setForm] = useState({
     title: '',
@@ -122,30 +126,148 @@ export function PaperBuilderPage() {
     setAvailableQuestions((data as Question[]) ?? []);
   };
 
-  const handleCreatePaper = async () => {
-    if (!userId || !form.title) return;
-    const { data, error } = await supabase
-      .from('papers')
-      .insert({
-        user_id: userId,
-        ...form,
-        exam_date: form.exam_date || null,
-        status: 'draft',
-      })
-      .select()
-      .single();
+  const resetForm = () => {
+    setForm({
+      title: '', institution_name: '', subject: '', class_name: '', chapter: '',
+      exam_name: '', exam_date: '', exam_time: '', total_marks: 100,
+      instructions: 'Attempt all questions. Write neatly and clearly.',
+    });
+  };
 
-    if (!error && data) {
-      const newPaper = data as Paper;
-      setPapers((prev) => [newPaper, ...prev]);
-      setActivePaper(newPaper);
-      setPaperQuestions([]);
-      setShowNewModal(false);
-      setForm({
-        title: '', institution_name: '', subject: '', class_name: '', chapter: '',
-        exam_name: '', exam_date: '', exam_time: '', total_marks: 100,
-        instructions: 'Attempt all questions. Write neatly and clearly.',
-      });
+  const openNewPaper = () => {
+    setEditingId(null);
+    resetForm();
+    setShowNewModal(true);
+  };
+
+  const openEditPaper = (p: Paper) => {
+    setEditingId(p.id);
+    setForm({
+      title: p.title ?? '',
+      institution_name: p.institution_name ?? '',
+      subject: p.subject ?? '',
+      class_name: p.class_name ?? '',
+      chapter: p.chapter ?? '',
+      exam_name: p.exam_name ?? '',
+      exam_date: p.exam_date ?? '',
+      exam_time: p.exam_time ?? '',
+      total_marks: p.total_marks ?? 100,
+      instructions: p.instructions ?? '',
+    });
+    setShowNewModal(true);
+  };
+
+  const handleSavePaper = async () => {
+    if (!userId || !form.title) return;
+    setBusy(true);
+    try {
+      const payload = { ...form, exam_date: form.exam_date || null };
+
+      if (editingId) {
+        const { data, error } = await supabase
+          .from('papers')
+          .update(payload)
+          .eq('id', editingId)
+          .select()
+          .single();
+        if (!error && data) {
+          const updated = data as Paper;
+          setPapers((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+          setActivePaper((prev) => (prev?.id === updated.id ? updated : prev));
+          setShowNewModal(false);
+          setEditingId(null);
+        }
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('papers')
+        .insert({ user_id: userId, ...payload, status: 'draft' })
+        .select()
+        .single();
+
+      if (!error && data) {
+        const newPaper = data as Paper;
+        setPapers((prev) => [newPaper, ...prev]);
+        setActivePaper(newPaper);
+        setPaperQuestions([]);
+        setShowNewModal(false);
+        resetForm();
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleDuplicatePaper = async (p: Paper) => {
+    if (!userId) return;
+    setBusy(true);
+    try {
+      const { data: created, error } = await supabase
+        .from('papers')
+        .insert({
+          user_id: userId,
+          title: `${p.title} (Copy)`,
+          institution_name: p.institution_name,
+          subject: p.subject,
+          class_name: p.class_name,
+          chapter: p.chapter,
+          exam_name: p.exam_name,
+          exam_date: p.exam_date,
+          exam_time: p.exam_time,
+          total_marks: p.total_marks,
+          instructions: p.instructions,
+          status: 'draft',
+        })
+        .select()
+        .single();
+      if (error || !created) return;
+
+      const copy = created as Paper;
+      const { data: rows } = await supabase
+        .from('paper_questions')
+        .select('question_id, sort_order, marks')
+        .eq('paper_id', p.id)
+        .order('sort_order', { ascending: true });
+
+      if (rows && rows.length > 0) {
+        await supabase.from('paper_questions').insert(
+          rows.map((r) => ({
+            paper_id: copy.id,
+            question_id: r.question_id,
+            user_id: userId,
+            sort_order: r.sort_order,
+            marks: r.marks,
+          })),
+        );
+      }
+
+      setPapers((prev) => [copy, ...prev]);
+      setActivePaper(copy);
+      loadPaperQuestions(copy.id);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleDeletePaper = async () => {
+    if (!deleteTarget) return;
+    setBusy(true);
+    try {
+      const id = deleteTarget.id;
+      await supabase.from('paper_questions').delete().eq('paper_id', id);
+      await supabase.from('papers').delete().eq('id', id);
+      const remaining = papers.filter((p) => p.id !== id);
+      setPapers(remaining);
+      setDeleteTarget(null);
+      if (activePaper?.id === id) {
+        const next = remaining[0] ?? null;
+        setActivePaper(next);
+        if (next) loadPaperQuestions(next.id);
+        else setPaperQuestions([]);
+      }
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -290,28 +412,63 @@ export function PaperBuilderPage() {
               </Button>
             </>
           )}
-          <Button onClick={() => setShowNewModal(true)}>
+          <Button onClick={openNewPaper}>
             <Plus size={18} /> New Paper
           </Button>
         </div>
       </div>
 
-      {/* Paper selector */}
+      {/* My Papers */}
       {papers.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {papers.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => { setActivePaper(p); loadPaperQuestions(p.id); }}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                activePaper?.id === p.id
-                  ? 'bg-gradient-to-r from-primary-600 to-accent-500 text-white shadow-md shadow-primary-500/25'
-                  : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-primary-300'
-              }`}
-            >
-              {p.title}
-            </button>
-          ))}
+        <div>
+          <h3 className="font-display text-sm font-semibold text-slate-900 dark:text-white mb-2">
+            My Papers ({papers.length})
+          </h3>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {papers.map((p) => {
+              const active = activePaper?.id === p.id;
+              return (
+                <div
+                  key={p.id}
+                  className={`card p-3 transition-all ${
+                    active ? 'ring-2 ring-primary-500/60 border-primary-300' : 'hover:border-primary-300'
+                  }`}
+                >
+                  <button
+                    onClick={() => { setActivePaper(p); loadPaperQuestions(p.id); }}
+                    className="w-full text-left"
+                  >
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{p.title}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                      {[p.subject, p.class_name, p.exam_name].filter(Boolean).join(' • ') || 'No details yet'}
+                    </p>
+                  </button>
+                  <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700/50 flex items-center gap-1">
+                    <IconAction label="Edit details" onClick={() => openEditPaper(p)}>
+                      <Pencil size={14} />
+                    </IconAction>
+                    <IconAction label="Duplicate" onClick={() => handleDuplicatePaper(p)}>
+                      <Copy size={14} />
+                    </IconAction>
+                    <IconAction
+                      label="Download"
+                      onClick={() => { setActivePaper(p); loadPaperQuestions(p.id); setShowPreview(true); }}
+                    >
+                      <Download size={14} />
+                    </IconAction>
+                    <button
+                      onClick={() => setDeleteTarget(p)}
+                      title="Delete"
+                      aria-label="Delete paper"
+                      className="ml-auto p-1.5 rounded-lg text-error-500 hover:bg-error-50 dark:hover:bg-error-900/20"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -352,7 +509,7 @@ export function PaperBuilderPage() {
             icon={<Newspaper size={32} />}
             title="No question papers yet"
             description="Create a new paper to start building your professional exam paper."
-            action={<Button onClick={() => setShowNewModal(true)}><Plus size={16} /> Create Paper</Button>}
+            action={<Button onClick={openNewPaper}><Plus size={16} /> Create Paper</Button>}
           />
         </Card>
       ) : (
@@ -476,7 +633,7 @@ export function PaperBuilderPage() {
       </Modal>
 
       {/* New Paper Modal */}
-      <Modal open={showNewModal} onClose={() => setShowNewModal(false)} title="Create New Paper" size="lg">
+      <Modal open={showNewModal} onClose={() => setShowNewModal(false)} title={editingId ? 'Edit Paper Details' : 'Create New Paper'} size="lg">
         <div className="grid sm:grid-cols-2 gap-4">
           <Field label="Paper Title" value={form.title} onChange={(v) => setForm({ ...form, title: v })} required />
           <Field label="Institution / School" value={form.institution_name} onChange={(v) => setForm({ ...form, institution_name: v })} />
@@ -499,8 +656,8 @@ export function PaperBuilderPage() {
         </div>
         <div className="mt-6 flex justify-end gap-3">
           <Button variant="secondary" onClick={() => setShowNewModal(false)}>Cancel</Button>
-          <Button onClick={handleCreatePaper} disabled={!form.title}>
-            <Save size={18} /> Create Paper
+          <Button onClick={handleSavePaper} disabled={!form.title || busy}>
+            <Save size={18} /> {editingId ? 'Save Changes' : 'Create Paper'}
           </Button>
         </div>
       </Modal>
@@ -517,7 +674,33 @@ export function PaperBuilderPage() {
           </Button>
         </div>
       </Modal>
+
+      {/* Delete confirmation */}
+      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Delete this paper?" size="sm">
+        <p className="text-sm text-slate-600 dark:text-slate-300">
+          “{deleteTarget?.title}” and its question list will be permanently removed. This cannot be undone.
+        </p>
+        <div className="mt-6 flex justify-end gap-3">
+          <Button variant="secondary" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+          <Button variant="danger" onClick={handleDeletePaper} disabled={busy}>
+            <Trash2 size={16} /> Delete Paper
+          </Button>
+        </div>
+      </Modal>
     </div>
+  );
+}
+
+function IconAction({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      className="p-1.5 rounded-lg text-slate-400 hover:text-primary-500 hover:bg-slate-100 dark:hover:bg-slate-700"
+    >
+      {children}
+    </button>
   );
 }
 

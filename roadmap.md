@@ -24,7 +24,8 @@
 - [x] Watermark text (light/faded) + footer in PDF
 - [x] 5 PDF styles/templates (classic/modern/compact/elegant/B&W), Urdu RTL support
 - [x] Marks alignment right side / RTL-aware
-- [ ] Merge PaperBuilder + Generate into one flow; "My Papers" (view/edit/duplicate/download/delete w/ confirm)
+- [x] "My Papers" list (view/edit/duplicate/download/delete w/ confirm)
+- [ ] Merge PaperBuilder + Generate into one flow
 - [ ] Regenerate single question (wire onRegenerate)
 - [ ] Duplicate prevention (fingerprint + history check)
 - [x] Marks validation before PDF; impossible config explanation
