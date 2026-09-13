@@ -132,6 +132,11 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta, onMet
     [meta, items, withAnswers],
   );
 
+  const exportHtml = useMemo(
+    () => buildPaperHtml(meta, items, { withAnswers }),
+    [meta, items, withAnswers],
+  );
+
   const check = useMemo(() => validateMarks(items, meta.attempts), [items, meta.attempts]);
 
 
