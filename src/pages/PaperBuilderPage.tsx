@@ -403,7 +403,7 @@ export function PaperBuilderPage() {
       setActivePaper(updated);
       setPapers((current) => current.map((paper) => paper.id === updated.id ? updated : paper));
     }
-  }, [activePaper]);
+  }, [activePaper?.id]);
 
   const selectTemplate = async (pdfStyle: PdfStyleKey) => {
     if (!activePaper) return;
