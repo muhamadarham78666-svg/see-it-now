@@ -21,9 +21,9 @@
 - [x] Right→left moving features bar
 
 ## Phase 4 — Paper features (Parts 1, 7, 8)
-- [ ] Watermark text (light/faded) + footer in PDF
-- [ ] 4–5 PDF styles/templates (color + B/W), Urdu RTL support
-- [ ] Marks alignment right side / RTL-aware
+- [x] Watermark text (light/faded) + footer in PDF
+- [x] 5 PDF styles/templates (classic/modern/compact/elegant/B&W), Urdu RTL support
+- [x] Marks alignment right side / RTL-aware
 - [ ] Merge PaperBuilder + Generate into one flow; "My Papers" (view/edit/duplicate/download/delete w/ confirm)
 - [ ] Regenerate single question (wire onRegenerate)
 - [ ] Duplicate prevention (fingerprint + history check)
