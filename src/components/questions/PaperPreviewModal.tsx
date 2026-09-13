@@ -444,7 +444,7 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta, onMet
             </div>
           )}
           <button
-            onClick={() => downloadFile(`${fileBase}.txt`, buildPaperText(meta, questions, withAnswers), 'text/plain;charset=utf-8')}
+            onClick={() => downloadFile(`${fileBase}.txt`, buildPaperText(meta, items, withAnswers), 'text/plain;charset=utf-8')}
             className="btn-secondary text-sm"
           >
             <Download size={16} /> TXT
