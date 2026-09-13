@@ -303,15 +303,12 @@ export function buildPaperHtml(
         .join('');
       const banner =
         key === 'mcq'
-          ? `<div class="part-banner">${isUrduPaper ? 'حصہ معروضی' : 'Objective Part'}${
-              isUrduPaper ? '' : ' <span class="ur">حصہ معروضی</span>'
-            }</div>${bubbleSheet}`
+          ? `<div class="part-banner">${isUrduPaper ? 'حصہ معروضی' : 'Objective Part'}</div>${bubbleSheet}`
           : !subjectiveBannerDone
             ? ((subjectiveBannerDone = true),
-              `<div class="part-banner">${isUrduPaper ? 'حصہ انشائیہ' : 'Subjective Part'}${
-                isUrduPaper ? '' : ' <span class="ur">حصہ انشائیہ</span>'
-              }</div>`)
+              `<div class="part-banner">${isUrduPaper ? 'حصہ انشائیہ' : 'Subjective Part'}</div>`)
             : '';
+
       const lead = `<div class="section-title"><span class="mainq">${t.q}${sectionNo}.</span><span>${escapeHtml(
         cleanSectionLabel(label),
       )}</span>${choice}<span class="section-marks">${formula}</span></div>`;
