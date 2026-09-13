@@ -29,7 +29,22 @@ export interface PaperMeta {
   printSettings?: Partial<PaperPrintSettings>;
 }
 
-export type PdfStyleKey = 'academic' | 'modern' | 'classic' | 'compact' | 'formal';
+export type PdfStyleKey =
+  | 'academic'
+  | 'modern'
+  | 'classic'
+  | 'compact'
+  | 'formal'
+  | 'ledger'
+  | 'bluebook'
+  | 'scholar'
+  | 'technical'
+  | 'ribbon'
+  | 'official'
+  | 'editorial'
+  | 'worksheet'
+  | 'executive'
+  | 'archive';
 export type PaperFontKey = 'serif' | 'sans' | 'book';
 export type PaperDensity = 'compact' | 'balanced' | 'spacious';
 export type PaperDivider = 'single' | 'double' | 'boxed';
@@ -52,6 +67,16 @@ export const PDF_STYLE_OPTIONS: { value: PdfStyleKey; label: string; hint: strin
   { value: 'classic', label: 'Classic Board', hint: 'Traditional serif board-paper presentation' },
   { value: 'compact', label: 'Compact Exam', hint: 'Maximum questions per page with restrained spacing' },
   { value: 'formal', label: 'Formal Institutional', hint: 'Prominent institute identity and double rules' },
+  { value: 'ledger', label: 'Minimal Ledger', hint: 'Thin ledger rules, compact details and understated headings' },
+  { value: 'bluebook', label: 'University Bluebook', hint: 'Academic masthead, blue accents and generous reading rhythm' },
+  { value: 'scholar', label: 'Scholar Serif', hint: 'Book typography, ornamental rules and a centered formal header' },
+  { value: 'technical', label: 'STEM Technical', hint: 'Technical grid, coded labels and crisp structured sections' },
+  { value: 'ribbon', label: 'Modern Ribbon', hint: 'Strong side ribbons with a clean contemporary question layout' },
+  { value: 'official', label: 'Board Official', hint: 'Traditional examination-office layout and candidate boxes' },
+  { value: 'editorial', label: 'Journal Editorial', hint: 'Editorial masthead, refined rules and numbered section blocks' },
+  { value: 'worksheet', label: 'Clean Worksheet', hint: 'Friendly classroom layout with clear answer areas and options' },
+  { value: 'executive', label: 'Executive Assessment', hint: 'Premium institutional hierarchy with bold section numbering' },
+  { value: 'archive', label: 'Monochrome Archive', hint: 'Printer-friendly archival layout with strong black rules' },
 ];
 
 
@@ -61,9 +86,133 @@ export const PAPER_PRINT_PRESETS: Record<PdfStyleKey, PaperPrintSettings> = {
   classic: { accentColor: '#111827', headingFont: 'serif', bodyFont: 'serif', fontSize: 13.5, density: 'balanced', divider: 'single', logoSize: 68, logoAlignment: 'center' },
   compact: { accentColor: '#263238', headingFont: 'sans', bodyFont: 'sans', fontSize: 12, density: 'compact', divider: 'single', logoSize: 58, logoAlignment: 'left' },
   formal: { accentColor: '#5b2132', headingFont: 'serif', bodyFont: 'book', fontSize: 13.5, density: 'balanced', divider: 'double', logoSize: 76, logoAlignment: 'center' },
+  ledger: { accentColor: '#334155', headingFont: 'sans', bodyFont: 'sans', fontSize: 12.5, density: 'compact', divider: 'single', logoSize: 58, logoAlignment: 'left' },
+  bluebook: { accentColor: '#1d4f91', headingFont: 'serif', bodyFont: 'book', fontSize: 13.5, density: 'balanced', divider: 'single', logoSize: 72, logoAlignment: 'center' },
+  scholar: { accentColor: '#653b20', headingFont: 'book', bodyFont: 'book', fontSize: 14, density: 'balanced', divider: 'double', logoSize: 76, logoAlignment: 'center' },
+  technical: { accentColor: '#005f73', headingFont: 'sans', bodyFont: 'sans', fontSize: 12.5, density: 'compact', divider: 'boxed', logoSize: 60, logoAlignment: 'right' },
+  ribbon: { accentColor: '#a12a3a', headingFont: 'sans', bodyFont: 'sans', fontSize: 13, density: 'balanced', divider: 'single', logoSize: 70, logoAlignment: 'left' },
+  official: { accentColor: '#111827', headingFont: 'serif', bodyFont: 'serif', fontSize: 13, density: 'compact', divider: 'boxed', logoSize: 66, logoAlignment: 'center' },
+  editorial: { accentColor: '#3f4a3c', headingFont: 'serif', bodyFont: 'book', fontSize: 13.5, density: 'balanced', divider: 'single', logoSize: 62, logoAlignment: 'right' },
+  worksheet: { accentColor: '#276749', headingFont: 'sans', bodyFont: 'sans', fontSize: 13, density: 'spacious', divider: 'boxed', logoSize: 64, logoAlignment: 'left' },
+  executive: { accentColor: '#273c75', headingFont: 'sans', bodyFont: 'book', fontSize: 13, density: 'balanced', divider: 'single', logoSize: 74, logoAlignment: 'right' },
+  archive: { accentColor: '#000000', headingFont: 'serif', bodyFont: 'serif', fontSize: 12.5, density: 'compact', divider: 'double', logoSize: 58, logoAlignment: 'center' },
 };
 
 export const DEFAULT_PDF_STYLE: PdfStyleKey = 'academic';
+
+function additionalTemplateCss(style: PdfStyleKey, accent: string, fontSize: number): string {
+  const templates: Partial<Record<PdfStyleKey, string>> = {
+    ledger: `
+      body.style-ledger { border-top: 5px solid ${accent}; }
+      .style-ledger header { text-align: left; border-bottom: 1px solid ${accent}; padding-bottom: 7px; }
+      .style-ledger header h1 { font-size: ${fontSize + 8}px; text-transform: none; }
+      .style-ledger .info { gap: 0; border: 1px solid #94a3b8; }
+      .style-ledger .info .cell { border: 0; border-right: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; text-align: left; }
+      .style-ledger .part-banner { text-align: left; border: 0; border-bottom: 2px solid ${accent}; }
+      .style-ledger section { border: 0; padding: 0; }
+      .style-ledger .section-title { background: #f8fafc; border-left: 4px solid ${accent}; padding: 5px 8px; }
+      .style-ledger .q { border-bottom: 1px dotted #cbd5e1; padding-bottom: 4px; }
+    `,
+    bluebook: `
+      .style-bluebook header { border-top: 8px solid ${accent}; border-bottom: 3px double ${accent}; padding: 9px 0; }
+      .style-bluebook header h1 { color: ${accent}; letter-spacing: 1.2px; }
+      .style-bluebook .info { grid-template-columns: repeat(2, 1fr); gap: 0; border: 1px solid ${accent}; }
+      .style-bluebook .info .cell { border-color: #b8c9df; text-align: left; padding: 5px 9px; }
+      .style-bluebook .part-banner { border: 0; background: ${accent}; color: white; padding: 5px; }
+      .style-bluebook section { border-left: 2px solid #b8c9df; padding-left: 12px; }
+      .style-bluebook .section-title { color: ${accent}; border-bottom: 1px solid #b8c9df; }
+      .style-bluebook .itemno { color: ${accent}; }
+    `,
+    scholar: `
+      .style-scholar header::before, .style-scholar header::after { content: '◆  ◆  ◆'; display: block; color: ${accent}; font-size: 8px; letter-spacing: 7px; }
+      .style-scholar header { border-top: 3px double ${accent}; border-bottom: 3px double ${accent}; padding: 8px 0; }
+      .style-scholar header h1 { color: ${accent}; text-transform: none; font-variant: small-caps; }
+      .style-scholar .info { gap: 0; border-bottom: 1px solid ${accent}; }
+      .style-scholar .info .cell { border: 0; border-right: 1px solid #c8b7a6; }
+      .style-scholar .part-banner { border: 0; font-variant: small-caps; letter-spacing: 1.4px; }
+      .style-scholar .part-banner::before, .style-scholar .part-banner::after { content: '—'; margin: 0 12px; }
+      .style-scholar .section-title { justify-content: center; border-bottom: 3px double ${accent}; }
+      .style-scholar .qtext { text-align: justify; }
+    `,
+    technical: `
+      .style-technical { border: 1px solid ${accent}; }
+      .style-technical header { text-align: left; background: #edf7f8; border-bottom: 4px solid ${accent}; padding: 8px; }
+      .style-technical header .board, .style-technical .cell-label { font-family: 'Courier New', monospace; letter-spacing: .7px; }
+      .style-technical .info { gap: 2px; background: ${accent}; border: 2px solid ${accent}; }
+      .style-technical .info .cell { background: white; border: 0; text-align: left; }
+      .style-technical .part-banner { text-align: left; background: #edf7f8; border: 1px solid ${accent}; padding: 5px 8px; }
+      .style-technical section { border: 1px solid #8fb9bd; padding: 8px 10px; }
+      .style-technical .section-title { font-family: 'Courier New', monospace; color: ${accent}; border-bottom: 1px dashed ${accent}; }
+      .style-technical .itemno { font-family: 'Courier New', monospace; color: ${accent}; }
+    `,
+    ribbon: `
+      .style-ribbon header { text-align: left; border-left: 12px solid ${accent}; padding: 8px 14px; background: #fafafa; }
+      .style-ribbon header h1 { color: ${accent}; text-transform: none; }
+      .style-ribbon .info { display: flex; flex-wrap: wrap; border-bottom: 2px solid ${accent}; }
+      .style-ribbon .info .cell { flex: 1 0 24%; border: 0; text-align: left; }
+      .style-ribbon .part-banner { text-align: left; color: white; background: ${accent}; border: 0; padding: 5px 12px; width: 48%; }
+      .style-ribbon .section-title { border-left: 7px solid ${accent}; padding: 5px 9px; background: #f6f6f6; }
+      .style-ribbon .q { padding-left: 12px; }
+      .style-ribbon .itemno { color: ${accent}; }
+    `,
+    official: `
+      .style-official { border: 2px solid #111; padding: 18px 22px; }
+      .style-official header { border: 2px solid #111; padding: 6px; }
+      .style-official header h1 { font-size: ${fontSize + 9}px; }
+      .style-official .info { gap: 0; border: 2px solid #111; }
+      .style-official .info .cell { border-color: #111; min-height: 35px; }
+      .style-official .part-banner { color: #111; border: 2px solid #111; background: #eee; text-transform: uppercase; }
+      .style-official section { border: 1px solid #111; padding: 8px; }
+      .style-official .section-title { border-bottom: 1px solid #111; }
+      .style-official .bubbles { border: 2px solid #111; }
+    `,
+    editorial: `
+      .style-editorial header { text-align: left; border-bottom: 6px solid ${accent}; padding-bottom: 10px; }
+      .style-editorial header h1 { font-size: ${fontSize + 14}px; line-height: 1; text-transform: none; }
+      .style-editorial header .exam { font-style: italic; }
+      .style-editorial .info { grid-template-columns: repeat(8, 1fr); gap: 0; }
+      .style-editorial .info .cell { grid-column: span 2; border: 0; border-bottom: 1px solid #aaa; text-align: left; }
+      .style-editorial .part-banner { text-align: left; border: 0; font-size: ${fontSize + 4}px; color: #111; }
+      .style-editorial .section-title { border-top: 1px solid ${accent}; border-bottom: 1px solid ${accent}; padding: 6px 0; }
+      .style-editorial .mainq { font-size: ${fontSize + 8}px; color: ${accent}; }
+      .style-editorial .qtext { text-align: justify; }
+    `,
+    worksheet: `
+      .style-worksheet header { text-align: left; padding: 8px 12px; background: #eef8f1; border-radius: 8px; }
+      .style-worksheet header h1 { color: ${accent}; text-transform: none; }
+      .style-worksheet .info { grid-template-columns: repeat(2, 1fr); }
+      .style-worksheet .info .cell { border: 0; border-bottom: 1px solid #9ab8a2; text-align: left; }
+      .style-worksheet .part-banner { border: 0; color: ${accent}; text-align: left; font-size: ${fontSize + 3}px; }
+      .style-worksheet section { border: 1px solid #bad3c0; border-radius: 8px; padding: 10px 12px; }
+      .style-worksheet .section-title { color: ${accent}; }
+      .style-worksheet .q { background: #fbfdfb; padding: 6px 8px; border-radius: 5px; }
+      .style-worksheet .space { height: 30px; border-bottom-color: #90b49a; }
+    `,
+    executive: `
+      .style-executive header { text-align: left; border-bottom: 1px solid ${accent}; padding: 10px 0; }
+      .style-executive header h1 { color: ${accent}; font-size: ${fontSize + 10}px; text-transform: none; }
+      .style-executive .info { gap: 0; background: #f5f6f8; border-left: 5px solid ${accent}; }
+      .style-executive .info .cell { border: 0; text-align: left; padding: 5px 8px; }
+      .style-executive .part-banner { text-align: right; border: 0; border-bottom: 1px solid ${accent}; color: ${accent}; text-transform: uppercase; letter-spacing: 1px; }
+      .style-executive .section-title { position: relative; padding: 8px 10px 8px 48px; background: #f5f6f8; }
+      .style-executive .mainq { position: absolute; left: 0; top: 0; bottom: 0; width: 40px; display: flex; align-items: center; justify-content: center; background: ${accent}; color: white; }
+      .style-executive .q { padding-left: 8px; border-left: 1px solid #ccd2df; }
+    `,
+    archive: `
+      .style-archive { border: 4px double #000; padding: 16px 20px; filter: grayscale(1); }
+      .style-archive header { border-bottom: 5px double #000; padding-bottom: 7px; }
+      .style-archive header h1 { color: #000; letter-spacing: 1px; }
+      .style-archive .info { gap: 0; border: 2px solid #000; }
+      .style-archive .info .cell { border-color: #000; }
+      .style-archive .part-banner { color: #000; border: 3px double #000; text-transform: uppercase; }
+      .style-archive section { border: 0; padding: 0; }
+      .style-archive .section-title { border-bottom: 2px solid #000; border-top: 1px solid #000; padding: 5px 0; }
+      .style-archive .q { border-bottom: 1px dotted #555; padding-bottom: 4px; }
+      .style-archive footer { border-top: 3px double #000; }
+    `,
+  };
+  return templates[style] ?? '';
+}
 
 export function resolvePrintSettings(meta: PaperMeta): PaperPrintSettings {
   const requested = meta.pdfStyle ?? DEFAULT_PDF_STYLE;
