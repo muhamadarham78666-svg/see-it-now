@@ -307,6 +307,7 @@ export type Database = {
       }
       papers: {
         Row: {
+          attempts: Json
           chapter: string | null
           class_name: string | null
           created_at: string
@@ -319,6 +320,7 @@ export type Database = {
           instructions: string | null
           logo_url: string | null
           pdf_style: string
+          print_settings: Json
           status: string
           subject: string | null
           title: string
@@ -328,6 +330,7 @@ export type Database = {
           watermark_text: string | null
         }
         Insert: {
+          attempts?: Json
           chapter?: string | null
           class_name?: string | null
           created_at?: string
@@ -340,6 +343,7 @@ export type Database = {
           instructions?: string | null
           logo_url?: string | null
           pdf_style?: string
+          print_settings?: Json
           status?: string
           subject?: string | null
           title: string
@@ -349,6 +353,7 @@ export type Database = {
           watermark_text?: string | null
         }
         Update: {
+          attempts?: Json
           chapter?: string | null
           class_name?: string | null
           created_at?: string
@@ -361,6 +366,7 @@ export type Database = {
           instructions?: string | null
           logo_url?: string | null
           pdf_style?: string
+          print_settings?: Json
           status?: string
           subject?: string | null
           title?: string
