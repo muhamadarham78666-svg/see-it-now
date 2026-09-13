@@ -228,8 +228,15 @@ export function GeneratePage() {
     }
     const marks = Number.isFinite(customLongMarks) && customLongMarks > 0 ? customLongMarks : 5;
     setCustomLongQuestions((items) => [...items, { text, marks }]);
+    setMixCounts((counts) => {
+      if (questionType === 'mixed') return { ...counts, long: counts.long + 1 };
+      return {
+        mcq: questionType === 'mcq' ? effectiveCount : 0,
+        short: questionType === 'short' ? effectiveCount : 0,
+        long: (questionType === 'long' ? effectiveCount : 0) + 1,
+      };
+    });
     setQuestionType('mixed');
-    setMixCounts((counts) => ({ ...counts, long: counts.long + 1 }));
     setCustomLongText('');
     setCustomLongError(null);
     setNotice('Custom long question Long Questions mein add ho gaya.');
@@ -323,8 +330,8 @@ export function GeneratePage() {
   }, [generating]);
 
   const handleGenerate = async () => {
-    if (!hasMaterial && !bookObj) {
-      setError('Select a Class and Book, or upload / paste your study material.');
+    if (!hasMaterial && !bookObj && customLongQuestions.length === 0) {
+      setError('Select a Class and Book, upload material, or add a custom long question.');
       return;
     }
     if (isMixed && mixTotal < 1) {
@@ -1383,7 +1390,7 @@ export function GeneratePage() {
             onClick={handleGenerate}
             size="lg"
             className="w-full"
-            disabled={!hasMaterial && !bookObj}
+            disabled={!hasMaterial && !bookObj && customLongQuestions.length === 0}
           >
             <Sparkles size={18} />
             Generate Paper
