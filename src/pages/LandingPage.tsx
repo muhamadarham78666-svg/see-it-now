@@ -12,6 +12,8 @@ import { ReviewsSection } from '@/components/landing/ReviewsSection';
 import { Footer } from '@/components/landing/Footer';
 import { Reveal } from '@/components/landing/Reveal';
 import { PricingSection } from '@/components/landing/PricingSection';
+import { FeaturesTicker } from '@/components/landing/FeaturesTicker';
+import { SubscriptionPopup } from '@/components/landing/SubscriptionPopup';
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -29,6 +31,8 @@ export function LandingPage() {
       <LandingNav onGetStarted={goToLogin} />
 
       <Hero onGetStarted={goToLogin} onWatchGuide={scrollToGuide} />
+
+      <FeaturesTicker />
 
       <div id="how-it-works">
         <Reveal>
@@ -71,6 +75,8 @@ export function LandingPage() {
       </Reveal>
 
       <Footer />
+
+      <SubscriptionPopup />
     </div>
   );
 }
