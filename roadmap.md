@@ -32,7 +32,7 @@
 - [ ] Custom long question (Advanced -> Writing/Composition)
 - [ ] Autosave paper config/drafts
 - [ ] Notes export: PDF / Word / copy text
-- [ ] Print redesign: inline roman numbering, compact pagination, section choice lines, prominent logo/institute, hidden chapter/topic labels, and customizable Modern Professional templates
+- [x] Print redesign: inline roman numbering, compact pagination, section choice lines, prominent logo/institute, hidden chapter/topic labels, and customizable Modern Professional templates
 
 ## Phase 5 — Account & security (Parts 9, 10, 12)
 - [ ] Profile: name/institute editing

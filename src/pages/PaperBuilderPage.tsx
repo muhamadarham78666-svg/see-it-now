@@ -340,7 +340,9 @@ export function PaperBuilderPage() {
     logoUrl: activePaper.logo_url ?? undefined,
     footerNote: activePaper.footer_note ?? undefined,
     watermarkText: activePaper.watermark_text ?? undefined,
-    pdfStyle: (activePaper.pdf_style || 'academic') as PdfStyleKey,
+    pdfStyle: PDF_STYLE_OPTIONS.some((option) => option.value === activePaper.pdf_style)
+      ? activePaper.pdf_style as PdfStyleKey
+      : 'academic',
     printSettings: activePaper.print_settings,
     attempts: activePaper.attempts,
   }) : null, [activePaper]);

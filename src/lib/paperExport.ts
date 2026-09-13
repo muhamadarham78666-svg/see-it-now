@@ -181,6 +181,8 @@ export function buildPaperHtml(
     { key: 'short', label: boardStyle.sections.short },
     { key: 'long', label: boardStyle.sections.long },
   ];
+  const cleanSectionLabel = (label: string) =>
+    label.replace(/\s*[—-]?\s*Q\.?\s*1\s*/i, ' ').replace(/\s{2,}/g, ' ').trim();
 
   const t = isUrduPaper ? URDU_LABELS : EN_LABELS;
 
@@ -250,7 +252,7 @@ export function buildPaperHtml(
           </div>`;
         })
         .join('');
-      const lead = `<div class="section-title"><span class="mainq">${t.q}${sectionNo}.</span><span>${escapeHtml(label)}</span>${boardStyle.perQuestionMarks ? `<span class="section-marks">[${sectionMarks}]</span>` : ''}</div>`;
+      const lead = `<div class="section-title"><span class="mainq">${t.q}${sectionNo}.</span><span>${escapeHtml(cleanSectionLabel(label))}</span>${boardStyle.perQuestionMarks ? `<span class="section-marks">[${sectionMarks}]</span>` : ''}</div>`;
       return `<section class="${isUrduPaper ? 'rtl' : ''}">${lead}${note}${rows}</section>`;
     })
     .join('');
@@ -269,6 +271,8 @@ export function buildPaperHtml(
   body { font-family: ${bodyFont}; color: #111; margin: 0; padding: ${density.page}; line-height: ${density.line}; position: relative; font-size: ${print.fontSize}px; }
   header { text-align: center; border-bottom: ${print.divider === 'double' ? '4px double' : '2px solid'} ${accent}; padding-bottom: 9px; margin-bottom: 10px; }
   header .brand { display: grid; grid-template-columns: ${print.logoAlignment === 'center' ? '1fr' : `${print.logoSize}px 1fr ${print.logoSize}px`}; align-items: center; gap: 12px; }
+  header .brand.no-logo { grid-template-columns: 1fr; }
+  header .brand.no-logo .brand-copy { grid-column: 1; }
   header .brand.logo-right img { grid-column: 3; }
   header .brand.logo-center img { margin: 0 auto 3px; }
   header .brand.logo-center .brand-copy { grid-row: 2; }
@@ -331,7 +335,7 @@ export function buildPaperHtml(
 <body>
   ${meta.watermarkText ? `<div class="watermark" aria-hidden="true"><span>${escapeHtml(meta.watermarkText)}</span></div>` : ''}
   <header>
-    <div class="brand logo-${print.logoAlignment}">
+    <div class="brand logo-${print.logoAlignment}${meta.logoUrl ? '' : ' no-logo'}">
       ${meta.logoUrl ? `<img src="${escapeHtml(meta.logoUrl)}" alt="Logo" />` : ''}
       <div class="brand-copy">
         ${meta.boardName ? `<div class="board">${escapeHtml(meta.boardName)}</div>` : ''}
