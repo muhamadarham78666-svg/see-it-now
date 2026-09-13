@@ -85,7 +85,7 @@ export function validateMarks(
       issues.push(`"Attempt any ${pick}" is more than the ${items.length} ${key} question(s) available.`);
     }
   });
-  const total = questions.reduce((s, q) => s + (q.marks || 0), 0);
+  const total = computePaperMarks(questions, attempts);
   if (!questions.length) issues.push('The paper has no questions yet.');
   return { ok: issues.length === 0, total, issues };
 }
