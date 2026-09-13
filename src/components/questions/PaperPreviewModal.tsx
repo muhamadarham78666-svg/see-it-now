@@ -93,12 +93,46 @@ export function PaperPreviewModal({ open, onClose, questions, defaultMeta, onMet
     return () => window.clearTimeout(timer);
   }, [meta, onMetaChange, open]);
 
+  const [items, setItems] = useState<Question[]>(questions);
+  useEffect(() => setItems(questions), [questions]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onMessage = (event: MessageEvent) => {
+      const data = event.data as
+        | { type?: string; qid?: string; field?: string; index?: string | null; value?: string }
+        | undefined;
+      if (!data || data.type !== 'paper-edit' || !data.qid || !data.field) return;
+      const value = data.value ?? '';
+      const idx = data.index === null || data.index === undefined ? -1 : Number(data.index);
+      setItems((list) => {
+        const next = list.map((q) => {
+          if (q.id !== data.qid) return q;
+          if (data.field === 'text') return { ...q, question_text: value };
+          if (data.field === 'option' && q.options?.[idx]) {
+            const options = q.options.map((o, i) => (i === idx ? { ...o, text: value } : o));
+            return { ...q, options };
+          }
+          if (data.field === 'part' && q.parts?.[idx]) {
+            const parts = q.parts.map((p, i) => (i === idx ? { ...p, text: value } : p));
+            return { ...q, parts };
+          }
+          return q;
+        });
+        onQuestionsChange?.(next);
+        return next;
+      });
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [open, onQuestionsChange]);
+
   const html = useMemo(
-    () => buildPaperHtml(meta, questions, { withAnswers }),
-    [meta, questions, withAnswers],
+    () => buildPaperHtml(meta, items, { withAnswers, editable: true }),
+    [meta, items, withAnswers],
   );
 
-  const check = useMemo(() => validateMarks(questions, meta.attempts), [questions, meta.attempts]);
+  const check = useMemo(() => validateMarks(items, meta.attempts), [items, meta.attempts]);
 
 
   if (!open) return null;
