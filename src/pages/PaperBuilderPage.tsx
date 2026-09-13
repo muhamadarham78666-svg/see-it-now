@@ -656,8 +656,8 @@ export function PaperBuilderPage() {
         </div>
         <div className="mt-6 flex justify-end gap-3">
           <Button variant="secondary" onClick={() => setShowNewModal(false)}>Cancel</Button>
-          <Button onClick={handleCreatePaper} disabled={!form.title}>
-            <Save size={18} /> Create Paper
+          <Button onClick={handleSavePaper} disabled={!form.title || busy}>
+            <Save size={18} /> {editingId ? 'Save Changes' : 'Create Paper'}
           </Button>
         </div>
       </Modal>
