@@ -87,7 +87,6 @@ export class LovableAIProvider implements AIProvider {
           translation: settings.translation ?? null,
           statements: settings.statements ?? null,
           forceUrdu: settings.forceUrdu ?? null,
-          customLongQuestions: settings.customLongQuestions ?? null,
         },
       },
     });
