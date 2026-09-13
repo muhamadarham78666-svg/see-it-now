@@ -517,6 +517,19 @@ export function PaperBuilderPage() {
           </Button>
         </div>
       </Modal>
+
+      {/* Delete confirmation */}
+      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Delete this paper?" size="sm">
+        <p className="text-sm text-slate-600 dark:text-slate-300">
+          “{deleteTarget?.title}” and its question list will be permanently removed. This cannot be undone.
+        </p>
+        <div className="mt-6 flex justify-end gap-3">
+          <Button variant="secondary" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+          <Button variant="danger" onClick={handleDeletePaper} disabled={busy}>
+            <Trash2 size={16} /> Delete Paper
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }
