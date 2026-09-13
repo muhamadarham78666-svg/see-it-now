@@ -47,8 +47,7 @@ export interface PaperPrintSettings {
 }
 
 export const PDF_STYLE_OPTIONS: { value: PdfStyleKey; label: string; hint: string }[] = [
-  { value: 'academic', label: 'Modern Professional Academic', hint: 'Formal header, ruled sections and compact academic typography' },
-  { value: 'modern', label: 'Modern Professional', hint: 'Clean sans-serif layout with crisp section blocks' },
+  { value: 'academic', label: 'Test Series (Academy)', hint: 'Boxed detail grid, MCQ bubble sheet and Objective / Subjective parts' },
   { value: 'classic', label: 'Classic Board', hint: 'Traditional serif board-paper presentation' },
   { value: 'compact', label: 'Compact Exam', hint: 'Maximum questions per page with restrained spacing' },
   { value: 'formal', label: 'Formal Institutional', hint: 'Prominent institute identity and double rules' },
