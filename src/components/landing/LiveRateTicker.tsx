@@ -25,10 +25,10 @@ export function LiveRateTicker() {
   if (rate === null) return null;
 
   return (
-    <div className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-2 py-0.5 text-[9px] sm:px-3 sm:py-1 sm:text-[11px] font-semibold text-slate-600 dark:text-slate-300">
-      <span className="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2">
+    <div className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-1.5 py-0.5 text-[8px] sm:px-2 sm:py-0.5 sm:text-[10px] font-semibold text-slate-600 dark:text-slate-300">
+      <span className="relative flex h-1 w-1 sm:h-1.5 sm:w-1.5">
         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-500 opacity-75" />
-        <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-success-500" />
+        <span className="relative inline-flex rounded-full h-1 w-1 sm:h-1.5 sm:w-1.5 bg-success-500" />
       </span>
       <span className="text-success-600 dark:text-success-400 tracking-wide">LIVE</span>
       <span className="tabular-nums">$1 = Rs. {rate.toLocaleString('en-US')}</span>
