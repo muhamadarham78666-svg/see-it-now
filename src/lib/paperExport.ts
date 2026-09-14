@@ -603,8 +603,8 @@ export function buildPaperHtml(
     isUrduPaper
       ? `body { direction: rtl; font-family: 'Noto Nastaliq Urdu', serif; line-height: 2.1; }
   .section-title, .instructions, .info, footer { font-family: 'Noto Nastaliq Urdu', serif; }
-  .part-banner { text-align: center; direction: rtl; }
-  .section-title { direction: rtl; flex-direction: row; justify-content: flex-start; text-align: right; }
+  html[lang="ur"] .part-banner { text-align: center; direction: rtl; }
+  html[lang="ur"] .section-title { direction: rtl; flex-direction: row; justify-content: flex-start; text-align: right; }
   .qtext, .opts { text-align: right; }
   .qline { flex-direction: row-reverse; }
   .qline .marks, .section-title .section-marks { margin-left: 0; margin-right: auto; text-align: left; }`
