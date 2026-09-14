@@ -34,14 +34,14 @@ export function LandingNav({ onGetStarted }: LandingNavProps) {
       dir={dir}
       className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
         scrolled
-          ? 'glass shadow-sm pt-3 pb-9'
-          : 'bg-transparent pt-5 pb-9'
+          ? 'glass shadow-sm pt-3 pb-11'
+          : 'bg-transparent pt-5 pb-11'
       }`}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         <div className="relative flex items-center">
           <Logo size="sm" />
-          <div className="absolute left-0 top-full mt-3.5">
+          <div className="absolute left-0 top-full mt-2 sm:mt-3.5">
             <LiveRateTicker />
           </div>
         </div>
