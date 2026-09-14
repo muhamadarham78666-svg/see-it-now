@@ -1,27 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useServerFn } from '@tanstack/react-start';
 import { Check, CheckCircle, Loader2, Mail, Phone, Send, User, X } from 'lucide-react';
 import { submitSubscriptionRequestFn } from '@/lib/subscription.functions';
 import { SUBSCRIPTION_PLANS, type SubscriptionPlanKey } from '@/lib/subscriptions';
-import { usdPkrRateFn } from '@/lib/rates.functions';
 
 export function PricingSection() {
   const [selected, setSelected] = useState<SubscriptionPlanKey | null>(null);
-  const [rate, setRate] = useState<{ rate: number; live: boolean } | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    void usdPkrRateFn()
-      .then((r) => {
-        if (active) setRate(r);
-      })
-      .catch(() => setRate(null));
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const usd = (pkr: number) => (rate ? Math.round(pkr / rate.rate) : null);
   return (
     <section id="pricing" className="py-20 sm:py-24 bg-slate-50 dark:bg-slate-950 border-y border-slate-200 dark:border-slate-800">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
@@ -37,11 +21,6 @@ export function PricingSection() {
               <h3 className="font-display text-2xl font-bold text-slate-900 dark:text-white">{plan.name}</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400">{plan.duration}</p>
               <p className="mt-5 text-3xl font-bold text-slate-900 dark:text-white">{plan.priceLabel}</p>
-              {usd(plan.price) !== null && (
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  ≈ ${usd(plan.price)} USD {rate?.live ? '(live rate)' : '(approximate)'}
-                </p>
-              )}
               <div className="mt-5 flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"><Check size={17} className="text-success-500" /> Up to {plan.userLimit} {plan.userLimit === 1 ? 'user' : 'users'}</div>
               <button onClick={() => setSelected(plan.key)} className="btn-primary w-full mt-7">Select {plan.name}</button>
             </article>
