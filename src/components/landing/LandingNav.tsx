@@ -41,7 +41,7 @@ export function LandingNav({ onGetStarted }: LandingNavProps) {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         <div className="relative flex items-center">
           <Logo size="sm" />
-          <div className="absolute left-0 top-full mt-1.5">
+          <div className="absolute left-0 top-full mt-3.5">
             <LiveRateTicker />
           </div>
         </div>
