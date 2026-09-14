@@ -429,8 +429,12 @@ export function buildPaperHtml(
   const bubbleSheet = mcqItems.length
     ? `<div class="bubbles">${mcqItems
         .map((q, i) => {
-          const labels = (q.options ?? []).map((o) => o.label);
-          const set = labels.length ? labels : ['A', 'B', 'C', 'D'];
+          const optionCount = q.options?.length || 4;
+          const set = isUrduPaper
+            ? Array.from({ length: optionCount }, (_, optionIndex) => roman(optionIndex + 1))
+            : (q.options ?? []).map((o) => o.label).length
+              ? (q.options ?? []).map((o) => o.label)
+              : ['A', 'B', 'C', 'D'];
           return `<div class="bubble-row"><span class="bn">${isUrduPaper ? urduNumber(i + 1) : i + 1}.</span>${set
             .map((l) => `<span class="bub">${escapeHtml(l)}</span>`)
             .join('')}</div>`;
@@ -462,7 +466,7 @@ export function buildPaperHtml(
               ? `<ol class="opts">${q.options
                   .map(
                     (o, oi) =>
-                       `<li><span class="lbl">(${escapeHtml(isUrduPaper ? urduItemLabel(oi) : o.label)})</span> <span${ed(q.id, 'option', oi)}>${escapeHtml(o.text)}</span></li>`,
+                       `<li><span class="lbl">(${escapeHtml(isUrduPaper ? roman(oi + 1) : o.label)})</span> <span${ed(q.id, 'option', oi)}>${escapeHtml(o.text)}</span></li>`,
                   )
                   .join('')}</ol>`
               : '';
@@ -599,8 +603,10 @@ export function buildPaperHtml(
     isUrduPaper
       ? `body { direction: rtl; font-family: 'Noto Nastaliq Urdu', serif; line-height: 2.1; }
   .section-title, .instructions, .info, footer { font-family: 'Noto Nastaliq Urdu', serif; }
+  .part-banner { text-align: center; direction: rtl; }
+  .section-title { direction: rtl; flex-direction: row; justify-content: flex-start; text-align: right; }
   .qtext, .opts { text-align: right; }
-  .qline, .section-title { flex-direction: row-reverse; }
+  .qline { flex-direction: row-reverse; }
   .qline .marks, .section-title .section-marks { margin-left: 0; margin-right: auto; text-align: left; }`
       : ''
   }
