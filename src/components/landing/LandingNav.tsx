@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Menu, X, Sun, Moon } from 'lucide-react';
 import { Logo } from '@/components/Logo';
+import { LiveRateTicker } from '@/components/landing/LiveRateTicker';
 import { LanguageChip } from '@/components/LanguageChip';
 import { useLanguage } from '@/context/LanguageContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -38,7 +39,10 @@ export function LandingNav({ onGetStarted }: LandingNavProps) {
       }`}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-        <Logo size="sm" />
+        <div className="flex flex-col items-start gap-1">
+          <Logo size="sm" />
+          <LiveRateTicker />
+        </div>
 
         <div className="hidden lg:flex items-center gap-8">
           {navLinks.map((link) => (
