@@ -34,8 +34,8 @@ export function LandingNav({ onGetStarted }: LandingNavProps) {
       dir={dir}
       className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
         scrolled
-          ? 'glass shadow-sm py-3'
-          : 'bg-transparent py-5'
+          ? 'glass shadow-sm pt-3 pb-9'
+          : 'bg-transparent pt-5 pb-9'
       }`}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex items-center justify-between">
