@@ -23,7 +23,7 @@ const scenes: Scene[] = [
 ];
 
 export function GuideAnimation() {
-  const [playing, setPlaying] = useState(false);
+  const [playing, setPlaying] = useState(true);
   const [elapsed, setElapsed] = useState(0);
   const rafRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
@@ -67,10 +67,12 @@ export function GuideAnimation() {
   }, []);
 
   useEffect(() => {
+    startTimeRef.current = performance.now();
+    rafRef.current = requestAnimationFrame(tick);
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, []);
+  }, [tick]);
 
   const currentScene = scenes.find((s) => elapsed >= s.start && elapsed < s.end) ?? scenes[0];
   const sceneIndex = scenes.indexOf(currentScene);
