@@ -23,7 +23,7 @@ const guideSteps = [
 export function GuideVideo({ videoRef }: GuideVideoProps) {
   return (
     <section ref={videoRef} className="py-20 lg:py-28 bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
-      <div className="mx-auto max-w-xl px-4 sm:px-6">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="glass-card p-6 sm:p-8">
           <div className="flex items-center gap-2 mb-5">
             <div className="w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400 flex items-center justify-center">
@@ -35,20 +35,24 @@ export function GuideVideo({ videoRef }: GuideVideoProps) {
             </div>
           </div>
 
-          <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 mb-6 h-[380px] sm:h-[400px]">
-            <GuideAnimation />
-          </div>
+          <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+            {/* Left: video */}
+            <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 h-[380px] sm:h-[400px]">
+              <GuideAnimation />
+            </div>
 
-          <ol className="space-y-4">
-            {guideSteps.map((step, i) => (
-              <li key={step} className="flex gap-3">
-                <span className="w-7 h-7 flex-shrink-0 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 text-white text-xs font-bold flex items-center justify-center">
-                  {i + 1}
-                </span>
-                <p className="text-sm font-semibold text-slate-900 dark:text-white pt-0.5">{step}</p>
-              </li>
-            ))}
-          </ol>
+            {/* Right: what you'll learn */}
+            <ol className="space-y-4">
+              {guideSteps.map((step, i) => (
+                <li key={step} className="flex gap-3">
+                  <span className="w-7 h-7 flex-shrink-0 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 text-white text-xs font-bold flex items-center justify-center">
+                    {i + 1}
+                  </span>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white pt-0.5">{step}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
       </div>
     </section>
