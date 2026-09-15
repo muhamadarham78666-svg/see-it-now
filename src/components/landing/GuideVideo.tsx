@@ -35,14 +35,14 @@ export function GuideVideo({ videoRef }: GuideVideoProps) {
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:gap-8 items-start">
             {/* Left: video */}
-            <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 h-[380px] sm:h-[400px]">
+            <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 h-[300px] sm:h-[380px] lg:h-[400px]">
               <GuideAnimation />
             </div>
 
             {/* Right: what you'll learn */}
-            <ol className="space-y-4">
+            <ol className="space-y-2 sm:space-y-3 lg:space-y-4">
               {guideSteps.map((step, i) => (
                 <li key={step} className="flex gap-3">
                   <span className="w-7 h-7 flex-shrink-0 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 text-white text-xs font-bold flex items-center justify-center">
