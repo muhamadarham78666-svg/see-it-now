@@ -157,7 +157,7 @@ export function SupportWidget() {
     <>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="fixed bottom-5 right-5 z-[70] flex items-center gap-2 rounded-full bg-primary-600 hover:bg-primary-700 text-white shadow-xl shadow-primary-600/30 px-4 py-3 text-sm font-semibold transition-transform hover:scale-105"
+        className="fixed bottom-5 left-5 z-[70] flex items-center gap-2 rounded-full bg-primary-600 hover:bg-primary-700 text-white shadow-xl shadow-primary-600/30 px-4 py-3 text-sm font-semibold transition-transform hover:scale-105"
         aria-label="Support chat"
       >
         {open ? <X size={18} /> : <Headphones size={18} />}
@@ -165,7 +165,7 @@ export function SupportWidget() {
       </button>
 
       {open && (
-        <div className="fixed bottom-20 right-3 sm:right-5 z-[70] w-[min(94vw,380px)] rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden flex flex-col max-h-[75vh]">
+        <div className="fixed bottom-20 left-3 sm:left-5 z-[70] w-[min(94vw,380px)] rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden flex flex-col max-h-[75vh]">
           <div className="px-4 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white">
             <p className="text-sm font-semibold flex items-center gap-2">
               <MessageSquare size={16} /> NSAGPT Support
@@ -217,7 +217,7 @@ export function SupportWidget() {
                           <UserCheck size={11} /> NSAGPT Team
                         </p>
                       )}
-                      {m.content}
+                      {renderText(m.content)}
                     </div>
                   </div>
                 ))}
@@ -293,5 +293,17 @@ function GuestField({
         className="input-field !pl-10 text-sm"
       />
     </div>
+  );
+}
+
+/** Renders **bold** markers as bold text so AI replies never show raw asterisks. */
+function renderText(text: string) {
+  const clean = text.replace(/^#{1,6}\s*/gm, '').replace(/`/g, '');
+  return clean.split(/(\*\*[^*]+\*\*)/g).map((part, index) =>
+    part.startsWith('**') && part.endsWith('**') && part.length > 4 ? (
+      <strong key={index}>{part.slice(2, -2)}</strong>
+    ) : (
+      <span key={index}>{part}</span>
+    ),
   );
 }
