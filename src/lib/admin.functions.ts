@@ -288,6 +288,7 @@ export const adminUpdateUserFn = createServerFn({ method: "POST" })
         fullName: z.string().nullable().optional(),
         password: z.string().min(8).nullable().optional(),
         makeAdmin: z.boolean().nullable().optional(),
+        role: z.enum(["user", "editor", "admin"]).nullable().optional(),
         boardCode: z.string().nullable().optional(),
         classLevel: z.string().nullable().optional(),
       })
@@ -296,7 +297,18 @@ export const adminUpdateUserFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context as Ctx, data.token);
     await audit(context as Ctx, "updateUser", undefined, { ...data, token: undefined });
-    if (data.password || data.makeAdmin === false) await assertNotOwnerTarget(data.userId);
+    // The permanent owner account is untouchable for everyone except the owner themselves.
+    const actorIsOwner = await isOwnerActor(context as Ctx);
+    if (!actorIsOwner) await assertNotOwnerTarget(data.userId);
+    else if (data.password || data.makeAdmin === false || data.role) await assertNotOwnerTarget(data.userId);
+    if (data.role) {
+      if (!actorIsOwner) {
+        return { ok: false as const, message: "Only the owner can change roles." };
+      }
+      if (data.userId === (context as Ctx).userId) {
+        return { ok: false as const, message: "You cannot change your own role." };
+      }
+    }
     const db = await admin();
     const patch: Record<string, unknown> = {};
     if (data.fullName !== undefined) patch["full_name"] = data.fullName;
