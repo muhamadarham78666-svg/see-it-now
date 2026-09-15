@@ -174,7 +174,7 @@ export function BookSolverPage() {
         <Card className="lg:col-span-1 p-5 space-y-5">
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
-              Class / Group
+              Class
             </label>
             <select
               value={groupKey}
