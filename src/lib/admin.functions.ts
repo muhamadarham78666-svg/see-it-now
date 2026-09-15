@@ -150,6 +150,14 @@ export const adminUsersFn = createServerFn({ method: "POST" })
       db.auth.admin.listUsers({ page: 1, perPage: 200 }),
     ]);
     const adminIds = new Set((roles ?? []).filter((r: any) => r.role === "admin").map((r: any) => r.user_id));
+    const roleMap = new Map<string, string>();
+    const rank: Record<string, number> = { owner: 4, admin: 3, editor: 2, user: 1 };
+    for (const r of roles ?? []) {
+      const current = roleMap.get(r.user_id);
+      if (!current || (rank[r.role] ?? 0) > (rank[current] ?? 0)) roleMap.set(r.user_id, r.role);
+    }
+    const { PERMANENT_OWNER_EMAIL } = await import("./roles");
+    const viewerIsOwner = await isOwnerActor(context as Ctx);
     const authMap = new Map((authList.data?.users ?? []).map((u: any) => [u.id, u]));
     const counts = async (table: string) => {
       const { data: rows } = await db.from(table).select("user_id");
@@ -165,9 +173,13 @@ export const adminUsersFn = createServerFn({ method: "POST" })
     return (profiles ?? [])
       .map((p: any) => {
         const au: any = authMap.get(p.id);
+        const isOwner = String(p.email ?? "").toLowerCase() === PERMANENT_OWNER_EMAIL;
         return {
           ...p,
           isAdmin: adminIds.has(p.id),
+          role: isOwner ? "owner" : (roleMap.get(p.id) ?? "user"),
+          isOwner,
+          canManageRoles: viewerIsOwner && !isOwner,
           lastSignIn: au?.last_sign_in_at ?? null,
           confirmed: Boolean(au?.email_confirmed_at),
           papers: paperCounts.get(p.id) ?? 0,
