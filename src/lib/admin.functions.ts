@@ -326,6 +326,12 @@ export const adminUpdateUserFn = createServerFn({ method: "POST" })
       if (data.makeAdmin) await db.from("user_roles").upsert({ user_id: data.userId, role: "admin" });
       else await db.from("user_roles").delete().eq("user_id", data.userId).eq("role", "admin");
     }
+    if (data.role) {
+      // One role row per user: clear staff roles, then set the chosen one.
+      await db.from("user_roles").delete().eq("user_id", data.userId).in("role", ["admin", "editor", "user"]);
+      const { error } = await db.from("user_roles").upsert({ user_id: data.userId, role: data.role });
+      if (error) return { ok: false as const, message: error.message };
+    }
     return { ok: true as const, message: "Saved." };
   });
 
