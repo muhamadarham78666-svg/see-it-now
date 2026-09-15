@@ -23,7 +23,7 @@ const scenes: Scene[] = [
 ];
 
 export function GuideAnimation() {
-  const [playing, setPlaying] = useState(false);
+  const [playing, setPlaying] = useState(true);
   const [elapsed, setElapsed] = useState(0);
   const rafRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
