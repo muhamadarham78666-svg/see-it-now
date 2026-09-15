@@ -546,34 +546,53 @@ export function AdminPage() {
                     <p>{u.papers} papers · {u.notes} notes</p>
                     <p>{u.lastSignIn ? `Last seen ${new Date(u.lastSignIn).toLocaleDateString()}` : 'Never signed in'}</p>
                   </div>
-                  <button
-                    onClick={() => {
-                      const pw = window.prompt(`New password for ${u.email} (min 8 characters)`);
-                      if (pw && pw.length >= 8) void act(`pw-${u.id}`, () => updateUser({ data: { token: tk, userId: u.id, password: pw } }), 'Password updated.');
-                    }}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
-                  >
-                    Reset password
-                  </button>
-                  <button
-                    onClick={() => void act(`role-${u.id}`, () => updateUser({ data: { token: tk, userId: u.id, makeAdmin: !u.isAdmin } }), 'Role updated.')}
-                    disabled={busy === `role-${u.id}`}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                      u.isAdmin ? 'bg-primary-600 text-white hover:bg-primary-700' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-                    }`}
-                  >
-                    {u.isAdmin ? 'Administrator' : 'Make admin'}
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (window.confirm(`Delete ${u.email}? This removes their account and data.`))
-                        void act(`del-${u.id}`, () => deleteUser({ data: { token: tk, userId: u.id } }), 'User deleted.');
-                    }}
-                    className="p-2 rounded-lg bg-error-50 dark:bg-error-900/20 text-error-600 dark:text-error-400 hover:bg-error-100"
-                    title="Delete user"
-                  >
-                    <Trash2 size={15} />
-                  </button>
+                  {!u.isOwner && (
+                    <button
+                      onClick={() => {
+                        const pw = window.prompt(`New password for ${u.email} (min 8 characters)`);
+                        if (pw && pw.length >= 8) void act(`pw-${u.id}`, () => updateUser({ data: { token: tk, userId: u.id, password: pw } }), 'Password updated.');
+                      }}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
+                    >
+                      Reset password
+                    </button>
+                  )}
+                  {u.isOwner ? (
+                    <span className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-white">Owner</span>
+                  ) : u.canManageRoles ? (
+                    <select
+                      value={u.role ?? 'user'}
+                      disabled={busy === `role-${u.id}`}
+                      onChange={(e) =>
+                        void act(
+                          `role-${u.id}`,
+                          () => updateUser({ data: { token: tk, userId: u.id, role: e.target.value as 'user' | 'editor' | 'admin' } }),
+                          'Role updated.',
+                        )
+                      }
+                      className="px-2 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600"
+                    >
+                      <option value="user">User</option>
+                      <option value="editor">Editor</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  ) : (
+                    <span className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                      {u.role === 'admin' ? 'Admin' : u.role === 'editor' ? 'Editor' : 'User'}
+                    </span>
+                  )}
+                  {!u.isOwner && (
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`Delete ${u.email}? This removes their account and data.`))
+                          void act(`del-${u.id}`, () => deleteUser({ data: { token: tk, userId: u.id } }), 'User deleted.');
+                      }}
+                      className="p-2 rounded-lg bg-error-50 dark:bg-error-900/20 text-error-600 dark:text-error-400 hover:bg-error-100"
+                      title="Delete user"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  )}
                 </div>
               ))}
               {filteredUsers.length === 0 && <p className="p-8 text-center text-sm text-slate-500">No users found.</p>}
