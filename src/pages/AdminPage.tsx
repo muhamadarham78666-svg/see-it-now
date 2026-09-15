@@ -522,15 +522,24 @@ export function AdminPage() {
                     {(u.full_name ?? u.email)[0]?.toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-[180px]">
-                    <input
-                      defaultValue={u.full_name ?? ''}
-                      placeholder="Full name"
-                      onBlur={(e) =>
-                        e.target.value !== (u.full_name ?? '') &&
-                        void act(`name-${u.id}`, () => updateUser({ data: { token: tk, userId: u.id, fullName: e.target.value } }), 'Name updated.')
-                      }
-                      className="w-full bg-transparent text-sm font-medium text-slate-800 dark:text-slate-100 border-b border-transparent focus:border-primary-400 outline-none"
-                    />
+                    {u.isOwner ? (
+                      <p className="text-sm font-medium text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        {u.full_name || 'Muhammad Zain'}
+                        <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-[10px] font-semibold uppercase tracking-wide">
+                          Owner · protected
+                        </span>
+                      </p>
+                    ) : (
+                      <input
+                        defaultValue={u.full_name ?? ''}
+                        placeholder="Full name"
+                        onBlur={(e) =>
+                          e.target.value !== (u.full_name ?? '') &&
+                          void act(`name-${u.id}`, () => updateUser({ data: { token: tk, userId: u.id, fullName: e.target.value } }), 'Name updated.')
+                        }
+                        className="w-full bg-transparent text-sm font-medium text-slate-800 dark:text-slate-100 border-b border-transparent focus:border-primary-400 outline-none"
+                      />
+                    )}
                     <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{u.email}</p>
                   </div>
                   <div className="text-xs text-slate-400 min-w-[110px]">
