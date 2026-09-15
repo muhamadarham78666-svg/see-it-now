@@ -298,7 +298,10 @@ function GuestField({
 
 /** Renders **bold** markers as bold text so AI replies never show raw asterisks. */
 function renderText(text: string) {
-  const clean = text.replace(/^#{1,6}\s*/gm, '').replace(/`/g, '');
+  const clean = text
+    .replace(/^#{1,6}\s*/gm, '')
+    .replace(/^\s*[*-]\s+/gm, '• ')
+    .replace(/`/g, '');
   return clean.split(/(\*\*[^*]+\*\*)/g).map((part, index) =>
     part.startsWith('**') && part.endsWith('**') && part.length > 4 ? (
       <strong key={index}>{part.slice(2, -2)}</strong>
