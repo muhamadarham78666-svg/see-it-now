@@ -36,7 +36,7 @@ export const adminSupportThreadsFn = createServerFn({ method: 'POST' })
     const db = await admin();
     const { data: threads } = await db
       .from('support_threads')
-      .select('id, user_id, subject, status, escalated, plan_key, source, guest_name, guest_email, created_at, last_message_at')
+      .select('id, user_id, subject, status, escalated, plan_key, source, guest_name, guest_email, guest_phone, created_at, last_message_at')
       .order('last_message_at', { ascending: false })
       .limit(200);
 
@@ -81,7 +81,13 @@ export const adminSupportMessagesFn = createServerFn({ method: 'POST' })
 export const adminReplySupportFn = createServerFn({ method: 'POST' })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
-    tokenInput.extend({ threadId: z.string().uuid(), content: z.string().min(1).max(4000) }).parse(data),
+    tokenInput
+      .extend({
+        threadId: z.string().uuid(),
+        content: z.string().min(1).max(4000),
+        sendEmail: z.boolean().default(false),
+      })
+      .parse(data),
   )
   .handler(async ({ data, context }) => {
     const ctx = context as Ctx;
@@ -101,9 +107,37 @@ export const adminReplySupportFn = createServerFn({ method: 'POST' })
 
     const { data: thread } = await db
       .from('support_threads')
-      .select('user_id')
+      .select('user_id, guest_name, guest_email, subject')
       .eq('id', data.threadId)
       .maybeSingle();
+    let emailed = false;
+    if (data.sendEmail) {
+      let to = thread?.guest_email ?? '';
+      let toName = thread?.guest_name ?? '';
+      if (thread?.user_id) {
+        const { data: profile } = await db
+          .from('profiles')
+          .select('full_name, email')
+          .eq('id', thread.user_id)
+          .maybeSingle();
+        to = profile?.email ?? to;
+        toName = profile?.full_name ?? toName;
+      }
+      if (to) {
+        try {
+          const { sendMail, supportReplyEmail } = await import('./email.server');
+          const mail = await sendMail({
+            to,
+            toName: toName || undefined,
+            subject: 'NSAGPT Support — reply from our team',
+            html: supportReplyEmail(toName || 'there', data.content),
+          });
+          emailed = mail.ok;
+        } catch (err) {
+          console.error('[support] reply email failed', err);
+        }
+      }
+    }
     if (thread?.user_id) {
       await db.from('notifications').insert({
         user_id: thread.user_id,
@@ -122,7 +156,7 @@ export const adminReplySupportFn = createServerFn({ method: 'POST' })
       targetId: data.threadId,
     });
 
-    return { ok: true as const };
+    return { ok: true as const, emailed };
   });
 
 export const adminSetSupportStatusFn = createServerFn({ method: 'POST' })
