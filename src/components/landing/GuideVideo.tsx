@@ -23,7 +23,7 @@ const guideSteps = [
 export function GuideVideo({ videoRef }: GuideVideoProps) {
   return (
     <section ref={videoRef} className="py-20 lg:py-28 bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
-      <div className="mx-auto max-w-lg px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-xl px-4 sm:px-6">
         <div className="glass-card p-6 sm:p-8">
           <div className="flex items-center gap-2 mb-5">
             <div className="w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400 flex items-center justify-center">
