@@ -67,6 +67,12 @@ async function assertNotOwnerTarget(userId: string) {
   }
 }
 
+/** True only for the permanent owner account. */
+async function isOwnerActor(context: Ctx) {
+  const { data } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "owner" });
+  return Boolean(data);
+}
+
 const tokenInput = z.object({ token: z.string().min(1) });
 
 /** Step 2 of admin login: confirm the 4-digit access code. */
