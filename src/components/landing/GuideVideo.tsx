@@ -35,20 +35,20 @@ export function GuideVideo({ videoRef }: GuideVideoProps) {
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:gap-8 items-start">
             {/* Left: video */}
-            <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 h-[380px] sm:h-[400px]">
+            <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 h-[300px] sm:h-[380px] lg:h-[400px]">
               <GuideAnimation />
             </div>
 
             {/* Right: what you'll learn */}
-            <ol className="space-y-4">
+            <ol className="space-y-2 sm:space-y-3 lg:space-y-4">
               {guideSteps.map((step, i) => (
-                <li key={step} className="flex gap-3">
-                  <span className="w-7 h-7 flex-shrink-0 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 text-white text-xs font-bold flex items-center justify-center">
+                <li key={step} className="flex gap-1.5 sm:gap-2.5 lg:gap-3 min-w-0">
+                  <span className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 flex-shrink-0 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 text-white text-[10px] sm:text-xs font-bold flex items-center justify-center">
                     {i + 1}
                   </span>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white pt-0.5">{step}</p>
+                  <p className="text-[11px] sm:text-sm lg:text-sm font-semibold text-slate-900 dark:text-white pt-0.5 leading-tight">{step}</p>
                 </li>
               ))}
             </ol>
