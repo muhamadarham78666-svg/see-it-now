@@ -132,7 +132,22 @@ export function adminSubscriptionRequestEmail(input: { fullName: string; email: 
   });
 }
 
+export function renewalReminderEmail(input: { name: string; plan: string; daysLeft: number; endsAt: string }): string {
+  const when =
+    input.daysLeft <= 0
+      ? 'ends today'
+      : input.daysLeft === 1
+        ? 'ends tomorrow'
+        : `ends in ${input.daysLeft} days`;
+  return `<p>Hello ${input.name || 'there'},</p>
+  <p>Your <strong>${PLAN_LABELS[input.plan] ?? input.plan}</strong> subscription <strong>${when}</strong> (${input.endsAt}).</p>
+  <p>To keep generating papers, notes and solutions without a break, please request a renewal from your dashboard or reply to this email and our team will activate it for you.</p>
+  <p><a href="https://nsagpt.org/dashboard" style="background:#0f172a;color:#fff;padding:10px 18px;border-radius:10px;text-decoration:none;">Renew my plan</a></p>
+  <p style="color:#64748b;font-size:13px;">No online payment is taken — the NSAGPT team confirms and activates renewals manually.</p>`;
+}
+
 export function subscriptionActivatedEmail(input: { name: string; plan: string; startsAt: string; endsAt: string; userLimit: number; loginUrl: string }): string {
+
   return `<p>Hello ${input.name || 'there'},</p>
   <p>Your <strong>${PLAN_LABELS[input.plan] ?? input.plan}</strong> subscription is now active.</p>
   <table style="border-collapse:collapse;font-size:14px;margin:8px 0 16px;">
