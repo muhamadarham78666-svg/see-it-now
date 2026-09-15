@@ -104,6 +104,54 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_posts: {
+        Row: {
+          author_name: string
+          body: string
+          cover_url: string
+          created_at: string
+          created_by: string | null
+          id: string
+          published_at: string | null
+          slug: string
+          status: string
+          summary: string
+          tags: Json
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_name?: string
+          body?: string
+          cover_url?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          published_at?: string | null
+          slug: string
+          status?: string
+          summary?: string
+          tags?: Json
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_name?: string
+          body?: string
+          cover_url?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          published_at?: string | null
+          slug?: string
+          status?: string
+          summary?: string
+          tags?: Json
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       boards: {
         Row: {
           code: string
@@ -377,6 +425,60 @@ export type Database = {
         }
         Relationships: []
       }
+      plan_settings: {
+        Row: {
+          benefits: Json
+          created_at: string
+          currency: string
+          duration: string
+          duration_days: number
+          featured: boolean
+          id: string
+          is_active: boolean
+          name: string
+          plan_key: string
+          price: number
+          sort_order: number
+          tagline: string
+          updated_at: string
+          user_limit: number
+        }
+        Insert: {
+          benefits?: Json
+          created_at?: string
+          currency?: string
+          duration: string
+          duration_days?: number
+          featured?: boolean
+          id?: string
+          is_active?: boolean
+          name: string
+          plan_key: string
+          price?: number
+          sort_order?: number
+          tagline?: string
+          updated_at?: string
+          user_limit?: number
+        }
+        Update: {
+          benefits?: Json
+          created_at?: string
+          currency?: string
+          duration?: string
+          duration_days?: number
+          featured?: boolean
+          id?: string
+          is_active?: boolean
+          name?: string
+          plan_key?: string
+          price?: number
+          sort_order?: number
+          tagline?: string
+          updated_at?: string
+          user_limit?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           board_code: string | null
@@ -535,6 +637,66 @@ export type Database = {
         }
         Relationships: []
       }
+      site_settings: {
+        Row: {
+          announcement: string
+          announcement_enabled: boolean
+          blog_enabled: boolean
+          contact_address: string
+          contact_email: string
+          contact_map_url: string
+          contact_phone: string
+          contact_whatsapp: string
+          created_at: string
+          free_trial_days: number
+          free_trial_enabled: boolean
+          id: string
+          maintenance_message: string
+          maintenance_mode: boolean
+          show_contact: boolean
+          signups_paused: boolean
+          updated_at: string
+        }
+        Insert: {
+          announcement?: string
+          announcement_enabled?: boolean
+          blog_enabled?: boolean
+          contact_address?: string
+          contact_email?: string
+          contact_map_url?: string
+          contact_phone?: string
+          contact_whatsapp?: string
+          created_at?: string
+          free_trial_days?: number
+          free_trial_enabled?: boolean
+          id?: string
+          maintenance_message?: string
+          maintenance_mode?: boolean
+          show_contact?: boolean
+          signups_paused?: boolean
+          updated_at?: string
+        }
+        Update: {
+          announcement?: string
+          announcement_enabled?: boolean
+          blog_enabled?: boolean
+          contact_address?: string
+          contact_email?: string
+          contact_map_url?: string
+          contact_phone?: string
+          contact_whatsapp?: string
+          created_at?: string
+          free_trial_days?: number
+          free_trial_enabled?: boolean
+          id?: string
+          maintenance_message?: string
+          maintenance_mode?: boolean
+          show_contact?: boolean
+          signups_paused?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscription_requests: {
         Row: {
           created_at: string
@@ -586,6 +748,7 @@ export type Database = {
           updated_at: string
           user_id: string
           user_limit: number
+          warned_stages: Json
         }
         Insert: {
           created_at?: string
@@ -598,6 +761,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           user_limit: number
+          warned_stages?: Json
         }
         Update: {
           created_at?: string
@@ -610,6 +774,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           user_limit?: number
+          warned_stages?: Json
         }
         Relationships: [
           {
