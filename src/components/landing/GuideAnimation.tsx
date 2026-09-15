@@ -67,10 +67,12 @@ export function GuideAnimation() {
   }, []);
 
   useEffect(() => {
+    startTimeRef.current = performance.now();
+    rafRef.current = requestAnimationFrame(tick);
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, []);
+  }, [tick]);
 
   const currentScene = scenes.find((s) => elapsed >= s.start && elapsed < s.end) ?? scenes[0];
   const sceneIndex = scenes.indexOf(currentScene);
