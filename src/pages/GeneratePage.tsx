@@ -696,7 +696,7 @@ export function GeneratePage() {
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Class / Group
+                  Class
                 </label>
                 <select
                   value={groupKey}
@@ -708,7 +708,7 @@ export function GeneratePage() {
                   }}
                   className="input-field"
                 >
-                  <option value="">Select Class / Group</option>
+                  <option value="">Select Class</option>
                   {CLASS_GROUPS.map((g) => (
                     <option key={g.key} value={g.key}>
                       {g.label}

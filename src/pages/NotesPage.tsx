@@ -191,7 +191,7 @@ export function NotesPage() {
 
           <div className="grid sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Class / Group</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Class</label>
               <select
                 value={aiGroupKey}
                 onChange={(event) => { setAiGroupKey(event.target.value); setAiBookId(''); setAiChapter(''); }}
