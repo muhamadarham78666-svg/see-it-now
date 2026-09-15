@@ -91,6 +91,18 @@ export function requestRejectedEmail(name: string): string {
   <p>If you believe this is a mistake, you may reply to this message with more details.</p>`;
 }
 
+export function supportReplyEmail(name: string, message: string): string {
+  const safe = message
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\n/g, "<br/>");
+  return `<p>Hello ${name || "there"},</p>
+  <p>The NSAGPT team has replied to your support message:</p>
+  <blockquote style="margin:12px 0;padding:12px 16px;background:#f1f5f9;border-left:4px solid #0f172a;border-radius:8px;font-size:14px;">${safe}</blockquote>
+  <p>You can reply to this email, or continue the chat on <a href="https://nsagpt.org">nsagpt.org</a>.</p>`;
+}
+
 export function deviceRequestEmail(name: string): string {
   return `<p>Hello ${name || "there"},</p>
   <p>A sign-in attempt was made from a new device or network on your NSAGPT account. For security, the administrator must approve it first.</p>

@@ -18,6 +18,9 @@ interface Thread {
   user_name: string | null;
   user_email: string | null;
   plan_key: string | null;
+  source?: string | null;
+  guest_phone?: string | null;
+  guest_email?: string | null;
   last_message_at: string;
   subscription: { plan_key: string; status: string; ends_at: string } | null;
 }
@@ -29,6 +32,7 @@ export function AdminSupportPanel({ token }: { token: string }) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [reply, setReply] = useState('');
+  const [alsoEmail, setAlsoEmail] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,7 +84,7 @@ export function AdminSupportPanel({ token }: { token: string }) {
     if (!activeId || !reply.trim() || busy) return;
     setBusy(true);
     try {
-      await adminReplySupportFn({ data: { token, threadId: activeId, content: reply.trim() } });
+      await adminReplySupportFn({ data: { token, threadId: activeId, content: reply.trim(), sendEmail: alsoEmail } });
       setReply('');
       await loadMessages(activeId);
       await loadThreads();
@@ -144,6 +148,14 @@ export function AdminSupportPanel({ token }: { token: string }) {
                     ? `${active.subscription.plan_key} · ${active.subscription.status} · ends ${new Date(active.subscription.ends_at).toLocaleDateString()}`
                     : 'No active subscription'}
                 </p>
+                <p className="text-xs text-slate-400 mt-0.5 flex flex-wrap items-center gap-2">
+                  {active.source === 'homepage' && (
+                    <span className="px-2 py-0.5 rounded-full bg-accent-100 dark:bg-accent-900/40 text-accent-700 dark:text-accent-300 text-[10px] font-semibold uppercase tracking-wide">
+                      From website
+                    </span>
+                  )}
+                  {active.guest_phone ? <span>Phone: {active.guest_phone}</span> : null}
+                </p>
               </div>
               <div className="flex gap-1.5">
                 {STATUSES.map((s) => (
@@ -186,7 +198,17 @@ export function AdminSupportPanel({ token }: { token: string }) {
 
             {error && <p className="px-4 py-2 text-xs text-error-600">{error}</p>}
 
-            <div className="border-t border-slate-100 dark:border-slate-700 p-3 flex items-end gap-2">
+            <div className="border-t border-slate-100 dark:border-slate-700 p-3">
+              <label className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-2">
+                <input
+                  type="checkbox"
+                  checked={alsoEmail}
+                  onChange={(e) => setAlsoEmail(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded"
+                />
+                Also email this reply to them
+              </label>
+              <div className="flex items-end gap-2">
               <textarea
                 value={reply}
                 onChange={(e) => setReply(e.target.value)}
@@ -201,6 +223,7 @@ export function AdminSupportPanel({ token }: { token: string }) {
               >
                 {busy ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />} Send
               </button>
+              </div>
             </div>
           </>
         )}

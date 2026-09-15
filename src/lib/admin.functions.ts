@@ -67,6 +67,12 @@ async function assertNotOwnerTarget(userId: string) {
   }
 }
 
+/** True only for the permanent owner account. */
+async function isOwnerActor(context: Ctx) {
+  const { data } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "owner" });
+  return Boolean(data);
+}
+
 const tokenInput = z.object({ token: z.string().min(1) });
 
 /** Step 2 of admin login: confirm the 4-digit access code. */
@@ -144,6 +150,14 @@ export const adminUsersFn = createServerFn({ method: "POST" })
       db.auth.admin.listUsers({ page: 1, perPage: 200 }),
     ]);
     const adminIds = new Set((roles ?? []).filter((r: any) => r.role === "admin").map((r: any) => r.user_id));
+    const roleMap = new Map<string, string>();
+    const rank: Record<string, number> = { owner: 4, admin: 3, editor: 2, user: 1 };
+    for (const r of roles ?? []) {
+      const current = roleMap.get(r.user_id);
+      if (!current || (rank[r.role] ?? 0) > (rank[current] ?? 0)) roleMap.set(r.user_id, r.role);
+    }
+    const { PERMANENT_OWNER_EMAIL } = await import("./roles");
+    const viewerIsOwner = await isOwnerActor(context as Ctx);
     const authMap = new Map((authList.data?.users ?? []).map((u: any) => [u.id, u]));
     const counts = async (table: string) => {
       const { data: rows } = await db.from(table).select("user_id");
@@ -159,9 +173,13 @@ export const adminUsersFn = createServerFn({ method: "POST" })
     return (profiles ?? [])
       .map((p: any) => {
         const au: any = authMap.get(p.id);
+        const isOwner = String(p.email ?? "").toLowerCase() === PERMANENT_OWNER_EMAIL;
         return {
           ...p,
           isAdmin: adminIds.has(p.id),
+          role: isOwner ? "owner" : (roleMap.get(p.id) ?? "user"),
+          isOwner,
+          canManageRoles: viewerIsOwner && !isOwner,
           lastSignIn: au?.last_sign_in_at ?? null,
           confirmed: Boolean(au?.email_confirmed_at),
           papers: paperCounts.get(p.id) ?? 0,
@@ -270,6 +288,7 @@ export const adminUpdateUserFn = createServerFn({ method: "POST" })
         fullName: z.string().nullable().optional(),
         password: z.string().min(8).nullable().optional(),
         makeAdmin: z.boolean().nullable().optional(),
+        role: z.enum(["user", "editor", "admin"]).nullable().optional(),
         boardCode: z.string().nullable().optional(),
         classLevel: z.string().nullable().optional(),
       })
@@ -278,7 +297,18 @@ export const adminUpdateUserFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context as Ctx, data.token);
     await audit(context as Ctx, "updateUser", undefined, { ...data, token: undefined });
-    if (data.password || data.makeAdmin === false) await assertNotOwnerTarget(data.userId);
+    // The permanent owner account is untouchable for everyone except the owner themselves.
+    const actorIsOwner = await isOwnerActor(context as Ctx);
+    if (!actorIsOwner) await assertNotOwnerTarget(data.userId);
+    else if (data.password || data.makeAdmin === false || data.role) await assertNotOwnerTarget(data.userId);
+    if (data.role) {
+      if (!actorIsOwner) {
+        return { ok: false as const, message: "Only the owner can change roles." };
+      }
+      if (data.userId === (context as Ctx).userId) {
+        return { ok: false as const, message: "You cannot change your own role." };
+      }
+    }
     const db = await admin();
     const patch: Record<string, unknown> = {};
     if (data.fullName !== undefined) patch["full_name"] = data.fullName;
@@ -295,6 +325,12 @@ export const adminUpdateUserFn = createServerFn({ method: "POST" })
       }
       if (data.makeAdmin) await db.from("user_roles").upsert({ user_id: data.userId, role: "admin" });
       else await db.from("user_roles").delete().eq("user_id", data.userId).eq("role", "admin");
+    }
+    if (data.role) {
+      // One role row per user: clear staff roles, then set the chosen one.
+      await db.from("user_roles").delete().eq("user_id", data.userId).in("role", ["admin", "editor", "user"]);
+      const { error } = await db.from("user_roles").upsert({ user_id: data.userId, role: data.role });
+      if (error) return { ok: false as const, message: error.message };
     }
     return { ok: true as const, message: "Saved." };
   });

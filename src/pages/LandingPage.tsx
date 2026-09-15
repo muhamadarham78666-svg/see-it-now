@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from '@/lib/rr';
 import { LandingNav } from '@/components/landing/LandingNav';
 import { Hero } from '@/components/landing/Hero';
@@ -14,10 +14,13 @@ import { Reveal } from '@/components/landing/Reveal';
 import { PricingSection } from '@/components/landing/PricingSection';
 import { FeaturesTicker } from '@/components/landing/FeaturesTicker';
 import { SubscriptionPopup } from '@/components/landing/SubscriptionPopup';
+import { SupportWidget } from '@/components/landing/SupportWidget';
+import { GetStartedModal } from '@/components/landing/GetStartedModal';
 
 export function LandingPage() {
   const navigate = useNavigate();
   const guideRef = useRef<HTMLElement | null>(null);
+  const [showGetStarted, setShowGetStarted] = useState(false);
 
   const scrollToGuide = () => {
     const el = document.getElementById('guide');
@@ -25,12 +28,13 @@ export function LandingPage() {
   };
 
   const goToLogin = () => navigate('/login');
+  const openGetStarted = () => setShowGetStarted(true);
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-900 scroll-smooth">
-      <LandingNav onGetStarted={goToLogin} />
+      <LandingNav onGetStarted={openGetStarted} />
 
-      <Hero onGetStarted={goToLogin} onWatchGuide={scrollToGuide} />
+      <Hero onGetStarted={openGetStarted} onWatchGuide={scrollToGuide} />
 
       <FeaturesTicker />
 
@@ -77,6 +81,12 @@ export function LandingPage() {
       <Footer />
 
       <SubscriptionPopup />
+
+      <SupportWidget />
+
+      {showGetStarted && (
+        <GetStartedModal onClose={() => setShowGetStarted(false)} onSignIn={goToLogin} />
+      )}
     </div>
   );
 }

@@ -662,6 +662,8 @@ export type Database = {
           escalated: boolean
           guest_email: string
           guest_name: string
+          guest_phone: string
+          guest_token: string | null
           id: string
           last_message_at: string
           plan_key: string | null
@@ -676,6 +678,8 @@ export type Database = {
           escalated?: boolean
           guest_email?: string
           guest_name?: string
+          guest_phone?: string
+          guest_token?: string | null
           id?: string
           last_message_at?: string
           plan_key?: string | null
@@ -690,6 +694,8 @@ export type Database = {
           escalated?: boolean
           guest_email?: string
           guest_name?: string
+          guest_phone?: string
+          guest_token?: string | null
           id?: string
           last_message_at?: string
           plan_key?: string | null
