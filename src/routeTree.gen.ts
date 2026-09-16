@@ -19,6 +19,8 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardAskRouteImport } from './routes/dashboard.ask'
 import { Route as DashboardBankRouteImport } from './routes/dashboard.bank'
@@ -78,6 +80,16 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
@@ -142,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/dashboard/ask': typeof DashboardAskRoute
   '/dashboard/bank': typeof DashboardBankRoute
   '/dashboard/book-solver': typeof DashboardBookSolverRoute
@@ -151,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/solver': typeof DashboardSolverRoute
   '/dashboard/support': typeof DashboardSupportRoute
+  '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
@@ -163,6 +177,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/dashboard/ask': typeof DashboardAskRoute
   '/dashboard/bank': typeof DashboardBankRoute
   '/dashboard/book-solver': typeof DashboardBookSolverRoute
@@ -172,6 +187,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/solver': typeof DashboardSolverRoute
   '/dashboard/support': typeof DashboardSupportRoute
+  '/blog': typeof BlogIndexRoute
   '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
@@ -186,6 +202,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/dashboard/ask': typeof DashboardAskRoute
   '/dashboard/bank': typeof DashboardBankRoute
   '/dashboard/book-solver': typeof DashboardBookSolverRoute
@@ -195,6 +212,7 @@ export interface FileRoutesById {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/solver': typeof DashboardSolverRoute
   '/dashboard/support': typeof DashboardSupportRoute
+  '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
@@ -210,6 +228,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/sitemap.xml'
     | '/terms'
+    | '/blog/$slug'
     | '/dashboard/ask'
     | '/dashboard/bank'
     | '/dashboard/book-solver'
@@ -219,6 +238,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/dashboard/solver'
     | '/dashboard/support'
+    | '/blog/'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -231,6 +251,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/sitemap.xml'
     | '/terms'
+    | '/blog/$slug'
     | '/dashboard/ask'
     | '/dashboard/bank'
     | '/dashboard/book-solver'
@@ -240,6 +261,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/dashboard/solver'
     | '/dashboard/support'
+    | '/blog'
     | '/dashboard'
   id:
     | '__root__'
@@ -253,6 +275,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/sitemap.xml'
     | '/terms'
+    | '/blog/$slug'
     | '/dashboard/ask'
     | '/dashboard/bank'
     | '/dashboard/book-solver'
@@ -262,6 +285,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/dashboard/solver'
     | '/dashboard/support'
+    | '/blog/'
     | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
@@ -276,6 +300,8 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
+  BlogSlugRoute: typeof BlogSlugRoute
+  BlogIndexRoute: typeof BlogIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -348,6 +374,20 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/': {
@@ -464,6 +504,8 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
+  BlogSlugRoute: BlogSlugRoute,
+  BlogIndexRoute: BlogIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
