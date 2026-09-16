@@ -339,10 +339,14 @@ export function AdminPage() {
     { key: 'reviews', label: 'Reviews', icon: MessageSquareQuote, count: stats?.pendingReviews },
     { key: 'requests', label: 'Access requests', icon: Inbox, count: stats?.pendingRequests },
     { key: 'subscriptions', label: 'Subscriptions', icon: Crown, count: stats?.pendingSubscriptionRequests },
+    { key: 'plans', label: 'Plans & pricing', icon: Sparkles },
     { key: 'devices', label: 'Devices', icon: ShieldCheck, count: devices.filter((d) => d.status === 'pending').length || undefined },
     { key: 'boards', label: 'Boards', icon: Landmark },
     { key: 'content', label: 'Content', icon: FileText },
+    { key: 'blog', label: 'Blog', icon: PenLine },
+    { key: 'site', label: 'Site settings', icon: Settings },
     { key: 'support', label: 'Support', icon: Headphones },
+
     { key: 'audit', label: 'Activity log', icon: ScrollText },
     { key: 'health', label: 'System health', icon: Activity },
   ];
