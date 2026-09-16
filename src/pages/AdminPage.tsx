@@ -26,6 +26,9 @@ import {
   Headphones,
   ScrollText,
   Activity,
+  PenLine,
+  Settings,
+
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
