@@ -34,7 +34,9 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-900 scroll-smooth">
+      <AnnouncementBar />
       <LandingNav onGetStarted={openGetStarted} />
+
 
       <Hero onGetStarted={openGetStarted} onWatchGuide={scrollToGuide} />
 
