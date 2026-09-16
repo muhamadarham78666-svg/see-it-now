@@ -885,6 +885,13 @@ export function AdminPage() {
         <AdminAuditPanel token={tk} />
       ) : tab === 'health' ? (
         <AdminHealthPanel token={tk} />
+      ) : tab === 'plans' ? (
+        <AdminPlansPanel />
+      ) : tab === 'site' ? (
+        <AdminSitePanel />
+      ) : tab === 'blog' ? (
+        <AdminBlogPanel />
+
       ) : (
         <div className="grid md:grid-cols-2 gap-3">
           {([
