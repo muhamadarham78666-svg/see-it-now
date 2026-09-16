@@ -84,6 +84,8 @@ function RenewalBanner({ state, onDismiss }: { state: SubscriptionState; onDismi
 
 function ExpiredScreen({ state, onSignOut }: { state: SubscriptionState; onSignOut: () => void }) {
   const sendRenewal = useServerFn(requestRenewalFn);
+  const planOptions = useLivePlans();
+
   const [plan, setPlan] = useState<'silver' | 'gold' | 'diamond'>(
     (state.planKey as 'silver' | 'gold' | 'diamond') ?? 'gold',
   );
