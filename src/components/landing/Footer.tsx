@@ -8,7 +8,19 @@ import { fetchSiteSettings, type SiteSettings } from '@/lib/site';
 
 
 export function Footer() {
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
+
+  useEffect(() => {
+    void fetchSiteSettings().then(setSettings).catch(() => setSettings(null));
+  }, []);
+
+  const contact = settings?.show_contact ? settings : null;
+  const hasContact =
+    !!contact &&
+    Boolean(contact.contact_address || contact.contact_phone || contact.contact_whatsapp || contact.contact_email);
+
   return (
+
     <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
