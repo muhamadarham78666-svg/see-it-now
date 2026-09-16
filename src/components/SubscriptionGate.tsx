@@ -145,7 +145,7 @@ function ExpiredScreen({ state, onSignOut }: { state: SubscriptionState; onSignO
             </p>
 
             <div className="grid grid-cols-3 gap-2">
-              {SUBSCRIPTION_PLANS.map((option) => (
+              {planOptions.map((option) => (
                 <button
                   key={option.key}
                   type="button"
