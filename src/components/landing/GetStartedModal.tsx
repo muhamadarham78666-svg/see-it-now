@@ -91,7 +91,7 @@ export function GetStartedModal({ onClose, onSignIn }: { onClose: () => void; on
               </div>
 
               <div className="grid sm:grid-cols-3 gap-3 mt-6">
-                {SUBSCRIPTION_PLANS.map((item) => (
+                {livePlans.map((item) => (
                   <button
                     key={item.key}
                     onClick={() => setPlan(item.key)}

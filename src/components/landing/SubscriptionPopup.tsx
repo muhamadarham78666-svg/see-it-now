@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Sparkles, X } from 'lucide-react';
-import { SUBSCRIPTION_PLANS } from '@/lib/subscriptions';
+import { useLivePlans } from '@/lib/useLivePlans';
 
 const DISMISS_KEY = 'nsagpt.subscriptionPopup.dismissed';
 
