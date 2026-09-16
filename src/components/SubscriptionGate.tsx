@@ -4,7 +4,7 @@ import { AlertTriangle, CalendarClock, Loader2, LogOut, RefreshCw, Sparkles, X }
 import { Spinner } from '@/components/nsa/Feedback';
 import { useAuth } from '@/context/AuthContext';
 import { mySubscriptionStateFn, requestRenewalFn, type SubscriptionState } from '@/lib/renewal.functions';
-import { SUBSCRIPTION_PLANS } from '@/lib/subscriptions';
+import { useLivePlans } from '@/lib/useLivePlans';
 
 /**
  * Keeps the dashboard available only while a plan is active.
