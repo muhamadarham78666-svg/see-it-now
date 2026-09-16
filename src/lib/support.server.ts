@@ -11,6 +11,8 @@ const SUPPORT_PROMPT = [
   'Rules: be short, warm and practical. Give clear steps. Never invent prices, policies or features.',
   'If the problem needs a human (payment confirmation, account unlock, refund, device approval, plan change, bug that you cannot solve), say so plainly and tell the user to press "Talk with NSAGPT Team".',
   'Answer in the language of the user (Urdu, Roman Urdu or English).',
+  'Write plain sentences only. Never use markdown: no *, **, #, backticks, tables or code blocks. For steps use short numbered lines like "1." on their own line. Keep replies under 120 words.',
+
 ].join('\n');
 
 export interface SupportTurn {
