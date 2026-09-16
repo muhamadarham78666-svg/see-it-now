@@ -60,7 +60,7 @@ export function SubscriptionPopup() {
       </p>
 
       <ul className="mt-3 space-y-1.5 text-sm text-slate-600 dark:text-slate-300">
-        {SUBSCRIPTION_PLANS.map((plan) => (
+        {plans.map((plan) => (
           <li key={plan.key} className="flex items-center justify-between gap-3">
             <span className="font-medium text-slate-800 dark:text-slate-100">{plan.name}</span>
             <span>{plan.priceLabel}</span>
