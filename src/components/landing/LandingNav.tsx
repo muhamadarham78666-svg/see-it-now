@@ -27,7 +27,9 @@ export function LandingNav({ onGetStarted }: LandingNavProps) {
     { label: t('land.nav.guide'), href: '/#guide' },
     { label: t('land.nav.features'), href: '/#features' },
     { label: t('land.nav.why'), href: '/#why' },
+    { label: 'Blog', href: '/blog' },
   ];
+
 
   return (
     <nav

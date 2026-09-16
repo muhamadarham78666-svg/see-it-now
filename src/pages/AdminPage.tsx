@@ -26,6 +26,9 @@ import {
   Headphones,
   ScrollText,
   Activity,
+  PenLine,
+  Settings,
+
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -59,7 +62,26 @@ import {
   verifyAdminCodeFn,
 } from '@/lib/admin.functions';
 
-type Tab = 'overview' | 'users' | 'reviews' | 'requests' | 'subscriptions' | 'devices' | 'boards' | 'content' | 'support' | 'audit' | 'health';
+import { AdminPlansPanel } from '@/components/admin/AdminPlansPanel';
+import { AdminSitePanel } from '@/components/admin/AdminSitePanel';
+import { AdminBlogPanel } from '@/components/admin/AdminBlogPanel';
+
+type Tab =
+  | 'overview'
+  | 'users'
+  | 'reviews'
+  | 'requests'
+  | 'subscriptions'
+  | 'plans'
+  | 'devices'
+  | 'boards'
+  | 'content'
+  | 'blog'
+  | 'site'
+  | 'support'
+  | 'audit'
+  | 'health';
+
 
 interface RequestAccountForm {
   id: string;
@@ -320,10 +342,14 @@ export function AdminPage() {
     { key: 'reviews', label: 'Reviews', icon: MessageSquareQuote, count: stats?.pendingReviews },
     { key: 'requests', label: 'Access requests', icon: Inbox, count: stats?.pendingRequests },
     { key: 'subscriptions', label: 'Subscriptions', icon: Crown, count: stats?.pendingSubscriptionRequests },
+    { key: 'plans', label: 'Plans & pricing', icon: Sparkles },
     { key: 'devices', label: 'Devices', icon: ShieldCheck, count: devices.filter((d) => d.status === 'pending').length || undefined },
     { key: 'boards', label: 'Boards', icon: Landmark },
     { key: 'content', label: 'Content', icon: FileText },
+    { key: 'blog', label: 'Blog', icon: PenLine },
+    { key: 'site', label: 'Site settings', icon: Settings },
     { key: 'support', label: 'Support', icon: Headphones },
+
     { key: 'audit', label: 'Activity log', icon: ScrollText },
     { key: 'health', label: 'System health', icon: Activity },
   ];
@@ -885,6 +911,13 @@ export function AdminPage() {
         <AdminAuditPanel token={tk} />
       ) : tab === 'health' ? (
         <AdminHealthPanel token={tk} />
+      ) : tab === 'plans' ? (
+        <AdminPlansPanel />
+      ) : tab === 'site' ? (
+        <AdminSitePanel />
+      ) : tab === 'blog' ? (
+        <AdminBlogPanel />
+
       ) : (
         <div className="grid md:grid-cols-2 gap-3">
           {([

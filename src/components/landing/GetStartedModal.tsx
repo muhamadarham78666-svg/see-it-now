@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { ArrowRight, Check, LogIn, Sparkles, UserPlus, Users, X } from 'lucide-react';
 import { SubscriptionRequestModal } from '@/components/landing/SubscriptionRequestModal';
-import { SUBSCRIPTION_PLANS, type SubscriptionPlanKey } from '@/lib/subscriptions';
+import { type SubscriptionPlanKey } from '@/lib/subscriptions';
+import { useLivePlans } from '@/lib/useLivePlans';
 
 /** The first thing a visitor sees after "Get Started": sign in, or pick a plan and request access. */
 export function GetStartedModal({ onClose, onSignIn }: { onClose: () => void; onSignIn: () => void }) {
+  const livePlans = useLivePlans();
   const [step, setStep] = useState<'choice' | 'plans'>('choice');
   const [plan, setPlan] = useState<SubscriptionPlanKey | null>(null);
+
 
   if (plan) {
     return <SubscriptionRequestModal planKey={plan} onClose={onClose} onBack={() => setPlan(null)} />;
@@ -88,7 +91,7 @@ export function GetStartedModal({ onClose, onSignIn }: { onClose: () => void; on
               </div>
 
               <div className="grid sm:grid-cols-3 gap-3 mt-6">
-                {SUBSCRIPTION_PLANS.map((item) => (
+                {livePlans.map((item) => (
                   <button
                     key={item.key}
                     onClick={() => setPlan(item.key)}

@@ -1,10 +1,19 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Check, Sparkles, Users } from 'lucide-react';
 import { SubscriptionRequestModal } from '@/components/landing/SubscriptionRequestModal';
-import { SUBSCRIPTION_PLANS, type SubscriptionPlanKey } from '@/lib/subscriptions';
+import { SUBSCRIPTION_PLANS, type SubscriptionPlan, type SubscriptionPlanKey } from '@/lib/subscriptions';
+import { fetchLivePlans } from '@/lib/site';
 
 export function PricingSection() {
   const [selected, setSelected] = useState<SubscriptionPlanKey | null>(null);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>(SUBSCRIPTION_PLANS);
+
+  useEffect(() => {
+    void fetchLivePlans()
+      .then(setPlans)
+      .catch(() => setPlans(SUBSCRIPTION_PLANS));
+  }, []);
+
   return (
     <section
       id="pricing"
@@ -22,7 +31,8 @@ export function PricingSection() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {SUBSCRIPTION_PLANS.map((plan) => (
+          {plans.map((plan) => (
+
             <article
               key={plan.key}
               className={`group relative rounded-2xl border bg-white dark:bg-slate-900 p-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl motion-reduce:transform-none ${plan.theme.ring} ${

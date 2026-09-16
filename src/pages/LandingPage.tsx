@@ -16,6 +16,8 @@ import { FeaturesTicker } from '@/components/landing/FeaturesTicker';
 import { SubscriptionPopup } from '@/components/landing/SubscriptionPopup';
 import { SupportWidget } from '@/components/landing/SupportWidget';
 import { GetStartedModal } from '@/components/landing/GetStartedModal';
+import { AnnouncementBar } from '@/components/landing/AnnouncementBar';
+
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -32,7 +34,9 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-900 scroll-smooth">
+      <AnnouncementBar />
       <LandingNav onGetStarted={openGetStarted} />
+
 
       <Hero onGetStarted={openGetStarted} onWatchGuide={scrollToGuide} />
 

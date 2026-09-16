@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useServerFn } from '@tanstack/react-start';
 import { CheckCircle, Loader2, Mail, Phone, Send, User, X } from 'lucide-react';
 import { submitSubscriptionRequestFn } from '@/lib/subscription.functions';
-import { SUBSCRIPTION_PLANS, type SubscriptionPlanKey } from '@/lib/subscriptions';
+import { type SubscriptionPlanKey } from '@/lib/subscriptions';
+import { useLivePlans } from '@/lib/useLivePlans';
 
 export function SubscriptionRequestModal({
   planKey,
@@ -13,7 +14,8 @@ export function SubscriptionRequestModal({
   onClose: () => void;
   onBack?: () => void;
 }) {
-  const plan = SUBSCRIPTION_PLANS.find((item) => item.key === planKey);
+  const plan = useLivePlans().find((item) => item.key === planKey);
+
   const submitRequest = useServerFn(submitSubscriptionRequestFn);
   const [form, setForm] = useState({ fullName: '', email: '', phone: '', message: '' });
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');

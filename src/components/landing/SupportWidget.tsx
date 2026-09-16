@@ -296,17 +296,49 @@ function GuestField({
   );
 }
 
-/** Renders **bold** markers as bold text so AI replies never show raw asterisks. */
+/** Renders assistant replies as clean, readable text — never raw markdown symbols. */
 function renderText(text: string) {
-  const clean = text
+  const lines = text
+    .replace(/```[a-z]*\n?/gi, '')
+    .replace(/`/g, '')
     .replace(/^#{1,6}\s*/gm, '')
-    .replace(/^\s*[*-]\s+/gm, '• ')
-    .replace(/`/g, '');
-  return clean.split(/(\*\*[^*]+\*\*)/g).map((part, index) =>
-    part.startsWith('**') && part.endsWith('**') && part.length > 4 ? (
-      <strong key={index}>{part.slice(2, -2)}</strong>
-    ) : (
-      <span key={index}>{part}</span>
-    ),
+    .replace(/^\s*[*+-]\s+/gm, '• ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+    .split('\n');
+
+  return (
+    <span className="block space-y-1.5 leading-relaxed">
+      {lines.map((line, lineIndex) => {
+        const step = /^(\d+)[.)]\s+(.*)$/.exec(line.trim());
+        const bullet = line.trim().startsWith('•');
+        const body = step ? step[2]! : bullet ? line.trim().slice(1).trim() : line;
+        if (!body.trim()) return null;
+        return (
+          <span
+            key={lineIndex}
+            className={`block ${step || bullet ? 'pl-4 -indent-4' : ''}`}
+          >
+            {step && <strong className="text-primary-600 dark:text-primary-400">{step[1]}. </strong>}
+            {bullet && <span className="text-primary-500">• </span>}
+            {bold(body)}
+          </span>
+        );
+      })}
+    </span>
   );
 }
+
+/** Turns **bold** markers into real bold text. */
+function bold(text: string) {
+  return text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g).map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
+      return <strong key={index}>{part.slice(1, -1)}</strong>;
+    }
+    return <span key={index}>{part}</span>;
+  });
+}
+

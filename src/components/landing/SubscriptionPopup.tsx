@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Sparkles, X } from 'lucide-react';
-import { SUBSCRIPTION_PLANS } from '@/lib/subscriptions';
+import { useLivePlans } from '@/lib/useLivePlans';
 
 const DISMISS_KEY = 'nsagpt.subscriptionPopup.dismissed';
 
 /** Gentle plan reminder that appears once, ten seconds after the first visit. */
 export function SubscriptionPopup() {
+  const plans = useLivePlans();
   const [open, setOpen] = useState(false);
+
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -58,7 +60,7 @@ export function SubscriptionPopup() {
       </p>
 
       <ul className="mt-3 space-y-1.5 text-sm text-slate-600 dark:text-slate-300">
-        {SUBSCRIPTION_PLANS.map((plan) => (
+        {plans.map((plan) => (
           <li key={plan.key} className="flex items-center justify-between gap-3">
             <span className="font-medium text-slate-800 dark:text-slate-100">{plan.name}</span>
             <span>{plan.priceLabel}</span>

@@ -2,6 +2,7 @@ import { type ReactNode } from 'react';
 import { Navigate } from '@/lib/rr';
 import { useAuth } from '@/context/AuthContext';
 import { Spinner } from '@/components/nsa/Feedback';
+import { SubscriptionGate } from '@/components/SubscriptionGate';
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { session, loading } = useAuth();
@@ -18,5 +19,6 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>;
+  return <SubscriptionGate>{children}</SubscriptionGate>;
 }
+
