@@ -16,6 +16,8 @@ import { FeaturesTicker } from '@/components/landing/FeaturesTicker';
 import { SubscriptionPopup } from '@/components/landing/SubscriptionPopup';
 import { SupportWidget } from '@/components/landing/SupportWidget';
 import { GetStartedModal } from '@/components/landing/GetStartedModal';
+import { AnnouncementBar } from '@/components/landing/AnnouncementBar';
+
 
 export function LandingPage() {
   const navigate = useNavigate();
