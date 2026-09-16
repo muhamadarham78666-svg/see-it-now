@@ -59,7 +59,26 @@ import {
   verifyAdminCodeFn,
 } from '@/lib/admin.functions';
 
-type Tab = 'overview' | 'users' | 'reviews' | 'requests' | 'subscriptions' | 'devices' | 'boards' | 'content' | 'support' | 'audit' | 'health';
+import { AdminPlansPanel } from '@/components/admin/AdminPlansPanel';
+import { AdminSitePanel } from '@/components/admin/AdminSitePanel';
+import { AdminBlogPanel } from '@/components/admin/AdminBlogPanel';
+
+type Tab =
+  | 'overview'
+  | 'users'
+  | 'reviews'
+  | 'requests'
+  | 'subscriptions'
+  | 'plans'
+  | 'devices'
+  | 'boards'
+  | 'content'
+  | 'blog'
+  | 'site'
+  | 'support'
+  | 'audit'
+  | 'health';
+
 
 interface RequestAccountForm {
   id: string;
