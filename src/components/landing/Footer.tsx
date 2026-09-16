@@ -1,5 +1,10 @@
+import { useEffect, useState } from 'react';
+import { Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { Link } from '@/lib/rr';
+import { fetchSiteSettings, type SiteSettings } from '@/lib/site';
+
+
 
 
 export function Footer() {
