@@ -6,7 +6,9 @@ const DISMISS_KEY = 'nsagpt.subscriptionPopup.dismissed';
 
 /** Gentle plan reminder that appears once, ten seconds after the first visit. */
 export function SubscriptionPopup() {
+  const plans = useLivePlans();
   const [open, setOpen] = useState(false);
+
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
