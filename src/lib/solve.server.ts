@@ -27,7 +27,6 @@ import { sanitizeSvg } from "./generate.server";
 
 export type { SolvedProblem };
 
-const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-3-flash-preview";
 
 function languageRule(lang: string) {
@@ -128,9 +127,6 @@ export async function requestSolutions(
   attachments: SolveAttachment[],
   settings: SolveSettings,
 ): Promise<Record<string, unknown>[]> {
-  const apiKey = process.env["LOVABLE_API_KEY"];
-  if (!apiKey) throw new Error("AI is not configured for this project.");
-
   const body = {
     model: MODEL,
     messages: [{ role: "user", content: buildSolveBlocks(text, attachments, settings) }],

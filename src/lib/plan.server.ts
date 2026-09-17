@@ -1,5 +1,4 @@
 import { aiChatFetch } from "./ai-keys.server";
-const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-3.8-flash";
 
 export interface PlanInput {
@@ -102,9 +101,6 @@ function parse(raw: string): PaperPlan {
 }
 
 export async function requestPaperPlan(input: PlanInput): Promise<PaperPlan> {
-  const apiKey = process.env["LOVABLE_API_KEY"];
-  if (!apiKey) throw new Error("AI is not configured for this project.");
-
   const res = await aiChatFetch({
       model: MODEL,
       messages: [{ role: "user", content: prompt(input) }],

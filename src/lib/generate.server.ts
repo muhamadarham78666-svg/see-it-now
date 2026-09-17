@@ -69,7 +69,6 @@ export const COMPOSITION_RULES: Record<string, string> = {
 };
 
 
-const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-3.8-flash";
 
 function languageRule(lang: string) {
@@ -241,9 +240,6 @@ export async function requestQuestions(
   attachments: GenAttachment[],
   settings: GenSettings,
 ): Promise<Record<string, unknown>[]> {
-  const apiKey = process.env["LOVABLE_API_KEY"];
-  if (!apiKey) throw new Error("AI is not configured for this project.");
-
   const body = {
     model: MODEL,
     messages: [{ role: "user", content: buildContentBlocks(text, attachments, settings) }],

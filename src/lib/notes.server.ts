@@ -17,7 +17,6 @@ export interface NoteRequest {
   attachments: NoteAttachment[];
 }
 
-const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-3-flash-preview";
 
 function languageRule(lang: string) {
@@ -92,9 +91,6 @@ function extractJson(raw: string): { title?: unknown; content?: unknown } {
 }
 
 export async function requestNote(req: NoteRequest): Promise<{ title: string; content: string }> {
-  const apiKey = process.env["LOVABLE_API_KEY"];
-  if (!apiKey) throw new Error("AI is not configured for this project.");
-
   const res = await aiChatFetch({
       model: MODEL,
       messages: [{ role: "user", content: buildBlocks(req) }],
