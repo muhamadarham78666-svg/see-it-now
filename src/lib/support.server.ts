@@ -1,6 +1,6 @@
+import { aiChatFetch } from './ai-keys.server';
 /** Server-only AI support brain. */
 
-const GATEWAY_URL = 'https://ai.gateway.lovable.dev/v1/chat/completions';
 const MODEL = 'google/gemini-3-flash-preview';
 
 const SUPPORT_PROMPT = [
@@ -21,22 +21,15 @@ export interface SupportTurn {
 }
 
 async function chat(messages: SupportTurn[]): Promise<string> {
-  const apiKey = process.env['LOVABLE_API_KEY'];
-  if (!apiKey) throw new Error('Support AI is not configured for this project.');
-
   let lastDetail = '';
   for (let attempt = 0; attempt < 3; attempt++) {
-    const res = await fetch(GATEWAY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({
+    const res = await aiChatFetch({
         model: MODEL,
         messages: [
           { role: 'system', content: SUPPORT_PROMPT },
           ...messages.slice(-16).map((m) => ({ role: m.role, content: m.content })),
         ],
-      }),
-    });
+      });
 
     if (res.ok) {
       const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
