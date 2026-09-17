@@ -50,3 +50,7 @@
 - [x] System health panel (real checks: DB, AI, email, auth)
 - [ ] PWA manifest + app-like mobile behaviour
 - [ ] Responsive QA (mobile/tablet), final e2e QA + report
+
+## Email & AI keys
+- [x] Own Gemini API keys (zain/zain2/zain3) used for every AI feature, incl. PDF/image uploads; Lovable credits only when all keys are out of quota
+- [x] Branded email setup on zain.nsagpt.org (auth + transactional templates) — waiting on DNS verification
