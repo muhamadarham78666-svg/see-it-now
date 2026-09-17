@@ -55,7 +55,8 @@ export async function aiChatFetch(body: Record<string, unknown>): Promise<Respon
       lastStatus = res.status;
       lastDetail = await res.text().catch(() => "");
       console.error("[ai-keys] key", index + 1, "failed", res.status, lastDetail.slice(0, 160));
-      if (!rotatable(res.status)) break;
+      // A bad/expired key can also come back as 400 "Please pass a valid API key".
+      if (!rotatable(res.status) && !/api[_ ]?key/i.test(lastDetail)) break;
     } catch (err) {
       lastStatus = 503;
       lastDetail = err instanceof Error ? err.message : "network error";
