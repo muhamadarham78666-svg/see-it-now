@@ -1,3 +1,4 @@
+import { aiChatFetch } from "./ai-keys.server";
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-3-flash-preview";
 
@@ -25,10 +26,7 @@ export async function askNsagpt(messages: AskMessage[], uiLanguage?: string | nu
   const apiKey = process.env["LOVABLE_API_KEY"];
   if (!apiKey) throw new Error("NSAGPT AI is not configured for this project.");
 
-  const res = await fetch(GATEWAY_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
+  const res = await aiChatFetch({
       model: MODEL,
       messages: [
         {
@@ -39,8 +37,7 @@ export async function askNsagpt(messages: AskMessage[], uiLanguage?: string | nu
         },
         ...messages.slice(-20).map((m) => ({ role: m.role, content: m.content })),
       ],
-    }),
-  });
+    });
 
   if (!res.ok) {
     if (res.status === 429)

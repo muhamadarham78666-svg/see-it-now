@@ -1,3 +1,4 @@
+import { aiChatFetch } from "./ai-keys.server";
 export interface SolveAttachment {
   name: string;
   mime: string;
@@ -138,11 +139,7 @@ export async function requestSolutions(
 
   let lastError = "";
   for (let attempt = 0; attempt < 3; attempt++) {
-    const res = await fetch(GATEWAY_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify(body),
-    });
+    const res = await aiChatFetch(body);
 
     if (res.ok) {
       const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };

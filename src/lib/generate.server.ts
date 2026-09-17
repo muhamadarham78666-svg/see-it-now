@@ -1,3 +1,4 @@
+import { aiChatFetch } from "./ai-keys.server";
 import { cleanPaperText } from "./paperText";
 
 export interface GenAttachment {
@@ -252,11 +253,7 @@ export async function requestQuestions(
   let lastError = "";
   let sawEmpty = false;
   for (let attempt = 0; attempt < 3; attempt++) {
-    const res = await fetch(GATEWAY_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify(body),
-    });
+    const res = await aiChatFetch(body);
 
     if (res.ok) {
       const json = (await res.json()) as {

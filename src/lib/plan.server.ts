@@ -1,3 +1,4 @@
+import { aiChatFetch } from "./ai-keys.server";
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-3.8-flash";
 
@@ -104,15 +105,11 @@ export async function requestPaperPlan(input: PlanInput): Promise<PaperPlan> {
   const apiKey = process.env["LOVABLE_API_KEY"];
   if (!apiKey) throw new Error("AI is not configured for this project.");
 
-  const res = await fetch(GATEWAY_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
+  const res = await aiChatFetch({
       model: MODEL,
       messages: [{ role: "user", content: prompt(input) }],
       response_format: { type: "json_object" as const },
-    }),
-  });
+    });
 
   if (!res.ok) {
     if (res.status === 429) throw new Error("AI rate limit reached. Please try again in a moment.");
