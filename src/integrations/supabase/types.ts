@@ -104,6 +104,128 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_imports: {
+        Row: {
+          book: string
+          class_level: string
+          created_at: string
+          created_by: string | null
+          id: string
+          inserted_rows: number
+          label: string
+          skipped_rows: number
+          source: string
+          status: string
+          total_rows: number
+        }
+        Insert: {
+          book?: string
+          class_level?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inserted_rows?: number
+          label?: string
+          skipped_rows?: number
+          source?: string
+          status?: string
+          total_rows?: number
+        }
+        Update: {
+          book?: string
+          class_level?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inserted_rows?: number
+          label?: string
+          skipped_rows?: number
+          source?: string
+          status?: string
+          total_rows?: number
+        }
+        Relationships: []
+      }
+      bank_questions: {
+        Row: {
+          answer_points: Json | null
+          book: string
+          chapter: string
+          class_level: string
+          correct_answer: string | null
+          created_at: string
+          created_by: string | null
+          difficulty: string
+          expected_answer: string | null
+          explanation: string
+          fingerprint: string
+          id: string
+          import_id: string | null
+          is_active: boolean
+          language: string
+          marks: number
+          options: Json | null
+          question_text: string
+          question_type: string
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          answer_points?: Json | null
+          book: string
+          chapter?: string
+          class_level: string
+          correct_answer?: string | null
+          created_at?: string
+          created_by?: string | null
+          difficulty?: string
+          expected_answer?: string | null
+          explanation?: string
+          fingerprint: string
+          id?: string
+          import_id?: string | null
+          is_active?: boolean
+          language?: string
+          marks?: number
+          options?: Json | null
+          question_text: string
+          question_type: string
+          topic?: string
+          updated_at?: string
+        }
+        Update: {
+          answer_points?: Json | null
+          book?: string
+          chapter?: string
+          class_level?: string
+          correct_answer?: string | null
+          created_at?: string
+          created_by?: string | null
+          difficulty?: string
+          expected_answer?: string | null
+          explanation?: string
+          fingerprint?: string
+          id?: string
+          import_id?: string | null
+          is_active?: boolean
+          language?: string
+          marks?: number
+          options?: Json | null
+          question_text?: string
+          question_type?: string
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_questions_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "bank_imports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           author_name: string
@@ -308,6 +430,30 @@ export type Database = {
         }
         Relationships: []
       }
+      paper_events: {
+        Row: {
+          created_at: string
+          id: string
+          question_ids: Json
+          source: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          question_ids?: Json
+          source?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          question_ids?: Json
+          source?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       paper_questions: {
         Row: {
           created_at: string
@@ -430,9 +576,11 @@ export type Database = {
           benefits: Json
           created_at: string
           currency: string
+          daily_paper_limit: number
           duration: string
           duration_days: number
           featured: boolean
+          features: Json
           id: string
           is_active: boolean
           name: string
@@ -447,9 +595,11 @@ export type Database = {
           benefits?: Json
           created_at?: string
           currency?: string
+          daily_paper_limit?: number
           duration: string
           duration_days?: number
           featured?: boolean
+          features?: Json
           id?: string
           is_active?: boolean
           name: string
@@ -464,9 +614,11 @@ export type Database = {
           benefits?: Json
           created_at?: string
           currency?: string
+          daily_paper_limit?: number
           duration?: string
           duration_days?: number
           featured?: boolean
+          features?: Json
           id?: string
           is_active?: boolean
           name?: string
