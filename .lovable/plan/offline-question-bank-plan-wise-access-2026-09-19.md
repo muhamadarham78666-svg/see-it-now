@@ -12,15 +12,20 @@ Ek naya "Question Bank (Master)" hissa admin ke andar:
 - Duplicate sawal khud pakde jayein (same sawal dobara import na ho).
 - Upload ke baad list: class/book/chapter/type se filter, search, single sawal edit ya delete, aur poori upload wapas hatane ka option.
 - Sample Excel file download button, taake format sahi rahe.
+- Admin me esa system bnana ke waha se hm easily sara data dal saky or save kr sky mcqs short long or istra ke Jo Jo hoty he wo sab
+- AI se sara data bnawaye ge Jo jo chapters save he classes save he sab ke liye  aik chapter me se 200 mcqs 50 short 50 long or Jo Jo hota hewobi isi calculation ke hisab se krna he jisme mahfoom paragraph etc sab hota he
+- &nbsp;
 
 ## 2. Offline Paper Generator (AI ke baghair)
 
 Generate screen par do tareeqe:
 
 - **Apne bank se (offline)** — default. Class, book, chapters, MCQ/short/long ki ginti, difficulty, language chunein; app apne bank se sawal chun kar paper bana deta hai. Fauri, koi credit kharch nahi.
+- Khud pa khud bna kr dedy hmry provide kiye sawal short long question or mcqs 
 - **AI se** — sirf Diamond.
 
 Offline chunaav ke usool:
+
 - Chapters ke darmiyan barabar taqseem (har chapter se hissa).
 - Difficulty ka mix jaisa chuna gaya ho.
 - Board pattern aur marks ka hisaab pehle jaisa hi.
@@ -31,14 +36,16 @@ Paper ka preview, edit, aur PDF/print sab pehle jaisa chalega.
 
 ## 3. Plan-wise access
 
-| Feature | Silver | Gold | Diamond |
-|---|---|---|---|
+
+| Feature                 | Silver              | Gold                         | Diamond           |
+| ----------------------- | ------------------- | ---------------------------- | ----------------- |
 | Offline Paper Generator | Haan (rozana limit) | Haan (rozana limit barh kar) | Haan (bila limit) |
-| Question Bank browse | Haan | Haan | Haan |
-| Notes Generator | Crown | Crown | Haan |
-| Book Solver / Solve | Crown | Crown | Haan |
-| NSAGPT AI chat | Crown | Crown | Haan |
-| AI se paper | Crown | Crown | Haan |
+| Question Bank browse    | Haan                | Haan                         | Haan              |
+| Notes Generator         | Crown               | Crown                        | Haan              |
+| Book Solver / Solve     | Crown               | Crown                        | Haan              |
+| NSAGPT AI chat          | Crown               | Crown                        | Haan              |
+| AI se paper             | Crown               | Crown                        | Haan              |
+
 
 - **Crown** = feature dikhta hai magar lock: sunehri crown ka chamakta (shine + pulse) animation, "Diamond mein shamil" badge, click par khubsurat upgrade card jisme plan ka faida aur "Upgrade request" button.
 - Upgrade request wahi maujooda system use karega (admin ke paas jata hai, manual approve).
@@ -51,6 +58,7 @@ Paper ka preview, edit, aur PDF/print sab pehle jaisa chalega.
 - Gold: 25 paper / din
 - Diamond: bila limit + AI
 - Ye number admin ke Plans panel se badle ja sakte hain (code chhune ki zaroorat nahi).
+- Admin portal or esa system hoga jaha pr bulk me Aik bar AI se data bnwa kr ap usme dal sku ge or jab bi user generat kry ga paper usi data se nikl aye ga easily Baki sab same procedure rahy ga jesa he 
 
 ## 5. Plan cards aur homepage
 
