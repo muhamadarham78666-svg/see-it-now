@@ -27,6 +27,9 @@ import { useTheme } from '@/context/ThemeContext';
 import { roleLabel } from '@/lib/roles';
 import { Logo } from '@/components/Logo';
 import { BoardChip } from '@/components/boards/BoardSelector';
+import { usePlanAccess } from '@/context/EntitlementsContext';
+import { CrownBadge, CrownLock } from '@/components/CrownLock';
+import type { FeatureKey } from '@/lib/entitlements';
 
 
 const navItems = [
@@ -40,6 +43,16 @@ const navItems = [
   { to: '/dashboard/support', key: 'nav.support', icon: Headphones, end: false },
   { to: '/dashboard/settings', key: 'nav.settings', icon: Settings, end: false },
 ] as const;
+
+/** Which plan feature each dashboard page belongs to. */
+const PAGE_FEATURES: Record<string, FeatureKey> = {
+  '/dashboard/solver': 'solver',
+  '/dashboard/book-solver': 'solver',
+  '/dashboard/bank': 'question_bank',
+  '/dashboard/history': 'history',
+  '/dashboard/notes': 'notes',
+  '/dashboard/ask': 'ask',
+};
 
 export function DashboardLayout() {
   const { profile, signOut } = useAuth();

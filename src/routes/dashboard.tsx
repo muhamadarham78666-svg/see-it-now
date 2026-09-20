@@ -13,7 +13,9 @@ function DashboardShell() {
   return (
     <ProtectedRoute>
       <BoardProvider>
-        <DashboardLayout />
+        <EntitlementsProvider>
+          <DashboardLayout />
+        </EntitlementsProvider>
       </BoardProvider>
     </ProtectedRoute>
   );
