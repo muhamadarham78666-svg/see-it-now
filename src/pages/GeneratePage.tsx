@@ -288,7 +288,11 @@ export function GeneratePage() {
   }, [generating]);
 
   const handleGenerate = async () => {
-    if (!hasMaterial && !bookObj) {
+    if (mode === 'bank' && (!group || !bookObj)) {
+      setError('Select a Class and Book — bank papers are built from the selected book.');
+      return;
+    }
+    if (mode === 'ai' && !hasMaterial && !bookObj) {
       setError('Select a Class and Book or upload material.');
       return;
     }
@@ -337,8 +341,37 @@ export function GeneratePage() {
     };
 
 
+    const bankCounts = isMixed
+      ? mixCounts
+      : {
+          mcq: questionType === 'mcq' ? effectiveCount : 0,
+          short: questionType === 'short' ? effectiveCount : 0,
+          long: questionType === 'long' ? effectiveCount : 0,
+        };
+
     try {
-      const result = aiQuestionCount > 0
+      const result =
+        mode === 'bank'
+          ? await (async () => {
+              const bank = await generateOfflinePaperFn({
+                data: {
+                  classLevel: group?.classLevel ?? '',
+                  book: bookObj?.name ?? '',
+                  chapters: rangeChapters,
+                  counts: bankCounts,
+                  difficulty,
+                  language: effectiveUrdu ? 'urdu' : language === 'both' ? 'both' : 'english',
+                  mcqOptionsCount: mcqOptions,
+                },
+              });
+              if (bank.shortfalls.length) {
+                setNotice(
+                  `Paper built from the question bank. Some sections had fewer questions — ${bank.shortfalls.join('; ')}.`,
+                );
+              }
+              return { questions: bank.questions, mode: 'bank' as const, fallbackReason: null };
+            })()
+          : aiQuestionCount > 0
         ? await questionGenerator.generate(
             content,
             attachments,
@@ -367,7 +400,7 @@ export function GeneratePage() {
       if (result.mode === 'offline') {
         setNotice(
           `AI temporarily unavailable. Paper generated using Offline Mode.${
-            result.fallbackReason ? ` (${result.fallbackReason})` : ''
+            'fallbackReason' in result && result.fallbackReason ? ` (${result.fallbackReason})` : ''
           }`,
         );
       }

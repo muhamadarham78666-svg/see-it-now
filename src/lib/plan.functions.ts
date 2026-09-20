@@ -21,6 +21,8 @@ export const suggestPaperPlanFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { requireActiveSubscription } = await import('./subscription.server');
     await requireActiveSubscription(context);
+    const { requireFeature } = await import('./entitlements.server');
+    await requireFeature(context as any, 'ai_paper');
     const { enforceAiLimit } = await import('./ai-limits.server');
     await enforceAiLimit(context as any, 'plan');
     return requestPaperPlan(data);

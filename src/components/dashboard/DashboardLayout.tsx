@@ -27,6 +27,9 @@ import { useTheme } from '@/context/ThemeContext';
 import { roleLabel } from '@/lib/roles';
 import { Logo } from '@/components/Logo';
 import { BoardChip } from '@/components/boards/BoardSelector';
+import { usePlanAccess } from '@/context/EntitlementsContext';
+import { CrownBadge, CrownLock } from '@/components/CrownLock';
+import type { FeatureKey } from '@/lib/entitlements';
 
 
 const navItems = [
@@ -41,6 +44,16 @@ const navItems = [
   { to: '/dashboard/settings', key: 'nav.settings', icon: Settings, end: false },
 ] as const;
 
+/** Which plan feature each dashboard page belongs to. */
+const PAGE_FEATURES: Record<string, FeatureKey> = {
+  '/dashboard/solver': 'solver',
+  '/dashboard/book-solver': 'solver',
+  '/dashboard/bank': 'question_bank',
+  '/dashboard/history': 'history',
+  '/dashboard/notes': 'notes',
+  '/dashboard/ask': 'ask',
+};
+
 export function DashboardLayout() {
   const { profile, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -54,12 +67,29 @@ export function DashboardLayout() {
     navigate('/');
   };
 
-  const baseItems = navItems.map((n) => ({ to: n.to, label: t(n.key), icon: n.icon, end: n.end as boolean }));
+  const { allows } = usePlanAccess();
+
+  const baseItems = navItems.map((n) => {
+    const feature = PAGE_FEATURES[n.to];
+    return {
+      to: n.to,
+      label: t(n.key),
+      icon: n.icon,
+      end: n.end as boolean,
+      locked: feature ? !allows(feature) : false,
+    };
+  });
   const items = profile?.role === 'admin' || profile?.role === 'owner' || profile?.role === 'editor'
-    ? [...baseItems, { to: '/admin', label: t('nav.admin'), icon: ShieldCheck, end: false }]
+    ? [...baseItems, { to: '/admin', label: t('nav.admin'), icon: ShieldCheck, end: false, locked: false }]
     : baseItems;
 
   const currentLabel = items.find((n) => location.pathname === n.to)?.label ?? t('nav.dashboard');
+
+  // A page the current plan does not include shows the upgrade card instead.
+  const lockedFeature = (() => {
+    const feature = PAGE_FEATURES[location.pathname];
+    return feature && !allows(feature) ? feature : null;
+  })();
 
   return (
     <div dir={dir} className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
@@ -89,6 +119,7 @@ export function DashboardLayout() {
               >
                 <Icon size={18} />
                 {item.label}
+                {item.locked && <CrownBadge className="ml-auto" />}
               </NavLink>
             );
           })}
@@ -158,6 +189,7 @@ export function DashboardLayout() {
                   >
                     <Icon size={18} />
                     {item.label}
+                    {item.locked && <CrownBadge className="ml-auto" />}
                   </NavLink>
                 );
               })}
@@ -230,7 +262,7 @@ export function DashboardLayout() {
             <LanguageChip />
             <BoardChip />
           </div>
-          <Outlet />
+          {lockedFeature ? <CrownLock feature={lockedFeature} /> : <Outlet />}
         </main>
 
 
