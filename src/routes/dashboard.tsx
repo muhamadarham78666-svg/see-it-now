@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { BoardProvider } from "@/context/BoardContext";
+import { EntitlementsProvider } from "@/context/EntitlementsContext";
 
 export const Route = createFileRoute("/dashboard")({
   staticData: { sitemap: "exclude-subtree" },
