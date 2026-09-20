@@ -67,12 +67,29 @@ export function DashboardLayout() {
     navigate('/');
   };
 
-  const baseItems = navItems.map((n) => ({ to: n.to, label: t(n.key), icon: n.icon, end: n.end as boolean }));
+  const { allows } = usePlanAccess();
+
+  const baseItems = navItems.map((n) => {
+    const feature = PAGE_FEATURES[n.to];
+    return {
+      to: n.to,
+      label: t(n.key),
+      icon: n.icon,
+      end: n.end as boolean,
+      locked: feature ? !allows(feature) : false,
+    };
+  });
   const items = profile?.role === 'admin' || profile?.role === 'owner' || profile?.role === 'editor'
-    ? [...baseItems, { to: '/admin', label: t('nav.admin'), icon: ShieldCheck, end: false }]
+    ? [...baseItems, { to: '/admin', label: t('nav.admin'), icon: ShieldCheck, end: false, locked: false }]
     : baseItems;
 
   const currentLabel = items.find((n) => location.pathname === n.to)?.label ?? t('nav.dashboard');
+
+  // A page the current plan does not include shows the upgrade card instead.
+  const lockedFeature = (() => {
+    const feature = PAGE_FEATURES[location.pathname];
+    return feature && !allows(feature) ? feature : null;
+  })();
 
   return (
     <div dir={dir} className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
