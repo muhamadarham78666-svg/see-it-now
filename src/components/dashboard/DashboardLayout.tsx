@@ -119,6 +119,7 @@ export function DashboardLayout() {
               >
                 <Icon size={18} />
                 {item.label}
+                {item.locked && <CrownBadge className="ml-auto" />}
               </NavLink>
             );
           })}
@@ -188,6 +189,7 @@ export function DashboardLayout() {
                   >
                     <Icon size={18} />
                     {item.label}
+                    {item.locked && <CrownBadge className="ml-auto" />}
                   </NavLink>
                 );
               })}
@@ -260,7 +262,7 @@ export function DashboardLayout() {
             <LanguageChip />
             <BoardChip />
           </div>
-          <Outlet />
+          {lockedFeature ? <CrownLock feature={lockedFeature} /> : <Outlet />}
         </main>
 
 
