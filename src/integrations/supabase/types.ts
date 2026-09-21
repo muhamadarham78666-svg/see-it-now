@@ -150,6 +150,7 @@ export type Database = {
         Row: {
           answer_points: Json | null
           book: string
+          category: string
           chapter: string
           class_level: string
           correct_answer: string | null
@@ -165,14 +166,17 @@ export type Database = {
           language: string
           marks: number
           options: Json | null
+          parts: Json | null
           question_text: string
           question_type: string
+          statement: string | null
           topic: string
           updated_at: string
         }
         Insert: {
           answer_points?: Json | null
           book: string
+          category?: string
           chapter?: string
           class_level: string
           correct_answer?: string | null
@@ -188,14 +192,17 @@ export type Database = {
           language?: string
           marks?: number
           options?: Json | null
+          parts?: Json | null
           question_text: string
           question_type: string
+          statement?: string | null
           topic?: string
           updated_at?: string
         }
         Update: {
           answer_points?: Json | null
           book?: string
+          category?: string
           chapter?: string
           class_level?: string
           correct_answer?: string | null
@@ -211,8 +218,10 @@ export type Database = {
           language?: string
           marks?: number
           options?: Json | null
+          parts?: Json | null
           question_text?: string
           question_type?: string
+          statement?: string | null
           topic?: string
           updated_at?: string
         }
