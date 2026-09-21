@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Check, Sparkles, Users } from 'lucide-react';
+import { Check, Crown, Sparkles, Users } from 'lucide-react';
+import { ALL_FEATURES, DEFAULT_PLAN_FEATURES, FEATURE_LABELS } from '@/lib/entitlements';
 import { SubscriptionRequestModal } from '@/components/landing/SubscriptionRequestModal';
 import { SUBSCRIPTION_PLANS, type SubscriptionPlan, type SubscriptionPlanKey } from '@/lib/subscriptions';
 import { fetchLivePlans } from '@/lib/site';
@@ -82,6 +83,28 @@ export function PricingSection() {
                     </li>
                   ))}
                 </ul>
+
+                <ul className="mt-4 space-y-1.5 border-t border-slate-100 dark:border-slate-800 pt-4">
+                  {ALL_FEATURES.map((feature) => {
+                    const included = (DEFAULT_PLAN_FEATURES[plan.key] ?? []).includes(feature);
+                    return (
+                      <li
+                        key={feature}
+                        className={`flex items-start gap-2 text-sm ${
+                          included ? 'text-slate-600 dark:text-slate-300' : 'text-slate-400 dark:text-slate-500'
+                        }`}
+                      >
+                        {included ? (
+                          <Check size={15} className={`mt-0.5 flex-shrink-0 ${plan.theme.check}`} />
+                        ) : (
+                          <Crown size={15} className="mt-0.5 flex-shrink-0 text-amber-400" />
+                        )}
+                        <span>{FEATURE_LABELS[feature]}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+
 
                 <button
                   onClick={() => setSelected(plan.key)}

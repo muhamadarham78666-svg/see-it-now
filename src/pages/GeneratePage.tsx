@@ -44,6 +44,9 @@ import {
 } from '@/lib/curriculum';
 import { patternBrief, patternCounts, resolvePattern } from '@/lib/paperPatterns';
 import { suggestPaperPlanFn } from '@/lib/plan.functions';
+import { generateOfflinePaperFn } from '@/lib/offlinePaper.functions';
+import { usePlanAccess } from '@/context/EntitlementsContext';
+import { CrownBadge } from '@/components/CrownLock';
 import { useLanguage } from '@/context/LanguageContext';
 
 /** Professional English by default; presets follow the interface language. */
@@ -160,6 +163,12 @@ export function GeneratePage() {
   const [editQuestion, setEditQuestion] = useState<Question | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [previewOpen, setPreviewOpen] = useState(false);
+
+  // Question bank (offline) is the default source; AI needs the Diamond plan.
+  const { allows } = usePlanAccess();
+  const aiAllowed = allows('ai_paper');
+  const [source, setSource] = useState<'bank' | 'ai'>('bank');
+  const mode: 'bank' | 'ai' = aiAllowed ? source : 'bank';
 
   const countPresets = [10, 20, 50, 100, 200];
   const mcqOptionsPresets = [2, 3, 4, 5, 6];
@@ -360,7 +369,7 @@ export function GeneratePage() {
                   chapters: rangeChapters,
                   counts: bankCounts,
                   difficulty,
-                  language: effectiveUrdu ? 'urdu' : language === 'both' ? 'both' : 'english',
+                  language: effectiveUrdu ? 'urdu' : language === 'mixed' ? 'both' : 'english',
                   mcqOptionsCount: mcqOptions,
                 },
               });
@@ -667,9 +676,53 @@ export function GeneratePage() {
           Generate Questions
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Upload any file — PDF, DOC, TXT or an image of a book page — and let AI build your questions.
+          Build a board-pattern paper from our verified question bank, or let AI create one from your own
+          material.
         </p>
       </div>
+
+      {/* Question source */}
+      <Card className="p-4">
+        <div className="grid sm:grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => setSource('bank')}
+            className={`rounded-2xl border px-4 py-3 text-left transition-all ${
+              mode === 'bank'
+                ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/25 shadow-sm'
+                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
+            }`}
+          >
+            <span className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
+              <Layers size={16} className="text-primary-500" /> Question Bank
+            </span>
+            <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
+              Verified board-style questions from the selected book — fast and works without AI.
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => aiAllowed && setSource('ai')}
+            className={`relative rounded-2xl border px-4 py-3 text-left transition-all ${
+              mode === 'ai'
+                ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/25 shadow-sm'
+                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
+            } ${aiAllowed ? '' : 'opacity-70 cursor-not-allowed'}`}
+          >
+            <span className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
+              <Sparkles size={16} className="text-accent-500" /> AI from your material
+              {!aiAllowed && <CrownBadge className="ml-1" />}
+            </span>
+            <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
+              {aiAllowed
+                ? 'Upload a PDF, image or text and AI writes fresh questions.'
+                : 'Part of the Diamond plan — upgrade to create papers from your own files.'}
+            </span>
+          </button>
+        </div>
+      </Card>
+
 
       {error && (
         <div className="p-4 rounded-xl bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800/50 text-error-700 dark:text-error-400 text-sm animate-fade-in">

@@ -65,6 +65,7 @@ import {
 import { AdminPlansPanel } from '@/components/admin/AdminPlansPanel';
 import { AdminSitePanel } from '@/components/admin/AdminSitePanel';
 import { AdminBlogPanel } from '@/components/admin/AdminBlogPanel';
+import { AdminBankPanel } from '@/components/admin/AdminBankPanel';
 
 type Tab =
   | 'overview'
@@ -77,6 +78,7 @@ type Tab =
   | 'boards'
   | 'content'
   | 'blog'
+  | 'bank'
   | 'site'
   | 'support'
   | 'audit'
@@ -347,6 +349,7 @@ export function AdminPage() {
     { key: 'boards', label: 'Boards', icon: Landmark },
     { key: 'content', label: 'Content', icon: FileText },
     { key: 'blog', label: 'Blog', icon: PenLine },
+    { key: 'bank', label: 'Question bank', icon: FileText },
     { key: 'site', label: 'Site settings', icon: Settings },
     { key: 'support', label: 'Support', icon: Headphones },
 
@@ -917,6 +920,8 @@ export function AdminPage() {
         <AdminSitePanel />
       ) : tab === 'blog' ? (
         <AdminBlogPanel />
+      ) : tab === 'bank' ? (
+        <AdminBankPanel />
 
       ) : (
         <div className="grid md:grid-cols-2 gap-3">
