@@ -369,7 +369,7 @@ export function GeneratePage() {
                   chapters: rangeChapters,
                   counts: bankCounts,
                   difficulty,
-                  language: effectiveUrdu ? 'urdu' : language === 'both' ? 'both' : 'english',
+                  language: effectiveUrdu ? 'urdu' : language === 'mixed' ? 'both' : 'english',
                   mcqOptionsCount: mcqOptions,
                 },
               });
