@@ -8,6 +8,13 @@
       "when": 1789819619017,
       "tag": "0000_offline_question_bank_and_entitlements",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789990971947,
+      "tag": "0001_bank_questions_category_parts",
+      "breakpoints": true
     }
   ]
 }
