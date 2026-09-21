@@ -44,6 +44,9 @@ import {
 } from '@/lib/curriculum';
 import { patternBrief, patternCounts, resolvePattern } from '@/lib/paperPatterns';
 import { suggestPaperPlanFn } from '@/lib/plan.functions';
+import { generateOfflinePaperFn } from '@/lib/offlinePaper.functions';
+import { usePlanAccess } from '@/context/EntitlementsContext';
+import { CrownBadge } from '@/components/CrownLock';
 import { useLanguage } from '@/context/LanguageContext';
 
 /** Professional English by default; presets follow the interface language. */
@@ -160,6 +163,12 @@ export function GeneratePage() {
   const [editQuestion, setEditQuestion] = useState<Question | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [previewOpen, setPreviewOpen] = useState(false);
+
+  // Question bank (offline) is the default source; AI needs the Diamond plan.
+  const { allows } = usePlanAccess();
+  const aiAllowed = allows('ai_paper');
+  const [source, setSource] = useState<'bank' | 'ai'>('bank');
+  const mode: 'bank' | 'ai' = aiAllowed ? source : 'bank';
 
   const countPresets = [10, 20, 50, 100, 200];
   const mcqOptionsPresets = [2, 3, 4, 5, 6];
