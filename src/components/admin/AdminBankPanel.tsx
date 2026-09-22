@@ -369,6 +369,94 @@ export function AdminBankPanel() {
 
       <Card className="p-5 space-y-3">
         <div className="flex items-center gap-2">
+          <Sparkles size={17} className="text-primary-500" />
+          <h4 className="font-display font-semibold text-slate-900 dark:text-white">Bulk fill the whole syllabus</h4>
+          {running && <Badge variant="primary">Running…</Badge>}
+        </div>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Fills every chapter of the chosen scope up to the targets below, one chapter at a time. It only
+          uses the books and chapters saved in NSAGPT, skips duplicates, and remembers where it stopped —
+          you can close this and continue later.
+        </p>
+
+        <div className="grid sm:grid-cols-2 gap-3">
+          <select className="input-field text-sm" value={bulkClass} onChange={(e) => { setBulkClass(e.target.value); setBulkBook(''); }}>
+            <option value="">All classes (9th – 12th)</option>
+            {CLASS_GROUPS.map((g) => (
+              <option key={g.key} value={g.classLevel}>
+                {g.label}
+              </option>
+            ))}
+          </select>
+          <select className="input-field text-sm" value={bulkBook} onChange={(e) => setBulkBook(e.target.value)} disabled={!bulkClass}>
+            <option value="">All books of this class</option>
+            {(bulkGroup?.books ?? []).map((b) => (
+              <option key={b.id} value={b.name}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          {(['mcq', 'short', 'long'] as const).map((key) => (
+            <label key={key} className="text-xs text-slate-500 dark:text-slate-400">
+              {key === 'mcq' ? 'MCQs per chapter' : key === 'short' ? 'Short per chapter' : 'Long per chapter'}
+              <input
+                type="number"
+                min={0}
+                max={key === 'long' ? 120 : 300}
+                className="input-field text-sm mt-1"
+                value={targets[key]}
+                onChange={(e) => setTargets({ ...targets, [key]: Math.max(0, Number(e.target.value) || 0) })}
+              />
+            </label>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {!running ? (
+            <button onClick={() => void startBulk()} className="btn-primary text-sm">
+              <Sparkles size={14} /> Start bulk fill
+            </button>
+          ) : (
+            <button onClick={stopBulk} className="btn-secondary text-sm">
+              <Loader2 size={14} className="animate-spin" /> Stop
+            </button>
+          )}
+          <button onClick={() => void checkProgress()} className="btn-secondary text-sm">
+            <RefreshCw size={13} /> Check progress
+          </button>
+        </div>
+
+        {progress && (
+          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-3 text-xs text-slate-600 dark:text-slate-300">
+            <p>
+              Chapters completed: <b>{progress.chaptersDone}</b> of {progress.chapters} • saved questions:{' '}
+              <b>{progress.questions.toLocaleString()}</b> • still needed: {progress.missing.toLocaleString()}
+            </p>
+            <div className="mt-2 h-2 w-full rounded-full bg-slate-200 dark:bg-slate-700">
+              <div
+                className="h-2 rounded-full bg-primary-500 transition-all"
+                style={{
+                  width: `${progress.chapters ? Math.round((progress.chaptersDone / progress.chapters) * 100) : 0}%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {log.length > 0 && (
+          <div className="max-h-44 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 p-3 text-[11px] font-mono text-slate-500 dark:text-slate-400 space-y-1">
+            {log.map((line, i) => (
+              <p key={i}>{line}</p>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      <Card className="p-5 space-y-3">
+        <div className="flex items-center gap-2">
           <h4 className="font-display font-semibold text-slate-900 dark:text-white">Review questions</h4>
           <button onClick={() => void loadQuestions()} className="btn-secondary ml-auto text-xs">
             Load chapter
