@@ -6,7 +6,7 @@
  * number of MCQ / short / long questions. Work is done one small batch per
  * call so the job is resumable: state lives in the bank itself, not in memory.
  */
-import { CLASS_GROUPS, type BookEntry, type ClassGroup } from './curriculum';
+import { CLASS_GROUPS, type Book, type ClassGroup } from './curriculum';
 
 type Ctx = { supabase: any; userId: string };
 
@@ -34,8 +34,8 @@ async function db() {
   return supabaseAdmin as unknown as any;
 }
 
-function scopedBooks(scope: BulkScope): { group: ClassGroup; book: BookEntry }[] {
-  const out: { group: ClassGroup; book: BookEntry }[] = [];
+function scopedBooks(scope: BulkScope): { group: ClassGroup; book: Book }[] {
+  const out: { group: ClassGroup; book: Book }[] = [];
   for (const group of CLASS_GROUPS) {
     if (scope.classLevel && group.classLevel !== scope.classLevel) continue;
     for (const book of group.books) {

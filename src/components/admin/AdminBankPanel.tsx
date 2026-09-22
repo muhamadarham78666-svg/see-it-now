@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useServerFn } from '@tanstack/react-start';
 import {
   Database,
@@ -21,6 +21,7 @@ import {
   bankQuestionsFn,
   bankSampleCsvFn,
 } from '@/lib/bank.functions';
+import { bankBulkProgressFn, bankBulkStepFn } from '@/lib/bankBulk.functions';
 
 interface BookStat {
   class_level: string;
@@ -61,6 +62,70 @@ export function AdminBankPanel() {
 
   const [counts, setCounts] = useState({ mcq: 10, short: 8, long: 3 });
   const [questions, setQuestions] = useState<any[]>([]);
+
+  // ---- bulk fill (walks the whole syllabus, one small batch at a time) ----
+  const bulkStep = useServerFn(bankBulkStepFn);
+  const bulkProgress = useServerFn(bankBulkProgressFn);
+  const [bulkClass, setBulkClass] = useState('9th');
+  const [bulkBook, setBulkBook] = useState('');
+  const [targets, setTargets] = useState({ mcq: 60, short: 30, long: 12 });
+  const [progress, setProgress] = useState<{
+    chapters: number;
+    chaptersDone: number;
+    questions: number;
+    missing: number;
+  } | null>(null);
+  const [running, setRunning] = useState(false);
+  const runningRef = useRef(false);
+  const [log, setLog] = useState<string[]>([]);
+  const bulkGroup = useMemo(() => CLASS_GROUPS.find((g) => g.classLevel === bulkClass), [bulkClass]);
+
+  const scope = useMemo(
+    () => ({ classLevel: bulkClass, book: bulkBook, targets }),
+    [bulkClass, bulkBook, targets],
+  );
+
+  const checkProgress = async () => {
+    try {
+      setProgress(await bulkProgress({ data: scope }));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not read progress.');
+    }
+  };
+
+  const startBulk = async () => {
+    setError('');
+    setLog([]);
+    runningRef.current = true;
+    setRunning(true);
+    while (runningRef.current) {
+      try {
+        const res = await bulkStep({ data: scope });
+        setProgress(res.progress);
+        if (res.done) {
+          setLog((l) => ['All chapters in this scope have reached their targets.', ...l].slice(0, 60));
+          break;
+        }
+        const c = res.current!;
+        setLog((l) =>
+          [`${c.classLevel} • ${c.book} • ${c.chapter} → +${res.created} saved`, ...l].slice(0, 60),
+        );
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : 'Generation stopped.';
+        setError(msg);
+        setLog((l) => [`Stopped: ${msg}`, ...l].slice(0, 60));
+        break;
+      }
+    }
+    runningRef.current = false;
+    setRunning(false);
+    await reload();
+  };
+
+  const stopBulk = () => {
+    runningRef.current = false;
+    setRunning(false);
+  };
 
   const reload = useCallback(async () => {
     try {
@@ -300,6 +365,94 @@ export function AdminBankPanel() {
         <button disabled={busy || !chapter} onClick={() => void doAiFill()} className="btn-primary text-sm disabled:opacity-60">
           {busy ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} Generate and save
         </button>
+      </Card>
+
+      <Card className="p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <Sparkles size={17} className="text-primary-500" />
+          <h4 className="font-display font-semibold text-slate-900 dark:text-white">Bulk fill the whole syllabus</h4>
+          {running && <Badge variant="primary">Running…</Badge>}
+        </div>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Fills every chapter of the chosen scope up to the targets below, one chapter at a time. It only
+          uses the books and chapters saved in NSAGPT, skips duplicates, and remembers where it stopped —
+          you can close this and continue later.
+        </p>
+
+        <div className="grid sm:grid-cols-2 gap-3">
+          <select className="input-field text-sm" value={bulkClass} onChange={(e) => { setBulkClass(e.target.value); setBulkBook(''); }}>
+            <option value="">All classes (9th – 12th)</option>
+            {CLASS_GROUPS.map((g) => (
+              <option key={g.key} value={g.classLevel}>
+                {g.label}
+              </option>
+            ))}
+          </select>
+          <select className="input-field text-sm" value={bulkBook} onChange={(e) => setBulkBook(e.target.value)} disabled={!bulkClass}>
+            <option value="">All books of this class</option>
+            {(bulkGroup?.books ?? []).map((b) => (
+              <option key={b.id} value={b.name}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          {(['mcq', 'short', 'long'] as const).map((key) => (
+            <label key={key} className="text-xs text-slate-500 dark:text-slate-400">
+              {key === 'mcq' ? 'MCQs per chapter' : key === 'short' ? 'Short per chapter' : 'Long per chapter'}
+              <input
+                type="number"
+                min={0}
+                max={key === 'long' ? 120 : 300}
+                className="input-field text-sm mt-1"
+                value={targets[key]}
+                onChange={(e) => setTargets({ ...targets, [key]: Math.max(0, Number(e.target.value) || 0) })}
+              />
+            </label>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {!running ? (
+            <button onClick={() => void startBulk()} className="btn-primary text-sm">
+              <Sparkles size={14} /> Start bulk fill
+            </button>
+          ) : (
+            <button onClick={stopBulk} className="btn-secondary text-sm">
+              <Loader2 size={14} className="animate-spin" /> Stop
+            </button>
+          )}
+          <button onClick={() => void checkProgress()} className="btn-secondary text-sm">
+            <RefreshCw size={13} /> Check progress
+          </button>
+        </div>
+
+        {progress && (
+          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-3 text-xs text-slate-600 dark:text-slate-300">
+            <p>
+              Chapters completed: <b>{progress.chaptersDone}</b> of {progress.chapters} • saved questions:{' '}
+              <b>{progress.questions.toLocaleString()}</b> • still needed: {progress.missing.toLocaleString()}
+            </p>
+            <div className="mt-2 h-2 w-full rounded-full bg-slate-200 dark:bg-slate-700">
+              <div
+                className="h-2 rounded-full bg-primary-500 transition-all"
+                style={{
+                  width: `${progress.chapters ? Math.round((progress.chaptersDone / progress.chapters) * 100) : 0}%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {log.length > 0 && (
+          <div className="max-h-44 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 p-3 text-[11px] font-mono text-slate-500 dark:text-slate-400 space-y-1">
+            {log.map((line, i) => (
+              <p key={i}>{line}</p>
+            ))}
+          </div>
+        )}
       </Card>
 
       <Card className="p-5 space-y-3">

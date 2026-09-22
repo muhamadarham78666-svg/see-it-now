@@ -5,15 +5,19 @@ import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
 const schema = z.object({
   classLevel: z.string().trim().min(1),
   book: z.string().trim().min(1),
-  chapters: z.array(z.string().trim()).max(60).default([]),
+  chapters: z.array(z.string().trim()).max(80).default([]),
   counts: z.object({
-    mcq: z.number().int().min(0).max(120),
-    short: z.number().int().min(0).max(120),
-    long: z.number().int().min(0).max(60),
+    mcq: z.number().int().min(0).max(400),
+    short: z.number().int().min(0).max(400),
+    long: z.number().int().min(0).max(200),
   }),
   difficulty: z.enum(['easy', 'medium', 'hard', 'mixed']).default('mixed'),
   language: z.enum(['english', 'urdu', 'both']).default('english'),
   mcqOptionsCount: z.number().int().min(2).max(6).default(4),
+  composition: z.array(z.string().trim().max(40)).max(12).nullable().default(null),
+  translation: z.string().trim().max(200).nullable().default(null),
+  statements: z.boolean().default(false),
+  longParts: z.boolean().default(true),
 });
 
 /** Builds a paper from the question bank — no AI, works on every plan. */
@@ -24,9 +28,9 @@ export const generateOfflinePaperFn = createServerFn({ method: 'POST' })
     const ctx = context as { supabase: any; userId: string };
     const { requireActiveSubscription } = await import('./subscription.server');
     await requireActiveSubscription(ctx);
-    const { requireFeature, assertPaperQuota, recordPaper } = await import('./entitlements.server');
-    const ent = await requireFeature(ctx, 'offline_paper');
-    assertPaperQuota(ent);
+    // Bank papers cost no AI credits, so there is no daily limit on them.
+    const { requireFeature, recordPaper } = await import('./entitlements.server');
+    await requireFeature(ctx, 'offline_paper');
 
     const { buildOfflinePaper } = await import('./offlinePaper.server');
     const result = await buildOfflinePaper(ctx, data);

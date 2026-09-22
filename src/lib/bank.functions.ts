@@ -279,57 +279,13 @@ export const bankAiFillFn = createServerFn({ method: 'POST' })
     const total = data.counts.mcq + data.counts.short + data.counts.long;
     if (total < 1) throw new Error('Choose how many questions to create.');
 
-    const { requestQuestions, normalizeQuestions } = await import('./generate.server');
-    const raw = await requestQuestions('', [], {
-      language: data.language,
-      questionType: 'mixed',
-      questionCount: total,
-      difficulty: 'mixed',
-      mcqOptionsCount: data.mcqOptionsCount,
-      typeCounts: data.counts,
-      subject: data.book,
-      chapter: data.chapter,
-      classGroup: data.classLevel,
-      bookName: data.book,
-      rangeLabel: 'Selected Chapters',
-      chapters: [data.chapter],
-      forceUrdu: data.language === 'urdu',
-      instructions:
-        'Create board-exam style questions strictly from this chapter of the Punjab textbook. Include the expected answer or answer points for every question.',
-    });
-    const drafts = normalizeQuestions(raw, { allowDiagrams: false });
-
-    const { fingerprint } = await import('./bank.server');
-    const client = await db();
-
-    const rows = drafts.map((q) => ({
-      class_level: data.classLevel,
+    const { fillChapter } = await import('./bankBulk.server');
+    return await fillChapter(context as Ctx, {
+      classLevel: data.classLevel,
       book: data.book,
       chapter: data.chapter,
-      topic: q.topic ?? data.chapter,
-      question_type: q.question_type,
+      counts: data.counts,
       language: data.language,
-      difficulty: q.difficulty,
-      marks: q.marks,
-      question_text: q.question_text,
-      options: q.options as unknown,
-      correct_answer: q.correct_answer ?? null,
-      expected_answer: q.expected_answer ?? null,
-      answer_points: (q.answer_points ?? null) as unknown,
-      explanation: q.explanation ?? '',
-      fingerprint: fingerprint({
-        class_level: data.classLevel,
-        book: data.book,
-        chapter: data.chapter,
-        question_text: q.question_text,
-      }),
-      created_by: (context as Ctx).userId,
-    }));
-
-    const { data: out } = await client
-      .from('bank_questions')
-      .upsert(rows, { onConflict: 'fingerprint', ignoreDuplicates: true })
-      .select('id');
-
-    return { created: (out ?? []).length, attempted: rows.length };
+      mcqOptionsCount: data.mcqOptionsCount,
+    });
   });
