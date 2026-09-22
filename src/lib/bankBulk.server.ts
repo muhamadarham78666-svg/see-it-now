@@ -6,7 +6,7 @@
  * number of MCQ / short / long questions. Work is done one small batch per
  * call so the job is resumable: state lives in the bank itself, not in memory.
  */
-import { CLASS_GROUPS, type BookEntry, type ClassGroup } from './curriculum';
+import { CLASS_GROUPS, type Book, type ClassGroup } from './curriculum';
 
 type Ctx = { supabase: any; userId: string };
 
