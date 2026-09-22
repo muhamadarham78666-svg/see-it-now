@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useServerFn } from '@tanstack/react-start';
 import {
   Database,
@@ -119,7 +119,7 @@ export function AdminBankPanel() {
     }
     runningRef.current = false;
     setRunning(false);
-    await reloadRef.current?.();
+    await reload();
   };
 
   const stopBulk = () => {
