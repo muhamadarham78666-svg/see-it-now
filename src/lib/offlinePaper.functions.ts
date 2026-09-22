@@ -28,9 +28,9 @@ export const generateOfflinePaperFn = createServerFn({ method: 'POST' })
     const ctx = context as { supabase: any; userId: string };
     const { requireActiveSubscription } = await import('./subscription.server');
     await requireActiveSubscription(ctx);
-    const { requireFeature, assertPaperQuota, recordPaper } = await import('./entitlements.server');
-    const ent = await requireFeature(ctx, 'offline_paper');
-    assertPaperQuota(ent);
+    // Bank papers cost no AI credits, so there is no daily limit on them.
+    const { requireFeature, recordPaper } = await import('./entitlements.server');
+    await requireFeature(ctx, 'offline_paper');
 
     const { buildOfflinePaper } = await import('./offlinePaper.server');
     const result = await buildOfflinePaper(ctx, data);
