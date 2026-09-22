@@ -371,6 +371,10 @@ export function GeneratePage() {
                   difficulty,
                   language: effectiveUrdu ? 'urdu' : language === 'mixed' ? 'both' : 'english',
                   mcqOptionsCount: mcqOptions,
+                  composition: effectiveComposition.length ? effectiveComposition : null,
+                  translation: translation || null,
+                  statements: statements || intent.statements,
+                  longParts: longParts || intent.parts,
                 },
               });
               if (bank.shortfalls.length) {

@@ -21,6 +21,7 @@ import {
   bankQuestionsFn,
   bankSampleCsvFn,
 } from '@/lib/bank.functions';
+import { bankBulkProgressFn, bankBulkStepFn } from '@/lib/bankBulk.functions';
 
 interface BookStat {
   class_level: string;
