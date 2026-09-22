@@ -34,8 +34,8 @@ async function db() {
   return supabaseAdmin as unknown as any;
 }
 
-function scopedBooks(scope: BulkScope): { group: ClassGroup; book: BookEntry }[] {
-  const out: { group: ClassGroup; book: BookEntry }[] = [];
+function scopedBooks(scope: BulkScope): { group: ClassGroup; book: Book }[] {
+  const out: { group: ClassGroup; book: Book }[] = [];
   for (const group of CLASS_GROUPS) {
     if (scope.classLevel && group.classLevel !== scope.classLevel) continue;
     for (const book of group.books) {
