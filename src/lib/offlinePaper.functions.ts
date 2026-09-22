@@ -5,15 +5,19 @@ import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
 const schema = z.object({
   classLevel: z.string().trim().min(1),
   book: z.string().trim().min(1),
-  chapters: z.array(z.string().trim()).max(60).default([]),
+  chapters: z.array(z.string().trim()).max(80).default([]),
   counts: z.object({
-    mcq: z.number().int().min(0).max(120),
-    short: z.number().int().min(0).max(120),
-    long: z.number().int().min(0).max(60),
+    mcq: z.number().int().min(0).max(400),
+    short: z.number().int().min(0).max(400),
+    long: z.number().int().min(0).max(200),
   }),
   difficulty: z.enum(['easy', 'medium', 'hard', 'mixed']).default('mixed'),
   language: z.enum(['english', 'urdu', 'both']).default('english'),
   mcqOptionsCount: z.number().int().min(2).max(6).default(4),
+  composition: z.array(z.string().trim().max(40)).max(12).nullable().default(null),
+  translation: z.string().trim().max(200).nullable().default(null),
+  statements: z.boolean().default(false),
+  longParts: z.boolean().default(true),
 });
 
 /** Builds a paper from the question bank — no AI, works on every plan. */
