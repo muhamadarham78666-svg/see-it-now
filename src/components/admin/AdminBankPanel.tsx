@@ -63,6 +63,70 @@ export function AdminBankPanel() {
   const [counts, setCounts] = useState({ mcq: 10, short: 8, long: 3 });
   const [questions, setQuestions] = useState<any[]>([]);
 
+  // ---- bulk fill (walks the whole syllabus, one small batch at a time) ----
+  const bulkStep = useServerFn(bankBulkStepFn);
+  const bulkProgress = useServerFn(bankBulkProgressFn);
+  const [bulkClass, setBulkClass] = useState('9th');
+  const [bulkBook, setBulkBook] = useState('');
+  const [targets, setTargets] = useState({ mcq: 60, short: 30, long: 12 });
+  const [progress, setProgress] = useState<{
+    chapters: number;
+    chaptersDone: number;
+    questions: number;
+    missing: number;
+  } | null>(null);
+  const [running, setRunning] = useState(false);
+  const runningRef = useRef(false);
+  const [log, setLog] = useState<string[]>([]);
+  const bulkGroup = useMemo(() => CLASS_GROUPS.find((g) => g.classLevel === bulkClass), [bulkClass]);
+
+  const scope = useMemo(
+    () => ({ classLevel: bulkClass, book: bulkBook, targets }),
+    [bulkClass, bulkBook, targets],
+  );
+
+  const checkProgress = async () => {
+    try {
+      setProgress(await bulkProgress({ data: scope }));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not read progress.');
+    }
+  };
+
+  const startBulk = async () => {
+    setError('');
+    setLog([]);
+    runningRef.current = true;
+    setRunning(true);
+    while (runningRef.current) {
+      try {
+        const res = await bulkStep({ data: scope });
+        setProgress(res.progress);
+        if (res.done) {
+          setLog((l) => ['All chapters in this scope have reached their targets.', ...l].slice(0, 60));
+          break;
+        }
+        const c = res.current!;
+        setLog((l) =>
+          [`${c.classLevel} • ${c.book} • ${c.chapter} → +${res.created} saved`, ...l].slice(0, 60),
+        );
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : 'Generation stopped.';
+        setError(msg);
+        setLog((l) => [`Stopped: ${msg}`, ...l].slice(0, 60));
+        break;
+      }
+    }
+    runningRef.current = false;
+    setRunning(false);
+    await reloadRef.current?.();
+  };
+
+  const stopBulk = () => {
+    runningRef.current = false;
+    setRunning(false);
+  };
+
   const reload = useCallback(async () => {
     try {
       setStats(await overview({ data: {} as never }));
