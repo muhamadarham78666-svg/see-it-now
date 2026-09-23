@@ -14,7 +14,8 @@
  */
 
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
-const GEMINI_MODEL = "gemini-3.6-flash";
+/** Tried in order; the first one handles large batches best. */
+const GEMINI_MODELS = ["gemini-flash-latest", "gemini-3.6-flash"] as const;
 const LOVABLE_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
 const KEY_NAMES = ["zain", "zain2", "zain3"] as const;
@@ -134,31 +135,46 @@ function toOpenAiResponse(json: unknown): Response {
 export async function aiChatFetch(body: Record<string, unknown>): Promise<Response> {
   const keys = geminiKeys();
   const payload = JSON.stringify(toGeminiBody(body));
-  const url = `${GEMINI_BASE}/${GEMINI_MODEL}:generateContent`;
 
   let lastStatus = 0;
   let lastDetail = "";
+  let hardStop = false;
 
-  for (let i = 0; i < keys.length; i++) {
-    const index = (cursor + i) % keys.length;
-    try {
-      const res = await fetch(`${url}?key=${encodeURIComponent(keys[index]!)}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: payload,
-      });
-      if (res.ok) {
-        cursor = index;
-        return toOpenAiResponse(await res.json());
+  // Every model is tried with every key, twice (Google often answers 503 on a
+  // busy moment), before the paid backup is considered.
+  const attempts: { model: string; wait: number }[] = [];
+  for (const model of GEMINI_MODELS) attempts.push({ model, wait: 0 });
+  for (const model of GEMINI_MODELS) attempts.push({ model, wait: 4000 });
+
+  for (const attempt of attempts) {
+    if (hardStop) break;
+    const model = attempt.model;
+    if (attempt.wait) await new Promise((r) => setTimeout(r, attempt.wait));
+    const url = `${GEMINI_BASE}/${model}:generateContent`;
+    for (let i = 0; i < keys.length; i++) {
+      const index = (cursor + i) % keys.length;
+      try {
+        const res = await fetch(`${url}?key=${encodeURIComponent(keys[index]!)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: payload,
+        });
+        if (res.ok) {
+          cursor = index;
+          return toOpenAiResponse(await res.json());
+        }
+        lastStatus = res.status;
+        lastDetail = await res.text().catch(() => "");
+        console.error("[ai-keys]", model, "key", index + 1, "failed", res.status, lastDetail.slice(0, 160));
+        if (!rotatable(res.status) && !/api[_ ]?key/i.test(lastDetail)) {
+          hardStop = true;
+          break;
+        }
+      } catch (err) {
+        lastStatus = 503;
+        lastDetail = err instanceof Error ? err.message : "network error";
+        console.error("[ai-keys]", model, "key", index + 1, "network error", lastDetail);
       }
-      lastStatus = res.status;
-      lastDetail = await res.text().catch(() => "");
-      console.error("[ai-keys] key", index + 1, "failed", res.status, lastDetail.slice(0, 200));
-      if (!rotatable(res.status) && !/api[_ ]?key/i.test(lastDetail)) break;
-    } catch (err) {
-      lastStatus = 503;
-      lastDetail = err instanceof Error ? err.message : "network error";
-      console.error("[ai-keys] key", index + 1, "network error", lastDetail);
     }
   }
 
