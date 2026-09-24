@@ -53,4 +53,6 @@
 
 ## Email & AI keys
 - [x] Own Gemini API keys (zain/zain2/zain3) used for every AI feature, incl. PDF/image uploads; Lovable credits only when all keys are out of quota
+- [x] Question Bank bulk fill is free-only, database-resumable, hourly auto-retrying, and never spends Lovable credits
+- [ ] Add optional free-key slots zain4 and zain5 (waiting for provider-issued keys)
 - [x] Branded email setup on zain.nsagpt.org (auth + transactional templates) — waiting on DNS verification

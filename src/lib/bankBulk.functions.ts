@@ -46,3 +46,38 @@ export const bankBulkStepFn = createServerFn({ method: 'POST' })
     const { bulkStep } = await import('./bankBulk.server');
     return await bulkStep(context as Ctx, data);
   });
+
+export const bankBulkJobFn = createServerFn({ method: 'GET' })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context as Ctx);
+    const { latestBulkJob } = await import('./bankBulk.server');
+    return await latestBulkJob();
+  });
+
+export const bankBulkStartFn = createServerFn({ method: 'POST' })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => scopeSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context as Ctx);
+    const { startBulkJob } = await import('./bankBulk.server');
+    return await startBulkJob((context as Ctx).userId, data);
+  });
+
+export const bankBulkPauseFn = createServerFn({ method: 'POST' })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context as Ctx);
+    const { pauseBulkJob } = await import('./bankBulk.server');
+    return await pauseBulkJob(data.id);
+  });
+
+export const bankBulkRunFn = createServerFn({ method: 'POST' })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context as Ctx);
+    const { runBulkJob } = await import('./bankBulk.server');
+    return await runBulkJob(data.id);
+  });

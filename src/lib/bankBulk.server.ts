@@ -80,6 +80,182 @@ export interface BulkProgress {
   missing: number;
 }
 
+export type BulkJobStatus = 'running' | 'waiting' | 'paused' | 'completed' | 'blocked';
+
+export interface BulkJob {
+  id: string;
+  status: BulkJobStatus;
+  scope: BulkScope;
+  progress: BulkProgress;
+  nextRetryAt: string | null;
+  lastMessage: string;
+  lastChapter: string;
+  updatedAt: string;
+}
+
+function asJob(row: any): BulkJob {
+  return {
+    id: String(row.id),
+    status: row.status as BulkJobStatus,
+    scope: {
+      classLevel: String(row.class_level ?? ''),
+      book: String(row.book ?? ''),
+      targets: (row.targets ?? { mcq: 60, short: 30, long: 12 }) as BulkTargets,
+    },
+    progress: (row.progress ?? { chapters: 0, chaptersDone: 0, questions: 0, missing: 0 }) as BulkProgress,
+    nextRetryAt: row.next_retry_at ? String(row.next_retry_at) : null,
+    lastMessage: String(row.last_message ?? ''),
+    lastChapter: String(row.last_chapter ?? ''),
+    updatedAt: String(row.updated_at),
+  };
+}
+
+export async function latestBulkJob(): Promise<BulkJob | null> {
+  const client = await db();
+  const { data, error } = await client
+    .from('bank_bulk_jobs')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error('Could not read the bulk-fill status.');
+  return data ? asJob(data) : null;
+}
+
+export async function startBulkJob(userId: string, scope: BulkScope): Promise<BulkJob> {
+  const client = await db();
+  const progress = await bulkProgress(scope);
+  const { data: active } = await client
+    .from('bank_bulk_jobs')
+    .select('id')
+    .in('status', ['running', 'waiting'])
+    .limit(1)
+    .maybeSingle();
+
+  if (active?.id) {
+    const { data, error } = await client
+      .from('bank_bulk_jobs')
+      .update({
+        status: 'running',
+        class_level: scope.classLevel,
+        book: scope.book,
+        targets: scope.targets,
+        progress,
+        next_retry_at: null,
+        lease_until: null,
+        last_message: 'Free-only filling is ready.',
+      })
+      .eq('id', active.id)
+      .select('*')
+      .single();
+    if (error || !data) throw new Error('Could not resume the bulk-fill job.');
+    return asJob(data);
+  }
+
+  const { data, error } = await client
+    .from('bank_bulk_jobs')
+    .insert({
+      created_by: userId,
+      status: 'running',
+      class_level: scope.classLevel,
+      book: scope.book,
+      targets: scope.targets,
+      progress,
+      last_message: 'Free-only filling started.',
+    })
+    .select('*')
+    .single();
+  if (error || !data) throw new Error('Could not start the bulk-fill job.');
+  return asJob(data);
+}
+
+export async function pauseBulkJob(jobId: string): Promise<BulkJob> {
+  const client = await db();
+  const { data, error } = await client
+    .from('bank_bulk_jobs')
+    .update({ status: 'paused', next_retry_at: null, lease_until: null, last_message: 'Paused safely.' })
+    .eq('id', jobId)
+    .select('*')
+    .single();
+  if (error || !data) throw new Error('Could not pause the bulk-fill job.');
+  return asJob(data);
+}
+
+function waitUntil(seconds: number) {
+  return new Date(Date.now() + Math.max(60, Math.min(seconds, 86_400)) * 1000).toISOString();
+}
+
+export async function runBulkJob(jobId?: string): Promise<BulkJob | null> {
+  const client = await db();
+  let query = client.from('bank_bulk_jobs').select('*');
+  query = jobId
+    ? query.eq('id', jobId)
+    : query.in('status', ['running', 'waiting']).order('created_at', { ascending: true }).limit(1);
+  const { data: row, error } = await query.maybeSingle();
+  if (error) throw new Error('Could not read the bulk-fill job.');
+  if (!row) return null;
+
+  if (row.status === 'waiting' && row.next_retry_at && new Date(row.next_retry_at).getTime() > Date.now()) {
+    return asJob(row);
+  }
+  if (!['running', 'waiting'].includes(row.status)) return asJob(row);
+
+  const { data: claimed } = await client.rpc('claim_bank_bulk_job', { _job_id: row.id, _lease_seconds: 300 });
+  if (!claimed) return asJob(row);
+
+  const scope: BulkScope = {
+    classLevel: String(row.class_level ?? ''),
+    book: String(row.book ?? ''),
+    targets: row.targets as BulkTargets,
+  };
+
+  try {
+    const result = await bulkStep({ supabase: client, userId: row.created_by }, scope);
+    const current = result.current
+      ? `${result.current.classLevel} • ${result.current.book} • ${result.current.chapter}`
+      : row.last_chapter;
+    const { data } = await client
+      .from('bank_bulk_jobs')
+      .update({
+        status: result.done ? 'completed' : 'running',
+        progress: result.progress,
+        next_retry_at: null,
+        lease_until: null,
+        consecutive_failures: 0,
+        last_chapter: current,
+        last_message: result.done
+          ? 'All selected chapters reached their targets.'
+          : `${result.created} new questions saved.`,
+      })
+      .eq('id', row.id)
+      .select('*')
+      .single();
+    return data ? asJob(data) : null;
+  } catch (caught) {
+    const message = caught instanceof Error ? caught.message : '';
+    const waitMatch = /^FREE_QUOTA_WAIT:(\d+)$/.exec(message);
+    const blocked = message === 'FREE_PROVIDER_BLOCKED' || !waitMatch;
+    const retrySeconds = waitMatch ? Number(waitMatch[1]) : 3600;
+    const status: BulkJobStatus = blocked ? 'blocked' : 'waiting';
+    const safeMessage = blocked
+      ? 'Free AI needs attention. Saved progress is safe.'
+      : 'Paid credits are protected. Free AI is resting and will resume automatically.';
+    const { data } = await client
+      .from('bank_bulk_jobs')
+      .update({
+        status,
+        next_retry_at: blocked ? null : waitUntil(retrySeconds),
+        lease_until: null,
+        consecutive_failures: Number(row.consecutive_failures ?? 0) + 1,
+        last_message: safeMessage,
+      })
+      .eq('id', row.id)
+      .select('*')
+      .single();
+    return data ? asJob(data) : null;
+  }
+}
+
 /** How far the whole scope is from its targets. */
 export async function bulkProgress(scope: BulkScope): Promise<BulkProgress> {
   const map = await coverage(scope);
@@ -176,7 +352,7 @@ export async function fillChapter(
     composition: composition && input.counts.long > 0 ? composition.slice(0, 3) : null,
     instructions:
       'Create board-exam style questions strictly from this chapter of the Punjab textbook. Cover the whole chapter, avoid repeating wording, and always include the expected answer or answer points.',
-  });
+  }, { freeOnly: true });
 
   const drafts = normalizeQuestions(raw, { allowDiagrams: false });
   if (!drafts.length) return { created: 0, attempted: 0 };

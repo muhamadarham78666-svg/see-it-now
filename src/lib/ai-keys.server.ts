@@ -2,7 +2,7 @@
  * Multi-key AI transport.
  *
  * NSAGPT talks to Google Gemini with the API keys stored as secrets
- * `zain`, `zain2`, `zain3`. The keys are tried in turn: if one is exhausted,
+ * `zain` through `zain5`. The keys are tried in turn: if one is exhausted,
  * rate limited or invalid, the next one is used automatically.
  *
  * Requests are sent to Gemini's native endpoint (not the OpenAI-compatible
@@ -18,7 +18,7 @@ const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 const GEMINI_MODELS = ["gemini-flash-latest", "gemini-3.6-flash"] as const;
 const LOVABLE_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
-const KEY_NAMES = ["zain", "zain2", "zain3"] as const;
+const KEY_NAMES = ["zain", "zain2", "zain3", "zain4", "zain5"] as const;
 
 /** Remembers the key that last worked so we don't retry a dead key every time. */
 let cursor = 0;
@@ -41,6 +41,29 @@ function geminiKeys(): string[] {
 
 export function aiKeyCount(): number {
   return geminiKeys().length;
+}
+
+export interface AiChatOptions {
+  /** Never spend Lovable credits. Used by Question Bank population jobs. */
+  freeOnly?: boolean;
+}
+
+function retryAfterSeconds(response: Response): number {
+  const raw = response.headers.get("retry-after");
+  const seconds = raw ? Number(raw) : Number.NaN;
+  return Number.isFinite(seconds) && seconds > 0 ? Math.ceil(seconds) : 3600;
+}
+
+function freeQuotaResponse(retryAfter: number, detail: string): Response {
+  return Response.json(
+    {
+      type: "free_quota_wait",
+      retryAfter,
+      message: "Free AI is resting. Saved progress is safe and filling will resume automatically.",
+      detail,
+    },
+    { status: 429, headers: { "Retry-After": String(retryAfter) } },
+  );
 }
 
 type Part = Record<string, unknown>;
@@ -132,19 +155,25 @@ function toOpenAiResponse(json: unknown): Response {
  * Same shape as an OpenAI chat completion call: returns a Response for the
  * first key that answers successfully, otherwise the last failure.
  */
-export async function aiChatFetch(body: Record<string, unknown>): Promise<Response> {
+export async function aiChatFetch(
+  body: Record<string, unknown>,
+  options: AiChatOptions = {},
+): Promise<Response> {
   const keys = geminiKeys();
   const payload = JSON.stringify(toGeminiBody(body));
 
   let lastStatus = 0;
   let lastDetail = "";
+  let retryAfter = 3600;
   let hardStop = false;
 
   // Every model is tried with every key, twice (Google often answers 503 on a
   // busy moment), before the paid backup is considered.
   const attempts: { model: string; wait: number }[] = [];
   for (const model of GEMINI_MODELS) attempts.push({ model, wait: 0 });
-  for (const model of GEMINI_MODELS) attempts.push({ model, wait: 4000 });
+  if (!options.freeOnly) {
+    for (const model of GEMINI_MODELS) attempts.push({ model, wait: 4000 });
+  }
 
   for (const attempt of attempts) {
     if (hardStop) break;
@@ -164,6 +193,7 @@ export async function aiChatFetch(body: Record<string, unknown>): Promise<Respon
           return toOpenAiResponse(await res.json());
         }
         lastStatus = res.status;
+        if (res.status === 429) retryAfter = Math.max(retryAfter, retryAfterSeconds(res));
         lastDetail = await res.text().catch(() => "");
         console.error("[ai-keys]", model, "key", index + 1, "failed", res.status, lastDetail.slice(0, 160));
         if (!rotatable(res.status) && !/api[_ ]?key/i.test(lastDetail)) {
@@ -176,6 +206,23 @@ export async function aiChatFetch(body: Record<string, unknown>): Promise<Respon
         console.error("[ai-keys]", model, "key", index + 1, "network error", lastDetail);
       }
     }
+  }
+
+  if (options.freeOnly) {
+    const hasKeys = keys.length > 0;
+    const permanent = lastStatus === 400 || lastStatus === 401 || lastStatus === 403 || lastStatus === 404;
+    if (!hasKeys || permanent) {
+      return Response.json(
+        {
+          type: "free_provider_blocked",
+          message: hasKeys
+            ? "Free AI needs attention before Question Bank filling can continue."
+            : "Add a free AI key before Question Bank filling can continue.",
+        },
+        { status: 403 },
+      );
+    }
+    return freeQuotaResponse(retryAfter, lastDetail.slice(0, 160));
   }
 
   // Paid backup only when the free keys are truly out of quota / unreachable.

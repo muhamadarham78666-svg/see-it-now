@@ -104,6 +104,75 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_bulk_jobs: {
+        Row: {
+          book: string
+          class_level: string
+          consecutive_failures: number
+          created_at: string
+          created_by: string
+          id: string
+          last_chapter: string
+          last_message: string
+          lease_until: string | null
+          next_retry_at: string | null
+          progress: Json
+          status: string
+          targets: Json
+          updated_at: string
+        }
+        Insert: {
+          book?: string
+          class_level?: string
+          consecutive_failures?: number
+          created_at?: string
+          created_by: string
+          id?: string
+          last_chapter?: string
+          last_message?: string
+          lease_until?: string | null
+          next_retry_at?: string | null
+          progress?: Json
+          status?: string
+          targets?: Json
+          updated_at?: string
+        }
+        Update: {
+          book?: string
+          class_level?: string
+          consecutive_failures?: number
+          created_at?: string
+          created_by?: string
+          id?: string
+          last_chapter?: string
+          last_message?: string
+          lease_until?: string | null
+          next_retry_at?: string | null
+          progress?: Json
+          status?: string
+          targets?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      bank_bulk_scheduler_keys: {
+        Row: {
+          created_at: string
+          id: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          token?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          token?: string
+        }
+        Relationships: []
+      }
       bank_imports: {
         Row: {
           book: string
@@ -1244,6 +1313,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_bank_bulk_job: {
+        Args: { _job_id: string; _lease_seconds?: number }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useServerFn } from '@tanstack/react-start';
 import {
   Database,
   Download,
   Loader2,
+  Pause,
+  Play,
   RefreshCw,
   Sparkles,
   Trash2,
@@ -21,7 +23,24 @@ import {
   bankQuestionsFn,
   bankSampleCsvFn,
 } from '@/lib/bank.functions';
-import { bankBulkProgressFn, bankBulkStepFn } from '@/lib/bankBulk.functions';
+import {
+  bankBulkJobFn,
+  bankBulkPauseFn,
+  bankBulkProgressFn,
+  bankBulkRunFn,
+  bankBulkStartFn,
+} from '@/lib/bankBulk.functions';
+
+interface BulkJob {
+  id: string;
+  status: 'running' | 'waiting' | 'paused' | 'completed' | 'blocked';
+  scope: { classLevel: string; book: string; targets: { mcq: number; short: number; long: number } };
+  progress: { chapters: number; chaptersDone: number; questions: number; missing: number };
+  nextRetryAt: string | null;
+  lastMessage: string;
+  lastChapter: string;
+  updatedAt: string;
+}
 
 interface BookStat {
   class_level: string;
@@ -64,8 +83,11 @@ export function AdminBankPanel() {
   const [questions, setQuestions] = useState<any[]>([]);
 
   // ---- bulk fill (walks the whole syllabus, one small batch at a time) ----
-  const bulkStep = useServerFn(bankBulkStepFn);
   const bulkProgress = useServerFn(bankBulkProgressFn);
+  const getBulkJob = useServerFn(bankBulkJobFn);
+  const startBulkJob = useServerFn(bankBulkStartFn);
+  const pauseBulkJob = useServerFn(bankBulkPauseFn);
+  const runBulkJob = useServerFn(bankBulkRunFn);
   const [bulkClass, setBulkClass] = useState('9th');
   const [bulkBook, setBulkBook] = useState('');
   const [targets, setTargets] = useState({ mcq: 60, short: 30, long: 12 });
@@ -76,7 +98,8 @@ export function AdminBankPanel() {
     missing: number;
   } | null>(null);
   const [running, setRunning] = useState(false);
-  const runningRef = useRef(false);
+  const [job, setJob] = useState<BulkJob | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   const [log, setLog] = useState<string[]>([]);
   const bulkGroup = useMemo(() => CLASS_GROUPS.find((g) => g.classLevel === bulkClass), [bulkClass]);
 
@@ -95,36 +118,53 @@ export function AdminBankPanel() {
 
   const startBulk = async () => {
     setError('');
-    setLog([]);
-    runningRef.current = true;
     setRunning(true);
-    while (runningRef.current) {
-      try {
-        const res = await bulkStep({ data: scope });
-        setProgress(res.progress);
-        if (res.done) {
-          setLog((l) => ['All chapters in this scope have reached their targets.', ...l].slice(0, 60));
-          break;
-        }
-        const c = res.current!;
-        setLog((l) =>
-          [`${c.classLevel} • ${c.book} • ${c.chapter} → +${res.created} saved`, ...l].slice(0, 60),
-        );
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Generation stopped.';
-        setError(msg);
-        setLog((l) => [`Stopped: ${msg}`, ...l].slice(0, 60));
-        break;
+    try {
+      const started = await startBulkJob({ data: scope });
+      setJob(started);
+      setProgress(started.progress);
+      const stepped = await runBulkJob({ data: { id: started.id } });
+      if (stepped) {
+        setJob(stepped);
+        setProgress(stepped.progress);
+        setLog((lines) => [stepped.lastMessage, ...lines].slice(0, 20));
       }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not start filling.');
     }
-    runningRef.current = false;
     setRunning(false);
     await reload();
   };
 
-  const stopBulk = () => {
-    runningRef.current = false;
+  const stopBulk = async () => {
+    if (!job) return;
+    setRunning(true);
+    try {
+      const paused = await pauseBulkJob({ data: { id: job.id } });
+      setJob(paused);
+      setProgress(paused.progress);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not pause filling.');
+    }
     setRunning(false);
+  };
+
+  const runNow = async () => {
+    if (!job) return;
+    setRunning(true);
+    setError('');
+    try {
+      const next = await runBulkJob({ data: { id: job.id } });
+      if (next) {
+        setJob(next);
+        setProgress(next.progress);
+        setLog((lines) => [next.lastMessage, ...lines].slice(0, 20));
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not run this step.');
+    }
+    setRunning(false);
+    await reload();
   };
 
   const reload = useCallback(async () => {
@@ -138,6 +178,20 @@ export function AdminBankPanel() {
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  useEffect(() => {
+    void getBulkJob().then((saved) => {
+      setJob(saved);
+      if (saved) {
+        setProgress(saved.progress);
+        setBulkClass(saved.scope.classLevel);
+        setBulkBook(saved.scope.book);
+        setTargets(saved.scope.targets);
+      }
+    }).catch(() => undefined);
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [getBulkJob]);
 
   useEffect(() => {
     setBookName(group?.books[0]?.name ?? '');
@@ -206,6 +260,27 @@ export function AdminBankPanel() {
       a.click();
       URL.revokeObjectURL(url);
     });
+
+  const retryMs = job?.nextRetryAt ? Math.max(0, new Date(job.nextRetryAt).getTime() - now) : 0;
+  const retryHours = Math.floor(retryMs / 3_600_000);
+  const retryMinutes = Math.floor((retryMs % 3_600_000) / 60_000);
+  const retrySeconds = Math.floor((retryMs % 60_000) / 1000);
+  const statusLabel = job?.status === 'running'
+    ? 'Ready'
+    : job?.status === 'waiting'
+      ? 'Free AI resting'
+      : job?.status === 'completed'
+        ? 'Completed'
+        : job?.status === 'blocked'
+          ? 'Needs attention'
+          : 'Paused';
+  const statusVariant = job?.status === 'completed'
+    ? 'success'
+    : job?.status === 'waiting'
+      ? 'warning'
+      : job?.status === 'blocked'
+        ? 'error'
+        : 'primary';
 
   return (
     <div className="space-y-5">
@@ -371,7 +446,7 @@ export function AdminBankPanel() {
         <div className="flex items-center gap-2">
           <Sparkles size={17} className="text-primary-500" />
           <h4 className="font-display font-semibold text-slate-900 dark:text-white">Bulk fill the whole syllabus</h4>
-          {running && <Badge variant="primary">Running…</Badge>}
+          {job && <Badge variant={statusVariant}>{statusLabel}</Badge>}
         </div>
         <p className="text-sm text-slate-500 dark:text-slate-400">
           Fills every chapter of the chosen scope up to the targets below, one chapter at a time. It only
@@ -415,13 +490,18 @@ export function AdminBankPanel() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {!running ? (
-            <button onClick={() => void startBulk()} className="btn-primary text-sm">
-              <Sparkles size={14} /> Start bulk fill
+          {job && ['running', 'waiting'].includes(job.status) ? (
+            <button disabled={running} onClick={() => void stopBulk()} className="btn-secondary text-sm disabled:opacity-60">
+              {running ? <Loader2 size={14} className="animate-spin" /> : <Pause size={14} />} Pause safely
             </button>
           ) : (
-            <button onClick={stopBulk} className="btn-secondary text-sm">
-              <Loader2 size={14} className="animate-spin" /> Stop
+            <button disabled={running} onClick={() => void startBulk()} className="btn-primary text-sm disabled:opacity-60">
+              {running ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />} {job ? 'Resume bulk fill' : 'Start bulk fill'}
+            </button>
+          )}
+          {job && job.status !== 'completed' && (
+            <button disabled={running || job.status === 'blocked'} onClick={() => void runNow()} className="btn-secondary text-sm disabled:opacity-60">
+              <Sparkles size={14} /> Run one step now
             </button>
           )}
           <button onClick={() => void checkProgress()} className="btn-secondary text-sm">
@@ -442,6 +522,28 @@ export function AdminBankPanel() {
                   width: `${progress.chapters ? Math.round((progress.chaptersDone / progress.chapters) * 100) : 0}%`,
                 }}
               />
+            </div>
+          </div>
+        )}
+
+        {job && (
+          <div className="rounded-xl border border-primary-200 bg-primary-50 p-4 dark:border-primary-800 dark:bg-primary-950/30">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary-100 text-primary-700 dark:bg-primary-900/60 dark:text-primary-300">
+                {job.status === 'waiting' ? <RefreshCw size={17} className="animate-spin" /> : <Sparkles size={17} />}
+              </div>
+              <div className="min-w-0">
+                <p className="font-medium text-slate-900 dark:text-white">{job.lastMessage}</p>
+                {job.status === 'waiting' && job.nextRetryAt && (
+                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                    Next automatic attempt in {retryHours > 0 ? `${retryHours}h ` : ''}{retryMinutes}m {retrySeconds}s
+                  </p>
+                )}
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  Paid credits stay protected. Your saved questions and progress are safe.
+                </p>
+                {job.lastChapter && <p className="mt-2 truncate text-xs text-slate-500 dark:text-slate-400">Last: {job.lastChapter}</p>}
+              </div>
             </div>
           </div>
         )}
