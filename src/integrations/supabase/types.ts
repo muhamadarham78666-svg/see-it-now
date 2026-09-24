@@ -1313,6 +1313,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_bank_bulk_job: {
+        Args: { _job_id: string; _lease_seconds?: number }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
