@@ -171,7 +171,9 @@ export async function aiChatFetch(
   // busy moment), before the paid backup is considered.
   const attempts: { model: string; wait: number }[] = [];
   for (const model of GEMINI_MODELS) attempts.push({ model, wait: 0 });
-  for (const model of GEMINI_MODELS) attempts.push({ model, wait: 4000 });
+  if (!options.freeOnly) {
+    for (const model of GEMINI_MODELS) attempts.push({ model, wait: 4000 });
+  }
 
   for (const attempt of attempts) {
     if (hardStop) break;

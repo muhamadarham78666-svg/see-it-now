@@ -30,7 +30,17 @@ import {
   bankBulkRunFn,
   bankBulkStartFn,
 } from '@/lib/bankBulk.functions';
-import type { BulkJob } from '@/lib/bankBulk.server';
+
+interface BulkJob {
+  id: string;
+  status: 'running' | 'waiting' | 'paused' | 'completed' | 'blocked';
+  scope: { classLevel: string; book: string; targets: { mcq: number; short: number; long: number } };
+  progress: { chapters: number; chaptersDone: number; questions: number; missing: number };
+  nextRetryAt: string | null;
+  lastMessage: string;
+  lastChapter: string;
+  updatedAt: string;
+}
 
 interface BookStat {
   class_level: string;

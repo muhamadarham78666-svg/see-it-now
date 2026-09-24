@@ -234,7 +234,7 @@ export async function runBulkJob(jobId?: string): Promise<BulkJob | null> {
   } catch (caught) {
     const message = caught instanceof Error ? caught.message : '';
     const waitMatch = /^FREE_QUOTA_WAIT:(\d+)$/.exec(message);
-    const blocked = message === 'FREE_PROVIDER_BLOCKED';
+    const blocked = message === 'FREE_PROVIDER_BLOCKED' || !waitMatch;
     const retrySeconds = waitMatch ? Number(waitMatch[1]) : 3600;
     const status: BulkJobStatus = blocked ? 'blocked' : 'waiting';
     const safeMessage = blocked
