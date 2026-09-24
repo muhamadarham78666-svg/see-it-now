@@ -239,6 +239,7 @@ export async function requestQuestions(
   text: string,
   attachments: GenAttachment[],
   settings: GenSettings,
+  options: { freeOnly?: boolean } = {},
 ): Promise<Record<string, unknown>[]> {
   const body = {
     model: MODEL,
@@ -249,7 +250,7 @@ export async function requestQuestions(
   let lastError = "";
   let sawEmpty = false;
   for (let attempt = 0; attempt < 3; attempt++) {
-    const res = await aiChatFetch(body);
+    const res = await aiChatFetch(body, options);
 
     if (res.ok) {
       const json = (await res.json()) as {
@@ -287,8 +288,12 @@ export async function requestQuestions(
     }
 
     lastError = await res.text().catch(() => "");
-    if (res.status === 429)
-      throw new Error("AI rate limit reached. Please wait a moment and try again.");
+    if (res.status === 429) {
+      const retryAfter = Number(res.headers.get('retry-after') ?? '3600');
+      throw new Error(`FREE_QUOTA_WAIT:${Number.isFinite(retryAfter) ? retryAfter : 3600}`);
+    }
+    if (options.freeOnly && res.status === 403)
+      throw new Error("FREE_PROVIDER_BLOCKED");
     if (res.status === 402 || res.status === 403)
       throw new Error(`AI is unavailable: ${lastError.slice(0, 200)}`);
     if (res.status < 500) break;

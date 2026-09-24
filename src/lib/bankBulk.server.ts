@@ -176,7 +176,7 @@ export async function fillChapter(
     composition: composition && input.counts.long > 0 ? composition.slice(0, 3) : null,
     instructions:
       'Create board-exam style questions strictly from this chapter of the Punjab textbook. Cover the whole chapter, avoid repeating wording, and always include the expected answer or answer points.',
-  });
+  }, { freeOnly: true });
 
   const drafts = normalizeQuestions(raw, { allowDiagrams: false });
   if (!drafts.length) return { created: 0, attempted: 0 };
