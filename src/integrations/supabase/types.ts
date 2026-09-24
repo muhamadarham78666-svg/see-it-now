@@ -155,6 +155,24 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_bulk_scheduler_keys: {
+        Row: {
+          created_at: string
+          id: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          token?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          token?: string
+        }
+        Relationships: []
+      }
       bank_imports: {
         Row: {
           book: string
