@@ -31,6 +31,7 @@ import { Route as DashboardNotesRouteImport } from './routes/dashboard.notes'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardSolverRouteImport } from './routes/dashboard.solver'
 import { Route as DashboardSupportRouteImport } from './routes/dashboard.support'
+import { Route as ApiPublicBankBulkResumeRouteImport } from './routes/api/public/bank-bulk-resume'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -145,6 +146,11 @@ const DashboardSupportRoute = DashboardSupportRouteImport.update({
   path: '/support',
   getParentRoute: () => DashboardRoute,
 } as any)
+const ApiPublicBankBulkResumeRoute = ApiPublicBankBulkResumeRouteImport.update({
+  id: '/api/public/bank-bulk-resume',
+  path: '/api/public/bank-bulk-resume',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   id: '/lovable/email/auth/preview',
   path: '/lovable/email/auth/preview',
@@ -185,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/support': typeof DashboardSupportRoute
   '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/api/public/bank-bulk-resume': typeof ApiPublicBankBulkResumeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -211,6 +218,7 @@ export interface FileRoutesByTo {
   '/dashboard/support': typeof DashboardSupportRoute
   '/blog': typeof BlogIndexRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/api/public/bank-bulk-resume': typeof ApiPublicBankBulkResumeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -239,6 +247,7 @@ export interface FileRoutesById {
   '/dashboard/support': typeof DashboardSupportRoute
   '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/api/public/bank-bulk-resume': typeof ApiPublicBankBulkResumeRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -268,6 +277,7 @@ export interface FileRouteTypes {
     | '/dashboard/support'
     | '/blog/'
     | '/dashboard/'
+    | '/api/public/bank-bulk-resume'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -294,6 +304,7 @@ export interface FileRouteTypes {
     | '/dashboard/support'
     | '/blog'
     | '/dashboard'
+    | '/api/public/bank-bulk-resume'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -321,6 +332,7 @@ export interface FileRouteTypes {
     | '/dashboard/support'
     | '/blog/'
     | '/dashboard/'
+    | '/api/public/bank-bulk-resume'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -339,6 +351,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   BlogSlugRoute: typeof BlogSlugRoute
   BlogIndexRoute: typeof BlogIndexRoute
+  ApiPublicBankBulkResumeRoute: typeof ApiPublicBankBulkResumeRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -500,6 +513,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSupportRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/api/public/bank-bulk-resume': {
+      id: '/api/public/bank-bulk-resume'
+      path: '/api/public/bank-bulk-resume'
+      fullPath: '/api/public/bank-bulk-resume'
+      preLoaderRoute: typeof ApiPublicBankBulkResumeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/auth/preview': {
       id: '/lovable/email/auth/preview'
       path: '/lovable/email/auth/preview'
@@ -567,6 +587,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   BlogSlugRoute: BlogSlugRoute,
   BlogIndexRoute: BlogIndexRoute,
+  ApiPublicBankBulkResumeRoute: ApiPublicBankBulkResumeRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,

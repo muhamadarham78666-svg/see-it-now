@@ -4,6 +4,8 @@ import {
   Database,
   Download,
   Loader2,
+  Pause,
+  Play,
   RefreshCw,
   Sparkles,
   Trash2,
@@ -21,7 +23,14 @@ import {
   bankQuestionsFn,
   bankSampleCsvFn,
 } from '@/lib/bank.functions';
-import { bankBulkProgressFn, bankBulkStepFn } from '@/lib/bankBulk.functions';
+import {
+  bankBulkJobFn,
+  bankBulkPauseFn,
+  bankBulkProgressFn,
+  bankBulkRunFn,
+  bankBulkStartFn,
+} from '@/lib/bankBulk.functions';
+import type { BulkJob } from '@/lib/bankBulk.server';
 
 interface BookStat {
   class_level: string;
@@ -64,8 +73,11 @@ export function AdminBankPanel() {
   const [questions, setQuestions] = useState<any[]>([]);
 
   // ---- bulk fill (walks the whole syllabus, one small batch at a time) ----
-  const bulkStep = useServerFn(bankBulkStepFn);
   const bulkProgress = useServerFn(bankBulkProgressFn);
+  const getBulkJob = useServerFn(bankBulkJobFn);
+  const startBulkJob = useServerFn(bankBulkStartFn);
+  const pauseBulkJob = useServerFn(bankBulkPauseFn);
+  const runBulkJob = useServerFn(bankBulkRunFn);
   const [bulkClass, setBulkClass] = useState('9th');
   const [bulkBook, setBulkBook] = useState('');
   const [targets, setTargets] = useState({ mcq: 60, short: 30, long: 12 });
@@ -76,7 +88,8 @@ export function AdminBankPanel() {
     missing: number;
   } | null>(null);
   const [running, setRunning] = useState(false);
-  const runningRef = useRef(false);
+  const [job, setJob] = useState<BulkJob | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   const [log, setLog] = useState<string[]>([]);
   const bulkGroup = useMemo(() => CLASS_GROUPS.find((g) => g.classLevel === bulkClass), [bulkClass]);
 
@@ -95,36 +108,53 @@ export function AdminBankPanel() {
 
   const startBulk = async () => {
     setError('');
-    setLog([]);
-    runningRef.current = true;
     setRunning(true);
-    while (runningRef.current) {
-      try {
-        const res = await bulkStep({ data: scope });
-        setProgress(res.progress);
-        if (res.done) {
-          setLog((l) => ['All chapters in this scope have reached their targets.', ...l].slice(0, 60));
-          break;
-        }
-        const c = res.current!;
-        setLog((l) =>
-          [`${c.classLevel} • ${c.book} • ${c.chapter} → +${res.created} saved`, ...l].slice(0, 60),
-        );
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Generation stopped.';
-        setError(msg);
-        setLog((l) => [`Stopped: ${msg}`, ...l].slice(0, 60));
-        break;
+    try {
+      const started = await startBulkJob({ data: scope });
+      setJob(started);
+      setProgress(started.progress);
+      const stepped = await runBulkJob({ data: { id: started.id } });
+      if (stepped) {
+        setJob(stepped);
+        setProgress(stepped.progress);
+        setLog((lines) => [stepped.lastMessage, ...lines].slice(0, 20));
       }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not start filling.');
     }
-    runningRef.current = false;
     setRunning(false);
     await reload();
   };
 
-  const stopBulk = () => {
-    runningRef.current = false;
+  const stopBulk = async () => {
+    if (!job) return;
+    setRunning(true);
+    try {
+      const paused = await pauseBulkJob({ data: { id: job.id } });
+      setJob(paused);
+      setProgress(paused.progress);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not pause filling.');
+    }
     setRunning(false);
+  };
+
+  const runNow = async () => {
+    if (!job) return;
+    setRunning(true);
+    setError('');
+    try {
+      const next = await runBulkJob({ data: { id: job.id } });
+      if (next) {
+        setJob(next);
+        setProgress(next.progress);
+        setLog((lines) => [next.lastMessage, ...lines].slice(0, 20));
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not run this step.');
+    }
+    setRunning(false);
+    await reload();
   };
 
   const reload = useCallback(async () => {
@@ -138,6 +168,20 @@ export function AdminBankPanel() {
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  useEffect(() => {
+    void getBulkJob({ data: undefined }).then((saved) => {
+      setJob(saved);
+      if (saved) {
+        setProgress(saved.progress);
+        setBulkClass(saved.scope.classLevel);
+        setBulkBook(saved.scope.book);
+        setTargets(saved.scope.targets);
+      }
+    }).catch(() => undefined);
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [getBulkJob]);
 
   useEffect(() => {
     setBookName(group?.books[0]?.name ?? '');
