@@ -104,6 +104,57 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_bulk_jobs: {
+        Row: {
+          book: string
+          class_level: string
+          consecutive_failures: number
+          created_at: string
+          created_by: string
+          id: string
+          last_chapter: string
+          last_message: string
+          lease_until: string | null
+          next_retry_at: string | null
+          progress: Json
+          status: string
+          targets: Json
+          updated_at: string
+        }
+        Insert: {
+          book?: string
+          class_level?: string
+          consecutive_failures?: number
+          created_at?: string
+          created_by: string
+          id?: string
+          last_chapter?: string
+          last_message?: string
+          lease_until?: string | null
+          next_retry_at?: string | null
+          progress?: Json
+          status?: string
+          targets?: Json
+          updated_at?: string
+        }
+        Update: {
+          book?: string
+          class_level?: string
+          consecutive_failures?: number
+          created_at?: string
+          created_by?: string
+          id?: string
+          last_chapter?: string
+          last_message?: string
+          lease_until?: string | null
+          next_retry_at?: string | null
+          progress?: Json
+          status?: string
+          targets?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bank_imports: {
         Row: {
           book: string
