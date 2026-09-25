@@ -14,8 +14,8 @@
  */
 
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
-/** Tried in order; the first one handles large batches best. */
-const GEMINI_MODELS = ["gemini-flash-latest", "gemini-3.6-flash"] as const;
+/** Prefer the model that reliably handles structured question batches. */
+const GEMINI_MODELS = ["gemini-3.6-flash", "gemini-flash-latest"] as const;
 const LOVABLE_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
 const KEY_NAMES = ["zain", "zain2", "zain3", "zain4", "zain5"] as const;
