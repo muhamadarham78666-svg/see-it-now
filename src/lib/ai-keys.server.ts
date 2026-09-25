@@ -51,7 +51,7 @@ export interface AiChatOptions {
 function retryAfterSeconds(response: Response): number {
   const raw = response.headers.get("retry-after");
   const seconds = raw ? Number(raw) : Number.NaN;
-  return Number.isFinite(seconds) && seconds > 0 ? Math.ceil(seconds) : 3600;
+  return Number.isFinite(seconds) && seconds > 0 ? Math.ceil(seconds) : 0;
 }
 
 function freeQuotaResponse(retryAfter: number, detail: string): Response {
@@ -164,16 +164,15 @@ export async function aiChatFetch(
 
   let lastStatus = 0;
   let lastDetail = "";
-  let retryAfter = 3600;
+  let retryAfter = 0;
   let hardStop = false;
 
-  // Every model is tried with every key, twice (Google often answers 503 on a
-  // busy moment), before the paid backup is considered.
+  // Google can briefly return 503 for a larger structured request even while
+  // tiny health checks pass. Use one bounded retry cycle in free-only mode so
+  // a temporary busy response does not park the whole bulk job for an hour.
   const attempts: { model: string; wait: number }[] = [];
   for (const model of GEMINI_MODELS) attempts.push({ model, wait: 0 });
-  if (!options.freeOnly) {
-    for (const model of GEMINI_MODELS) attempts.push({ model, wait: 4000 });
-  }
+  for (const model of GEMINI_MODELS) attempts.push({ model, wait: 4000 });
 
   for (const attempt of attempts) {
     if (hardStop) break;
@@ -222,7 +221,10 @@ export async function aiChatFetch(
         { status: 403 },
       );
     }
-    return freeQuotaResponse(retryAfter, lastDetail.slice(0, 160));
+    // Quota errors wait for Google's reset window. A pure 5xx response is a
+    // short provider-busy pause and should be retried much sooner.
+    const waitSeconds = retryAfter > 0 ? retryAfter : lastStatus >= 500 ? 120 : 3600;
+    return freeQuotaResponse(waitSeconds, lastDetail.slice(0, 160));
   }
 
   // Paid backup only when the free keys are truly out of quota / unreachable.

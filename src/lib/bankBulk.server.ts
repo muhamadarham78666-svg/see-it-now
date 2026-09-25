@@ -22,8 +22,8 @@ export interface BulkScope {
   targets: BulkTargets;
 }
 
-/** Per-call ceiling so one AI request stays small and reliable. */
-const BATCH = { mcq: 20, short: 15, long: 8 };
+/** Per-call ceiling: keep structured free-tier requests small and reliable. */
+const BATCH = { mcq: 8, short: 5, long: 2 };
 
 const COMPOSITION_BY_FAMILY: Record<string, string[]> = {
   language: ['letter', 'application', 'essay', 'story', 'dialogue', 'precis', 'comprehension'],
