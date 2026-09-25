@@ -22,8 +22,8 @@ export interface BulkScope {
   targets: BulkTargets;
 }
 
-/** Per-call ceiling: small requests are substantially more reliable on free AI. */
-const BATCH = { mcq: 8, short: 0, long: 0 };
+/** Per-call ceiling: one question type per request keeps free AI reliable. */
+const BATCH = { mcq: 8, short: 5, long: 2 };
 
 const COMPOSITION_BY_FAMILY: Record<string, string[]> = {
   language: ['letter', 'application', 'essay', 'story', 'dialogue', 'precis', 'comprehension'],
@@ -295,11 +295,16 @@ async function nextTask(scope: BulkScope) {
         short: 0,
         long: 0,
       };
-      const need = {
-        mcq: Math.min(BATCH.mcq, Math.max(0, scope.targets.mcq - have.mcq)),
-        short: Math.min(BATCH.short, Math.max(0, scope.targets.short - have.short)),
-        long: Math.min(BATCH.long, Math.max(0, scope.targets.long - have.long)),
-      };
+      const mcqGap = Math.max(0, scope.targets.mcq - have.mcq);
+      const shortGap = Math.max(0, scope.targets.short - have.short);
+      const longGap = Math.max(0, scope.targets.long - have.long);
+      // Request only one type at a time. Mixed 40+ question JSON requests were
+      // causing immediate provider-busy responses despite healthy API keys.
+      const need = mcqGap > 0
+        ? { mcq: Math.min(BATCH.mcq, mcqGap), short: 0, long: 0 }
+        : shortGap > 0
+          ? { mcq: 0, short: Math.min(BATCH.short, shortGap), long: 0 }
+          : { mcq: 0, short: 0, long: Math.min(BATCH.long, longGap) };
       if (need.mcq + need.short + need.long > 0) {
         return { group, book, chapter, need };
       }
