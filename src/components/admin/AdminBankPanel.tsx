@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useServerFn } from '@tanstack/react-start';
 import {
   Database,
@@ -192,6 +192,28 @@ export function AdminBankPanel() {
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, [getBulkJob]);
+
+  // Auto-continue: while this page is open and the job is running, keep filling nonstop.
+  const loopBusy = useRef(false);
+  useEffect(() => {
+    if (!job || loopBusy.current) return;
+    const due = job.status === 'running'
+      || (job.status === 'waiting' && job.nextRetryAt && new Date(job.nextRetryAt).getTime() <= now);
+    if (!due) return;
+    loopBusy.current = true;
+    void runBulkJob({ data: { id: job.id } })
+      .then((next) => {
+        if (next) {
+          setJob(next);
+          setProgress(next.progress);
+          setLog((lines) => [next.lastMessage, ...lines].slice(0, 20));
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        window.setTimeout(() => { loopBusy.current = false; setNow(Date.now()); }, 2000);
+      });
+  }, [job, now, runBulkJob]);
 
   useEffect(() => {
     setBookName(group?.books[0]?.name ?? '');

@@ -210,7 +210,20 @@ export async function runBulkJob(jobId?: string): Promise<BulkJob | null> {
   };
 
   try {
-    const result = await bulkStep({ supabase: client, userId: row.created_by }, scope);
+    // Keep working for up to ~45s per call so each step saves many batches, not just one.
+    const deadline = Date.now() + 45_000;
+    let result = await bulkStep({ supabase: client, userId: row.created_by }, scope);
+    let createdTotal = result.created;
+    while (!result.done && Date.now() < deadline) {
+      try {
+        result = await bulkStep({ supabase: client, userId: row.created_by }, scope);
+        createdTotal += result.created;
+      } catch (inner) {
+        if (createdTotal > 0) break; // keep what we saved; next call handles the wait
+        throw inner;
+      }
+    }
+    result = { ...result, created: createdTotal };
     const current = result.current
       ? `${result.current.classLevel} • ${result.current.book} • ${result.current.chapter}`
       : row.last_chapter;
